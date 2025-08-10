@@ -1,0 +1,14 @@
+@import "preline/variants.css";
+@source "../../node_modules/preline/dist/*.js";
+
+/* Optional Preline UI Datepicker Plugin */
+/* @import "preline/src/plugins/datepicker/styles.css"; */
+
+/* Plugins */
+/* @plugin "@tailwindcss/forms"; */
+
+
+
+  
+  /* Defaults hover styles on all devices */
+  @custom-variant hover (&:hover);
