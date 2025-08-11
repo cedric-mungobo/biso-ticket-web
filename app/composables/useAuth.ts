@@ -17,40 +17,37 @@ interface ProfileResponse {
   data: any
 }
 
-// Cookies pour la persistance des données
-const authTokenCookie = useCookie('auth_token', {
-  default: () => null as string | null,
-  maxAge: 60 * 60 * 24 * 7, // 7 jours
-  secure: true,
-  sameSite: 'strict'
-})
-
-const authUserCookie = useCookie('auth_user', {
-  default: () => null as any,
-  maxAge: 60 * 60 * 24 * 7, // 7 jours
-  secure: true,
-  sameSite: 'strict'
-})
-
 // État de l'authentification
 const isLoading = ref(false)
 const isAuthenticated = ref(false)
 const user = ref<any>(null)
 const token = ref<string | null>(null)
 
-// Initialiser l'état depuis les cookies
+// Initialiser l'état depuis localStorage
 const initializeAuth = () => {
-  if (authTokenCookie.value && authUserCookie.value) {
-    token.value = authTokenCookie.value
-    user.value = authUserCookie.value
-    isAuthenticated.value = true
+  if (process.client) {
+    const storedToken = localStorage.getItem('auth_token')
+    const storedUser = localStorage.getItem('auth_user')
+    
+    if (storedToken && storedUser) {
+      try {
+        token.value = storedToken
+        user.value = JSON.parse(storedUser)
+        isAuthenticated.value = true
+      } catch (error) {
+        console.error('Erreur lors du parsing des données utilisateur:', error)
+        clearAuthState()
+      }
+    }
   }
 }
 
-// Sauvegarder l'état dans les cookies
+// Sauvegarder l'état dans localStorage
 const saveAuthState = (userData: any, userToken: string) => {
-  authTokenCookie.value = userToken
-  authUserCookie.value = userData
+  if (process.client) {
+    localStorage.setItem('auth_token', userToken)
+    localStorage.setItem('auth_user', JSON.stringify(userData))
+  }
   token.value = userToken
   user.value = userData
   isAuthenticated.value = true
@@ -58,8 +55,10 @@ const saveAuthState = (userData: any, userToken: string) => {
 
 // Nettoyer l'état d'authentification
 const clearAuthState = () => {
-  authTokenCookie.value = null
-  authUserCookie.value = null
+  if (process.client) {
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
+  }
   token.value = null
   user.value = null
   isAuthenticated.value = false

@@ -10,7 +10,7 @@
         <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-6xl text-white font-bold mb-4 md:mb-6 leading-tight">
           Biso Ticket
         </h1>
-        <p class="text-xl sm:text-xl md:text-2xl lg:text-3xl text-white/95 mb-6 md:mb-8 leading-relaxed max-w-lg">
+        <p class="text-3xl sm:text-3xl md:text-4xl lg:text-4xl text-white/95 mb-6 md:mb-8 leading-relaxed max-w-lg">
           Organisez, trouvez et réservez vos billets pour les meilleurs événements
         </p>
         

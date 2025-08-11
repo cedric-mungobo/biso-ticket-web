@@ -22,64 +22,87 @@ const isReservationActive = ref(false)
 const currentReservationId = ref<string | null>(null)
 
 export function useTickets() {
-  // Cookies pour la persistance des données (créés à l'intérieur de la fonction)
-  const selectedTicketsCookie = useCookie('biso-selected-tickets', {
-    default: () => ({} as Record<number, number>),
-    maxAge: 60 * 60 * 24 * 7, // 7 jours
-    secure: true,
-    sameSite: 'strict'
-  })
-
-  const currentEventCookie = useCookie('biso-current-event', {
-    default: () => null as Event | null,
-    maxAge: 60 * 60 * 24 * 7, // 7 jours
-    secure: true,
-    sameSite: 'strict'
-  })
-
-  const isReservationActiveCookie = useCookie('biso-reservation-active', {
-    default: () => false as boolean,
-    maxAge: 60 * 60 * 24 * 7, // 7 jours
-    secure: true,
-    sameSite: 'strict'
-  })
-
-  const currentReservationIdCookie = useCookie('biso-reservation-id', {
-    default: () => null as string | null,
-    maxAge: 60 * 60 * 24 * 7, // 7 jours
-    secure: true,
-    sameSite: 'strict'
-  })
-
-  // Initialiser l'état depuis les cookies
-  if (selectedTicketsCookie.value && Object.keys(selectedTicketsCookie.value).length > 0) {
-    selectedTickets.value = { ...selectedTicketsCookie.value }
-  }
-  if (currentEventCookie.value) {
-    currentEvent.value = currentEventCookie.value
-  }
-  if (isReservationActiveCookie.value) {
-    isReservationActive.value = isReservationActiveCookie.value
-  }
-  if (currentReservationIdCookie.value) {
-    currentReservationId.value = currentReservationIdCookie.value
+  // Initialiser l'état depuis localStorage
+  const restoreFromLocalStorage = () => {
+    if (process.client) {
+      try {
+        const storedTickets = localStorage.getItem('biso-selected-tickets')
+        const storedEvent = localStorage.getItem('biso-current-event')
+        const storedReservationActive = localStorage.getItem('biso-reservation-active')
+        const storedReservationId = localStorage.getItem('biso-reservation-id')
+        
+        if (storedTickets) {
+          const parsedTickets = JSON.parse(storedTickets)
+          if (parsedTickets && Object.keys(parsedTickets).length > 0) {
+            selectedTickets.value = parsedTickets
+          }
+        }
+        
+        if (storedEvent) {
+          const parsedEvent = JSON.parse(storedEvent)
+          if (parsedEvent) {
+            currentEvent.value = parsedEvent
+          }
+        }
+        
+        if (storedReservationActive) {
+          isReservationActive.value = JSON.parse(storedReservationActive)
+        }
+        
+        if (storedReservationId) {
+          currentReservationId.value = storedReservationId
+        }
+      } catch (error) {
+        console.error('Erreur lors de la restauration depuis localStorage:', error)
+        clearLocalStorage()
+      }
+    }
   }
 
-  // Synchronisation automatique avec les cookies
-  watch(selectedTickets, (newValue) => {
-    selectedTicketsCookie.value = newValue
+  // Sauvegarder dans localStorage
+  const saveToLocalStorage = () => {
+    if (process.client) {
+      try {
+        localStorage.setItem('biso-selected-tickets', JSON.stringify(selectedTickets.value))
+        localStorage.setItem('biso-current-event', JSON.stringify(currentEvent.value))
+        localStorage.setItem('biso-reservation-active', JSON.stringify(isReservationActive.value))
+        if (currentReservationId.value) {
+          localStorage.setItem('biso-reservation-id', currentReservationId.value)
+        }
+      } catch (error) {
+        console.error('Erreur lors de la sauvegarde dans localStorage:', error)
+      }
+    }
+  }
+
+  // Nettoyer localStorage
+  const clearLocalStorage = () => {
+    if (process.client) {
+      localStorage.removeItem('biso-selected-tickets')
+      localStorage.removeItem('biso-current-event')
+      localStorage.removeItem('biso-reservation-active')
+      localStorage.removeItem('biso-reservation-id')
+    }
+  }
+
+  // Restaurer depuis localStorage au démarrage
+  restoreFromLocalStorage()
+
+  // Synchronisation automatique avec localStorage
+  watch(selectedTickets, () => {
+    saveToLocalStorage()
   }, { deep: true })
 
-  watch(currentEvent, (newValue) => {
-    currentEventCookie.value = newValue
+  watch(currentEvent, () => {
+    saveToLocalStorage()
   }, { deep: true })
 
-  watch(isReservationActive, (newValue) => {
-    isReservationActiveCookie.value = newValue
+  watch(isReservationActive, () => {
+    saveToLocalStorage()
   })
 
-  watch(currentReservationId, (newValue) => {
-    currentReservationIdCookie.value = newValue
+  watch(currentReservationId, () => {
+    saveToLocalStorage()
   })
 
   // Getters
@@ -194,17 +217,19 @@ export function useTickets() {
 
   // Fonction pour récupérer les données depuis les cookies
   const restoreFromCookies = () => {
-    if (selectedTicketsCookie.value) {
-      selectedTickets.value = { ...selectedTicketsCookie.value }
-    }
-    if (currentEventCookie.value) {
-      currentEvent.value = currentEventCookie.value
-    }
-    if (isReservationActiveCookie.value) {
-      isReservationActive.value = isReservationActiveCookie.value
-    }
-    if (currentReservationIdCookie.value) {
-      currentReservationId.value = currentReservationIdCookie.value
+    if (process.client) {
+      if (localStorage.getItem('biso-selected-tickets')) {
+        selectedTickets.value = { ...JSON.parse(localStorage.getItem('biso-selected-tickets')!) }
+      }
+      if (localStorage.getItem('biso-current-event')) {
+        currentEvent.value = JSON.parse(localStorage.getItem('biso-current-event')!)
+      }
+      if (localStorage.getItem('biso-reservation-active')) {
+        isReservationActive.value = JSON.parse(localStorage.getItem('biso-reservation-active')!)
+      }
+      if (localStorage.getItem('biso-reservation-id')) {
+        currentReservationId.value = localStorage.getItem('biso-reservation-id')
+      }
     }
   }
 
