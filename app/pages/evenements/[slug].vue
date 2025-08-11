@@ -1,6 +1,6 @@
 <template>
-  <main class="px-4 py-8 md:px-8 pt-20 lg:px-12">
-    <div class="mx-auto max-w-6xl">
+  <main class="px-4 py-8 md:px-8 pt-24 lg:px-12">
+    <div class="mx-auto max-w-5xl">
       <!-- Breadcrumb -->
       <nav class="mb-6" aria-label="Breadcrumb">
         <ol class="flex items-center space-x-2 text-sm text-gray-600">
@@ -56,11 +56,9 @@
       </div>
 
       <!-- Event Details -->
-      <div v-else-if="event" class="space-y-8">
-        <!-- Header Section -->
-        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div v-else-if="event" class="space-y-4">
           <!-- Image principale -->
-          <div class="relative h-64 md:h-80 lg:h-96">
+          <div class="relative h-64 md:h-80 lg:h-96 rounded-lg overflow-hidden  ">
             <NuxtImg
               v-if="event.image_url || event.image"
               :src="event.image_url || event.image"
@@ -89,7 +87,7 @@
                 {{ event.category }}
               </span>
             </div>
-
+  
             <!-- Badge événement en vedette -->
             <div v-if="event.is_featured" class="absolute top-4 right-4">
               <span class="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
@@ -98,125 +96,131 @@
             </div>
           </div>
 
-          <!-- Informations principales -->
-          <div class="p-6 md:p-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <!-- Titre et description -->
-              <div class="lg:col-span-2">
-                <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-                  {{ event.name }}
-                </h1>
-                
-                <p class="text-lg text-gray-600 leading-relaxed mb-6">
-                  {{ event.description }}
-                </p>
-
-                <!-- Informations clés -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div class="flex items-center gap-3">
-                    <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                      <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                      </svg>
+          <!-- grid2 -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div class="bg-white col-span-2    rounded-xl border border-gray-200 overflow-hidden">
+                <!-- Informations principales -->
+                <div class="p-2 md:p-4">
+                  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Titre et description -->
+                    <div class="lg:col-span-2">
+                      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                        {{ event.name }}
+                      </h1>
+                      
+                      <p class="text-lg text-gray-600 leading-relaxed mb-6">
+                        {{ event.description }}
+                      </p>
+      
+                      <!-- Informations clés -->
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="flex items-center gap-3">
+                          <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                          </div>
+                          <div>
+                            <p class="text-sm font-medium text-gray-500">Date et heure</p>
+                            <p class="text-base font-semibold text-gray-900">{{ formatEventDate(event.date_time) }}</p>
+                          </div>
+                        </div>
+      
+                        <div class="flex items-center gap-3">
+                          <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                          </div>
+                          <div>
+                            <p class="text-sm font-medium text-gray-500">Lieu</p>
+                            <p class="text-base font-semibold text-gray-900">{{ event.location }}</p>
+                          </div>
+                        </div>
+      
+                        <div v-if="event.organizer" class="flex items-center gap-3">
+                          <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                          </div>
+                          <div>
+                            <p class="text-sm font-medium text-gray-500">Organisateur</p>
+                            <p class="text-base font-semibold text-gray-900">{{ event.organizer.name }}</p>
+                          </div>
+                        </div>
+      
+                        <div v-if="event.participants_count !== undefined" class="flex items-center gap-3">
+                          <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                          </div>
+                          <div>
+                            <p class="text-sm font-medium text-gray-500">Participants</p>
+                            <p class="text-base font-semibold text-gray-900">{{ event.participants_count }}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p class="text-sm font-medium text-gray-500">Date et heure</p>
-                      <p class="text-base font-semibold text-gray-900">{{ formatEventDate(event.date_time) }}</p>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-3">
-                    <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                      <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <p class="text-sm font-medium text-gray-500">Lieu</p>
-                      <p class="text-base font-semibold text-gray-900">{{ event.location }}</p>
-                    </div>
-                  </div>
-
-                  <div v-if="event.organizer" class="flex items-center gap-3">
-                    <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                      <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <p class="text-sm font-medium text-gray-500">Organisateur</p>
-                      <p class="text-base font-semibold text-gray-900">{{ event.organizer.name }}</p>
-                    </div>
-                  </div>
-
-                  <div v-if="event.participants_count !== undefined" class="flex items-center gap-3">
-                    <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                      <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <p class="text-sm font-medium text-gray-500">Participants</p>
-                      <p class="text-base font-semibold text-gray-900">{{ event.participants_count }}</p>
-                    </div>
+      
+                  
                   </div>
                 </div>
               </div>
-
-              <!-- Section des tickets -->
-              <div class="lg:col-span-1">
-                <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                  <h3 class="text-xl font-semibold text-gray-900 mb-4">Billets disponibles</h3>
-                  
-                  <div v-if="event.tickets && event.tickets.length > 0" class="space-y-3">
-                    <div
-                      v-for="ticket in event.tickets"
-                      :key="ticket.id"
-                      class="bg-white rounded-lg p-4 border border-gray-200"
-                    >
-                      <div class="flex justify-between items-start mb-2">
-                        <h4 class="font-semibold text-gray-900">{{ ticket.type }}</h4>
-                        <span class="text-lg font-bold text-primary-600">
-                          {{ ticket.formatted_price || `${ticket.price} ${ticket.devise}` }}
-                        </span>
-                      </div>
-                      
-                      <div class="text-sm text-gray-600 mb-3">
-                        <p>Quantité disponible: {{ ticket.available || ticket.quantity }}</p>
-                        <p v-if="ticket.end_date">Valide jusqu'au: {{ formatDate(ticket.end_date) }}</p>
-                      </div>
-
-                      <button
-                        v-if="ticket.is_available !== false"
-                        class="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 transition-colors font-medium"
-                        :style="ticket.bg_color ? { backgroundColor: ticket.bg_color, color: ticket.text_color || 'white' } : {}"
-                      >
-                        Réserver
-                      </button>
-                      
-                      <div v-else class="text-center text-gray-500 text-sm py-2">
-                        Indisponible
+                <!-- Section des tickets -->
+                <div class="lg:col-span-1 bg-white rounded-xl border border-gray-200 overflow-hidden">
+                      <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Billets disponibles</h3>
+                        
+                        <div v-if="event.tickets && event.tickets.length > 0" class="space-y-3">
+                          <div
+                            v-for="ticket in event.tickets"
+                            :key="ticket.id"
+                            class="bg-white rounded-lg p-4 border border-gray-200"
+                          >
+                            <div class="flex justify-between items-start mb-2">
+                              <h4 class="font-semibold text-gray-900">{{ ticket.type }}</h4>
+                              <span class="text-lg font-bold text-primary-600">
+                                {{ ticket.formatted_price || `${ticket.price} ${ticket.devise}` }}
+                              </span>
+                            </div>
+                            
+                            <div class="text-sm text-gray-600 mb-3">
+                              <p>Quantité disponible: {{ ticket.available || ticket.quantity }}</p>
+                              <p v-if="ticket.end_date">Valide jusqu'au: {{ formatDate(ticket.end_date) }}</p>
+                            </div>
+      
+                            <button
+                              v-if="ticket.is_available !== false"
+                              class="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 transition-colors font-medium"
+                              :style="ticket.bg_color ? { backgroundColor: ticket.bg_color, color: ticket.text_color || 'white' } : {}"
+                            >
+                              Réserver
+                            </button>
+                            
+                            <div v-else class="text-center text-gray-500 text-sm py-2">
+                              Indisponible
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div v-else class="text-center text-gray-500 py-4">
+                          <p>Aucun billet disponible pour le moment</p>
+                        </div>
+      
+                        <!-- Prix global -->
+                        <div v-if="event.min_price && event.max_price" class="mt-6 pt-4 border-t border-gray-200">
+                          <p class="text-sm text-gray-600">Prix des billets:</p>
+                          <p class="text-lg font-semibold text-gray-900">
+                            {{ event.min_price }} - {{ event.max_price }} {{ event.tickets?.[0]?.devise || '€' }}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div v-else class="text-center text-gray-500 py-4">
-                    <p>Aucun billet disponible pour le moment</p>
-                  </div>
-
-                  <!-- Prix global -->
-                  <div v-if="event.min_price && event.max_price" class="mt-6 pt-4 border-t border-gray-200">
-                    <p class="text-sm text-gray-600">Prix des billets:</p>
-                    <p class="text-lg font-semibold text-gray-900">
-                      {{ event.min_price }} - {{ event.max_price }} {{ event.tickets?.[0]?.devise || '€' }}
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
-        </div>
+        <!-- Header Section -->
 
         <!-- Actions supplémentaires -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -276,9 +280,12 @@ const fetchEventData = async () => {
 
 // Récupération des données au montage du composant
 onMounted(() => {
-  if (slug) {
-    fetchEventData()
-  }
+    nextTick(() => {
+
+        if (slug) {
+            fetchEventData()
+        }
+        })
 })
 
 // Surveillance des changements de route
