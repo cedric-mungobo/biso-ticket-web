@@ -1,5 +1,6 @@
 <template>
-  <section class="max-w-7xl px-2 xl:px-0 py-10 lg:pt-20 mx-auto">
+    <div class="bg-gradient-to-r rounded-2xl from-primary-900 to-primary-950">
+  <section class="max-w-7xl px-4 xl:px-0 py-10 lg:pt-20 mx-auto">
     <!-- Titre de la section -->
     <div class="max-w-3xl mb-10 lg:mb-14">
       <h2 class="text-white font-semibold text-2xl md:text-4xl md:leading-tight">
@@ -13,9 +14,9 @@
     <!-- Grille principale -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 lg:items-center">
       <!-- Image -->
-      <div class="aspect-w-16 aspect-h-9 lg:aspect-none">
+      <div class=" aspect-square rounded-xl">
         <img 
-          class="w-full object-cover rounded-xl" 
+          class="w-full object-cover aspect-square rounded-xl" 
           :src="imageSrc" 
           :alt="imageAlt"
         >
@@ -58,7 +59,7 @@
         <a 
           v-if="ctaButton"
           :href="ctaButton.href"
-          class="group inline-flex items-center gap-x-2 py-2 px-3 bg-secondary-200 font-medium text-sm text-neutral-800 rounded-full focus:outline-hidden hover:bg-[#e6d900] transition-colors"
+          class="group inline-flex items-center gap-x-2 py-2 px-3 bg-secondary-200 font-medium text-sm text-neutral-800 rounded-full focus:outline-hidden hover:bg-secondary-300 transition-colors"
         >
           <svg 
             class="shrink-0 size-4" 
@@ -81,6 +82,7 @@
       </div>
     </div>
   </section>
+  </div>
 </template>
 
 <script setup lang="ts">

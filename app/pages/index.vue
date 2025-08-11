@@ -103,7 +103,7 @@ onMounted(() => {
       <!-- End Works -->
   
 
-      <div class=" bg-gradient-to-r from-primary-900 to-primary-950  ">
+      <div class="px-1 sm:px-6 lg:px-8  ">
         <!-- Approach -->
         <OurApproach />
         <!-- End Approach -->
