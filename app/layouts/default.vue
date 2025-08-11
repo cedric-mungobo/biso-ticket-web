@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Announcement/>
+    <!-- <Announcement/> -->
     <AppHeader/>
     <slot/>
     <AppFooter/>
