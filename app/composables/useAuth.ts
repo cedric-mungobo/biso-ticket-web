@@ -41,19 +41,23 @@ const login = async (identifier: string, password: string) => {
   try {
     isLoading.value = true
     
-    const response = await $fetch<AuthResponse>('/api/login', {
+    const { data: response, error } = await useAPI<AuthResponse>('/auth/login', {
       method: 'POST',
       body: { identifier, password }
     })
 
-    if (response.success && response.data) {
+    if (error.value) {
+      throw error.value
+    }
+
+    if (response.value?.success && response.value.data) {
       // Rafraîchir la session côté client
       const { fetch: refreshSession } = useUserSession()
       await refreshSession()
       
-      return { success: true, user: response.data.user }
+      return { success: true, user: response.value.data.user }
     } else {
-      throw new Error(response.message || 'Erreur de connexion')
+      throw new Error(response.value?.message || 'Erreur de connexion')
     }
   } catch (error: any) {
     console.error('Erreur de connexion:', error)
@@ -83,19 +87,23 @@ const register = async (userData: {
   try {
     isLoading.value = true
     
-    const response = await $fetch<AuthResponse>('/api/register', {
+    const { data: response, error } = await useAPI<AuthResponse>('/api/register', {
       method: 'POST',
       body: userData
     })
 
-    if (response.success && response.data) {
+    if (error.value) {
+      throw error.value
+    }
+
+    if (response.value?.success && response.value.data) {
       // Rafraîchir la session côté client
       const { fetch: refreshSession } = useUserSession()
       await refreshSession()
       
-      return { success: true, user: response.data.user }
+      return { success: true, user: response.value.data.user }
     } else {
-      throw new Error(response.message || 'Erreur d\'inscription')
+      throw new Error(response.value?.message || 'Erreur d\'inscription')
     }
   } catch (error: any) {
     console.error('Erreur d\'inscription:', error)
@@ -118,7 +126,11 @@ const register = async (userData: {
 const logout = async () => {
   try {
     // Appel à l'API de déconnexion
-    await $fetch('/api/logout', { method: 'POST' })
+    const { error } = await useAPI('/api/logout', { method: 'POST' })
+    
+    if (error.value) {
+      throw error.value
+    }
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error)
   } finally {
@@ -133,11 +145,15 @@ const fetchUserProfile = async () => {
   try {
     isLoading.value = true
     
-    const response = await $fetch<ProfileResponse>('/api/user/profile')
+    const { data: response, error } = await useAPI<ProfileResponse>('/api/user/profile')
 
-    if (response.success && response.data) {
+    if (error.value) {
+      throw error.value
+    }
+
+    if (response.value?.success && response.value.data) {
       // La session est automatiquement mise à jour par nuxt-auth-utils
-      return response.data
+      return response.value.data
     }
   } catch (error: any) {
     console.error('Erreur de récupération du profil:', error)
