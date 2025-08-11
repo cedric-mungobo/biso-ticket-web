@@ -29,7 +29,7 @@ onMounted(() => {
    
 
       <!-- discover -->
-      <div class="max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-24 mx-auto">
+      <div class="max-w-7xl px-2 sm:px-0 lg:px-8 py-12 lg:py-24 mx-auto">
         <div class="mb-6 sm:mb-10 max-w-2xl text-center mx-auto">
           <h1 class="font-medium text-black text-3xl sm:text-4xl dark:text-white">
             Découvrez les événements à venir
@@ -64,7 +64,7 @@ onMounted(() => {
         </div>
 
         <!-- Events Grid -->
-        <div v-else-if="events.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
+        <div v-else-if="events.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           <EventCard
             v-for="event in events" 
             :key="event.id"
@@ -102,6 +102,14 @@ onMounted(() => {
       </div>
       <!-- End Works -->
   
+
+      <div class=" bg-gradient-to-r from-primary-900 to-primary-950  ">
+        <!-- Approach -->
+        <OurApproach />
+        <!-- End Approach -->
+      </div>
+
+
       <!-- Testimonials -->
       <div class="py-10 md:py-16 lg:py-20 bg-secondary-100">
         <div class="px-4 sm:px-6 lg:px-8">

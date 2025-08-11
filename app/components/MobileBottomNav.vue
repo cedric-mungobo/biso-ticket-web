@@ -3,20 +3,7 @@
     <nav class="mx-2 mb-2">
       <div class="max-w-5xl mx-auto bg-neutral-800/30 backdrop-blur-md rounded-[26px] p-2">
         <div class="flex items-center justify-around">
-          <!-- Accueil -->
-          <NuxtLink 
-            to="/" 
-            class="flex flex-col items-center justify-center flex-1 py-2 transition-all duration-200 group"
-            :class="isActive('/') ? 'text-primary-500' : 'text-white hover:text-primary-400'"
-          >
-            <div class="w-8 h-8 flex items-center justify-center mb-1">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-              </svg>
-            </div>
-            <span class="text-xs font-medium group-hover:text-primary-400 transition-colors">Accueil</span>
-          </NuxtLink>
-
+        
           <!-- Événements -->
           <NuxtLink 
             to="/evenements" 
