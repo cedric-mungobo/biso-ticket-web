@@ -17,7 +17,7 @@
       </h3>
 
       <!-- Image de l'événement -->
-      <div class="rounded-lg overflow-hidden h-44 w-full group-hover:scale-[1.02] transition-transform duration-300">
+      <div class="rounded-lg overflow-hidden aspect-square w-full group-hover:scale-[1.02] transition-transform duration-300">
         <NuxtImg
           v-if="image"
           :src="image"
@@ -102,13 +102,30 @@ const formatDate = computed(() => {
   if (!props.date) return 'Date à définir'
   
   try {
-    const date = new Date(props.date)
+    // Gérer le format "2025-08-16 20:00:00"
+    let date: Date
+    
+    if (typeof props.date === 'string') {
+      // Remplacer l'espace par 'T' pour la compatibilité ISO
+      const isoDate = props.date.replace(' ', 'T')
+      date = new Date(isoDate)
+    } else {
+      date = new Date(props.date)
+    }
+    
+    // Vérifier si la date est valide
+    if (isNaN(date.getTime())) {
+      return 'Date à définir'
+    }
+    
+    // Formater la date en français
     return date.toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
     })
-  } catch {
+  } catch (error) {
+    console.error('Erreur de formatage de date:', error, props.date)
     return 'Date à définir'
   }
 })
