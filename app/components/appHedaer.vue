@@ -5,40 +5,39 @@
       <nav class="relative max-w-5xl w-full flex flex-wrap md:flex-nowrap basis-full items-center justify-between py-2 ps-5 pe-2 md:py-0 mx-2 lg:mx-auto">
         <!-- Logo -->
         <div class="flex items-center">
-          <a class="flex-none rounded-md text-xl inline-block font-semibold focus:outline-hidden focus:opacity-80" href="/" aria-label="Biso Ticket">
+          <NuxtLink class="flex-none rounded-md text-xl inline-block font-semibold focus:outline-hidden focus:opacity-80" to="/" aria-label="Biso Ticket">
             <span class="text-white font-bold text-2xl">Biso Ticket</span>
-          </a>
+          </NuxtLink>
         </div>
         <!-- End Logo -->
-
         <!-- Navigation Menu -->
         <div class="hidden md:flex items-center space-x-8">
-          <a class="pe-3 ps-px sm:px-3 md:py-4 text-sm text-white hover:text-neutral-300 focus:outline-hidden focus:text-neutral-300" href="/">
+          <NuxtLink class="pe-3 ps-px sm:px-3 md:py-4 text-sm text-white hover:text-neutral-300 focus:outline-hidden focus:text-neutral-300" to="/">
             Accueil
-          </a>
-          <a class="pe-3 ps-px sm:px-3 md:py-4 text-sm text-white hover:text-neutral-300 focus:outline-hidden focus:text-neutral-300" href="/evenements">
+          </NuxtLink>
+          <NuxtLink class="pe-3 ps-px sm:px-3 md:py-4 text-sm text-white hover:text-neutral-300 focus:outline-hidden focus:text-neutral-300" to="/evenements">
             Événements
-          </a>
-          <a class="pe-3 ps-px sm:px-3 md:py-4 text-sm text-white hover:text-neutral-300 focus:outline-hidden focus:text-neutral-300" href="/organisateur">
+          </NuxtLink>
+          <NuxtLink class="pe-3 ps-px sm:px-3 md:py-4 text-sm text-white hover:text-neutral-300 focus:outline-hidden focus:text-neutral-300" to="/organisateur">
             Organisateur
-          </a>
-          <a class="pe-3 ps-px sm:px-3 md:py-4 text-sm text-white hover:text-neutral-300 focus:outline-hidden focus:text-neutral-300" href="/contact">
+          </NuxtLink>
+          <NuxtLink class="pe-3 ps-px sm:px-3 md:py-4 text-sm text-white hover:text-neutral-300 focus:outline-hidden focus:text-neutral-300" to="/contact">
             Contact
-          </a>
+          </NuxtLink>
         </div>
         <!-- End Navigation Menu -->
 
         <!-- Button Group -->
         <div class="md:order-3 flex items-center gap-x-2">
           <div class="md:ps-3">
-            <a class="group inline-flex items-center gap-x-2 py-2 px-2 bg-[#ff0] font-medium text-sm text-nowrap text-neutral-800 rounded-full focus:outline-hidden" href="/connexion">
+            <NuxtLink class="group inline-flex items-center gap-x-2 py-2 px-2 bg-primary-100 font-medium text-sm text-nowrap text-neutral-800 rounded-full focus:outline-hidden" to="/connexion">
               Connexion
-            </a>
+            </NuxtLink>
           </div>
           <div class="md:ps-3">
-            <a class="group inline-flex items-center gap-x-2 py-2 px-2 bg-white font-medium text-sm text-nowrap text-neutral-800 rounded-full focus:outline-hidden hover:bg-neutral-100" href="/inscription">
+            <NuxtLink class="group inline-flex items-center gap-x-2 py-2 px-2 bg-white font-medium text-sm text-nowrap text-neutral-800 rounded-full focus:outline-hidden hover:bg-neutral-100" to="/inscription">
               Inscription
-            </a>
+            </NuxtLink>
           </div>
         </div>
         <!-- End Button Group -->
@@ -63,25 +62,25 @@
       <!-- Mobile Menu -->
       <div v-if="isMobileMenuOpen" class="md:hidden bg-neutral-800/90 backdrop-blur-md rounded-b-[26px] mx-2">
         <div class="px-6 py-4 space-y-3">
-          <a class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" href="/" @click="closeMobileMenu">
+          <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/" @click="closeMobileMenu">
             Accueil
-          </a>
-          <a class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" href="/evenements" @click="closeMobileMenu">
+          </NuxtLink>
+          <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/evenements" @click="closeMobileMenu">
             Événements
-          </a>
-          <a class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" href="/organisateur" @click="closeMobileMenu">
+          </NuxtLink>
+          <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/organisateur" @click="closeMobileMenu">
             Organisateur
-          </a>
-          <a class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" href="/contact" @click="closeMobileMenu">
+          </NuxtLink>
+          <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/contact" @click="closeMobileMenu">
             Contact
-          </a>
+          </NuxtLink>
           <div class="pt-4 space-y-3 border-t border-neutral-700">
-            <a class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" href="/connexion" @click="closeMobileMenu">
+            <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/connexion" @click="closeMobileMenu">
               Connexion
-            </a>
-            <a class="block bg-[#ff0] text-neutral-800 px-3 py-2 text-sm font-medium rounded-full transition-colors duration-200 hover:bg-yellow-200" href="/inscription" @click="closeMobileMenu">
+            </NuxtLink>
+            <NuxtLink class="block bg-primary-500 text-neutral-800 px-3 py-2 text-sm font-medium rounded-full transition-colors duration-200 hover:bg-yellow-200" to="/inscription" @click="closeMobileMenu">
               Inscription
-            </a>
+            </NuxtLink>
           </div>
         </div>
       </div>

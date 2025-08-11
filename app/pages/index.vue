@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted,nextTick } from 'vue'
+
 
 // Utilisation du composable useEvents
 const { 
@@ -12,7 +13,9 @@ const {
 
 // Récupération des événements au montage du composant
 onMounted(() => {
-  fetchFeaturedEvents()
+  nextTick(() => {
+    fetchFeaturedEvents()
+  })
 })
 </script>
 
@@ -100,7 +103,7 @@ onMounted(() => {
       <!-- End Works -->
   
       <!-- Testimonials -->
-      <div class="py-10 md:py-16 lg:py-20 bg-orange-100">
+      <div class="py-10 md:py-16 lg:py-20 bg-secondary-100">
         <div class="px-4 sm:px-6 lg:px-8">
           <!-- Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 md:items-center">
