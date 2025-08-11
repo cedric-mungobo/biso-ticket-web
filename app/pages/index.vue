@@ -22,7 +22,7 @@ onMounted(() => {
 <template>
   <div>
     <main id="content">
-      <div class="mt-20">
+      <div class="pt-20">
         <Hero />
       </div>
 

@@ -1,5 +1,5 @@
 <template>
-  <article class="rounded-xl border bg-white transition-all hover:shadow-lg border-primary-200/60 hover:border-primary-300 group">
+  <article class="rounded-xl border bg-white transition-all hover:shadow-lg border-primary-400 hover:border-primary-300 group">
     <div class="p-4">
       <!-- Badge de catégorie -->
       <div class="text-xs font-semibold mb-3">

@@ -1,12 +1,12 @@
 <template>
-  <div>
+  <div class="">
     <!-- ========== HEADER ========== -->
-    <header class="fixed top-0 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full before:absolute before:inset-0 before:max-w-5xl before:mx-2 lg:before:mx-auto before:rounded-[26px] before:bg-neutral-800/30 before:backdrop-blur-md">
+    <header class="fixed top-2 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full before:absolute before:inset-0 before:max-w-5xl before:mx-2 lg:before:mx-auto before:rounded-[26px] before:bg-neutral-800/30 before:backdrop-blur-md">
       <nav class="relative max-w-5xl w-full flex flex-wrap md:flex-nowrap basis-full items-center justify-between py-2 ps-5 pe-2 md:py-0 mx-2 lg:mx-auto">
         <!-- Logo -->
         <div class="flex items-center">
           <NuxtLink class="flex-none rounded-md text-xl inline-block font-semibold focus:outline-hidden focus:opacity-80" to="/" aria-label="Biso Ticket">
-            <span class="text-white font-bold text-2xl">Biso Ticket</span>
+            <span class="text-white font-bold text-xl">Biso Ticket</span>
           </NuxtLink>
         </div>
         <!-- End Logo -->

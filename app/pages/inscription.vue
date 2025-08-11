@@ -4,17 +4,17 @@
       <!-- Logo et titre -->
       <div class="text-center mb-8">
         <NuxtLink to="/" class="inline-block">
-          <h1 class="text-3xl font-bold text-white mb-2">Biso Ticket</h1>
+          <h1 class="text-3xl font-bold text-primary-500 mb-2">Biso Ticket</h1>
         </NuxtLink>
-        <p class="text-neutral-400">Créez votre compte</p>
+        <p class="text-primary-950">Créez votre compte</p>
       </div>
 
       <!-- Formulaire d'inscription -->
-      <div class="bg-neutral-800/50 backdrop-blur-md rounded-2xl p-8 border border-neutral-700/50">
+      <div class="rounded-2xl p-8 border-1 border-primary-100">
         <form @submit.prevent="handleRegister" class="space-y-5">
           <!-- Nom complet -->
           <div>
-            <label for="name" class="block text-sm font-medium text-neutral-300 mb-2">
+            <label for="name" class="block text-sm font-medium text-primary-950 mb-2">
               Nom complet
             </label>
             <input
@@ -22,7 +22,7 @@
               v-model="form.name"
               type="text"
               required
-              class="w-full px-4 py-3 bg-neutral-700/50 border border-neutral-600/50 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              class="w-full px-4 py-3 border border-secondary-600/50 rounded-lg text-primary-500 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
               placeholder="Entrez votre nom complet"
               :disabled="isLoading"
             />
@@ -30,7 +30,7 @@
 
           <!-- Numéro de téléphone -->
           <div>
-            <label for="phone" class="block text-sm font-medium text-neutral-300 mb-2">
+            <label for="phone" class="block text-sm font-medium text-primary-950 mb-2">
               Numéro de téléphone
             </label>
             <input
@@ -38,7 +38,7 @@
               v-model="form.phone"
               type="tel"
               required
-              class="w-full px-4 py-3 bg-neutral-700/50 border border-neutral-600/50 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              class="w-full px-4 py-3 border border-secondary-600/50 rounded-lg text-primary-500 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
               placeholder="Ex: +33 6 12 34 56 78"
               :disabled="isLoading"
             />
@@ -46,7 +46,7 @@
 
           <!-- Email -->
           <div>
-            <label for="email" class="block text-sm font-medium text-neutral-300 mb-2">
+            <label for="email" class="block text-sm font-medium text-primary-950 mb-2">
               Adresse email
             </label>
             <input
@@ -54,7 +54,7 @@
               v-model="form.email"
               type="email"
               required
-              class="w-full px-4 py-3 bg-neutral-700/50 border border-neutral-600/50 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              class="w-full px-4 py-3 border border-secondary-600/50 rounded-lg text-primary-500 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
               placeholder="Entrez votre adresse email"
               :disabled="isLoading"
             />
@@ -62,7 +62,7 @@
 
           <!-- Mot de passe -->
           <div>
-            <label for="password" class="block text-sm font-medium text-neutral-300 mb-2">
+            <label for="password" class="block text-sm font-medium text-primary-950 mb-2">
               Mot de passe
             </label>
             <input
@@ -70,7 +70,7 @@
               v-model="form.password"
               type="password"
               required
-              class="w-full px-4 py-3 bg-neutral-700/50 border border-neutral-600/50 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              class="w-full px-4 py-3 border border-secondary-600/50 rounded-lg text-primary-500 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
               placeholder="Créez un mot de passe sécurisé"
               :disabled="isLoading"
             />
@@ -78,7 +78,7 @@
 
           <!-- Confirmation du mot de passe -->
           <div>
-            <label for="password_confirmation" class="block text-sm font-medium text-neutral-300 mb-2">
+            <label for="password_confirmation" class="block text-sm font-medium text-primary-950 mb-2">
               Confirmer le mot de passe
             </label>
             <input
@@ -86,7 +86,7 @@
               v-model="form.password_confirmation"
               type="password"
               required
-              class="w-full px-4 py-3 bg-neutral-700/50 border border-neutral-600/50 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              class="w-full px-4 py-3 border border-secondary-600/50 rounded-lg text-primary-500 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
               placeholder="Confirmez votre mot de passe"
               :disabled="isLoading"
             />
@@ -94,10 +94,10 @@
 
           <!-- Validation des mots de passe -->
           <div v-if="form.password && form.password_confirmation" class="text-sm">
-            <div v-if="passwordsMatch" class="text-green-400">
+            <div v-if="passwordsMatch" class="text-green-600">
               ✓ Les mots de passe correspondent
             </div>
-            <div v-else class="text-red-400">
+            <div v-else class="text-red-600">
               ✗ Les mots de passe ne correspondent pas
             </div>
           </div>
@@ -106,9 +106,9 @@
           <button
             type="submit"
             :disabled="isLoading || !passwordsMatch || !isFormValid"
-            class="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-primary-500/50 disabled:cursor-not-allowed text-neutral-900 font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center mt-6"
+            class="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-primary-500/50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center mt-6"
           >
-            <span v-if="isLoading" class="inline-block w-5 h-5 border-2 border-neutral-900 border-t-transparent rounded-full animate-spin mr-2"></span>
+            <span v-if="isLoading" class="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
             {{ isLoading ? 'Création du compte...' : 'Créer mon compte' }}
           </button>
 
