@@ -96,7 +96,7 @@
       </nav>
 
       <!-- Mobile Menu -->
-      <div v-if="isMobileMenuOpen" class="md:hidden bg-neutral-800/90 backdrop-blur-md rounded-b-[26px] mx-2">
+      <div v-if="isMobileMenuOpen" class="md:hidden  backdrop-blur-md rounded-b-[26px] mx-2">
         <div class="px-6 py-4 space-y-3">
           <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/" @click="closeMobileMenu">
             Accueil
