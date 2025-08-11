@@ -1,5 +1,5 @@
 <template>
-  <main class="px-4 py-8 md:px-8 pt-24 lg:px-12">
+  <main class="px-2 py-8 md:px-8 pt-24 lg:px-12">
     <div class="mx-auto max-w-5xl">
       <!-- Breadcrumb -->
       <nav class="mb-6" aria-label="Breadcrumb">
@@ -29,7 +29,7 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="text-center py-12">
+      <div v-else-if="error" class="text-center py-10">
         <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
           <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
             <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,7 +81,7 @@
             <!-- Badge de catégorie -->
             <div class="absolute top-4 left-4">
               <span
-                class="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium bg-white/90 backdrop-blur-sm"
+                class="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium bg-primary-500 text-white    backdrop-blur-sm"
                 :class="categoryColorClass"
               >
                 {{ event.category }}
@@ -90,8 +90,8 @@
   
             <!-- Badge événement en vedette -->
             <div v-if="event.is_featured" class="absolute top-4 right-4">
-              <span class="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
-                ⭐ En vedette
+              <span class="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium bg-secondary-500 text-white border border-secondary-200">
+                 En vedette
               </span>
             </div>
           </div>
@@ -100,7 +100,7 @@
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div class="bg-white col-span-2    rounded-xl border border-gray-200 overflow-hidden">
                 <!-- Informations principales -->
-                <div class="p-2 md:p-4">
+                <div class="p-4 md:p-6">
                   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Titre et description -->
                     <div class="lg:col-span-2">
@@ -169,61 +169,61 @@
                   </div>
                 </div>
               </div>
-                <!-- Section des tickets -->
-                <div class="lg:col-span-1 bg-white rounded-xl border border-gray-200 overflow-hidden">
-                      <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Billets disponibles</h3>
-                        
-                        <div v-if="event.tickets && event.tickets.length > 0" class="space-y-3">
-                          <div
-                            v-for="ticket in event.tickets"
-                            :key="ticket.id"
-                            class="bg-white rounded-lg p-4 border border-gray-200"
-                          >
-                            <div class="flex justify-between items-start mb-2">
-                              <h4 class="font-semibold text-gray-900">{{ ticket.type }}</h4>
-                              <span class="text-lg font-bold text-primary-600">
-                                {{ ticket.formatted_price || `${ticket.price} ${ticket.devise}` }}
-                              </span>
-                            </div>
-                            
-                            <div class="text-sm text-gray-600 mb-3">
-                              <p>Quantité disponible: {{ ticket.available || ticket.quantity }}</p>
-                              <p v-if="ticket.end_date">Valide jusqu'au: {{ formatDate(ticket.end_date) }}</p>
-                            </div>
-      
-                            <button
-                              v-if="ticket.is_available !== false"
-                              class="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 transition-colors font-medium"
-                              :style="ticket.bg_color ? { backgroundColor: ticket.bg_color, color: ticket.text_color || 'white' } : {}"
-                            >
-                              Réserver
-                            </button>
-                            
-                            <div v-else class="text-center text-gray-500 text-sm py-2">
-                              Indisponible
-                            </div>
-                          </div>
+                <!-- Section des tickets (masquée sur mobile) -->
+                <div class="hidden md:block lg:col-span-1 bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Billets disponibles</h3>
+                    
+                    <div v-if="event.tickets && event.tickets.length > 0" class="space-y-3">
+                      <div
+                        v-for="ticket in event.tickets"
+                        :key="ticket.id"
+                        class="bg-white rounded-lg p-4 border border-gray-200"
+                      >
+                        <div class="flex justify-between items-start mb-2">
+                          <h4 class="font-semibold text-gray-900">{{ ticket.type }}</h4>
+                          <span class="text-lg font-bold text-primary-600">
+                            {{ ticket.formatted_price || `${ticket.price} ${ticket.devise}` }}
+                          </span>
                         </div>
                         
-                        <div v-else class="text-center text-gray-500 py-4">
-                          <p>Aucun billet disponible pour le moment</p>
+                        <div class="text-sm text-gray-600 mb-3">
+                          <p>Quantité disponible: {{ ticket.available || ticket.quantity }}</p>
                         </div>
-      
-                        <!-- Prix global -->
-                        <div v-if="event.min_price && event.max_price" class="mt-6 pt-4 border-t border-gray-200">
-                          <p class="text-sm text-gray-600">Prix des billets:</p>
-                          <p class="text-lg font-semibold text-gray-900">
-                            {{ event.min_price }} - {{ event.max_price }} {{ event.tickets?.[0]?.devise || '€' }}
-                          </p>
+  
+                        <button
+                          v-if="ticket.is_available !== false"
+                          @click="showTicketModal = true"
+                          class="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 transition-colors font-medium"
+                          :style="ticket.bg_color ? { backgroundColor: ticket.bg_color, color: ticket.text_color || 'white' } : {}"
+                        >
+                          Réserver
+                        </button>
+                        
+                        <div v-else class="text-center text-gray-500 text-sm py-2">
+                          Indisponible
                         </div>
                       </div>
                     </div>
+                    
+                    <div v-else class="text-center text-gray-500 py-4">
+                      <p>Aucun billet disponible pour le moment</p>
+                    </div>
+  
+                    <!-- Prix global -->
+                    <div v-if="event.min_price && event.max_price" class="mt-6 pt-4 border-t border-gray-200">
+                      <p class="text-sm text-gray-600">Prix des billets:</p>
+                      <p class="text-lg font-semibold text-gray-900">
+                        {{ event.min_price }} - {{ event.max_price }} {{ event.tickets?.[0]?.devise || '€' }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
             </div>
         <!-- Header Section -->
 
         <!-- Actions supplémentaires -->
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <div class="flex  w-full flex-col sm:flex-row gap-4 justify-center">
           <EventShare
             :event-title="event.name"
             :event-url="`/evenements/${slug}`"
@@ -239,6 +239,23 @@
           />
         </div>
       </div>
+
+      <!-- Modal de réservation des tickets -->
+      <TicketReservationModal
+        v-model="showTicketModal"
+        :event="event"
+        @reserve="handleTicketReservation"
+      />
+    </div>
+
+    <!-- Bouton fixe mobile pour réserver -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-50">
+      <button
+        @click="showTicketModal = true"
+        class="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-primary-700 transition-colors"
+      >
+        Réserver ma place
+      </button>
     </div>
   </main>
 </template>
@@ -257,6 +274,7 @@ const slug = route.params.slug as string
 const event = ref<Event | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+const showTicketModal = ref(false)
 
 // Utilisation du composable useEvents
 const { fetchEvent } = useEvents()
@@ -294,6 +312,25 @@ watch(() => route.params.slug, (newSlug) => {
     fetchEventData()
   }
 })
+
+// Gestion de la réservation des tickets
+const handleTicketReservation = (tickets: Record<number, number>) => {
+  // TODO: Implémenter la logique de réservation
+  console.log('Réservation des tickets:', tickets)
+  
+  const totalQuantity = Object.values(tickets).reduce((total, quantity) => total + quantity, 0)
+  const totalPrice = Object.entries(tickets).reduce((total, [ticketId, quantity]) => {
+    const ticket = event.value?.tickets?.find(t => t.id === parseInt(ticketId))
+    if (ticket) {
+      return total + (parseFloat(ticket.price) * quantity)
+    }
+    return total
+  }, 0)
+  
+  const currency = event.value?.tickets?.[0]?.devise || '€'
+  
+  alert(`Réservation de ${totalQuantity} billet(s) pour un total de ${totalPrice} ${currency}`)
+}
 
 // Couleur du badge selon la catégorie
 const categoryColorClass = computed(() => {

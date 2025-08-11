@@ -17,7 +17,6 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxt/scripts',
     'nuxt-auth-utils',
-    // '@nuxtjs/tailwindcss'
   ],
   
   // Configuration des alias de chemins
