@@ -75,7 +75,7 @@
         <div class="border-t border-gray-200 pt-3">
           <div class="flex justify-between text-lg font-bold">
             <span>Total :</span>
-            <span class="text-primary-600">{{ calculateTotalPrice() }} {{ getCurrency() }}</span>
+            <span class="text-primary-600">{{ totalPrice }} {{ currency }}</span>
           </div>
         </div>
       </div>
@@ -101,7 +101,7 @@
         class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
         :disabled="!hasSelectedTickets"
       >
-        Réserver {{ getTotalQuantity() }} billet(s)
+        Réserver {{ totalQuantity }} billet(s)
       </button>
     </template>
   </Modal>
@@ -109,6 +109,7 @@
 
 <script setup lang="ts">
 import type { Event } from '~/types/events'
+import { useTickets } from '~/composables/useTickets'
 
 interface Props {
   modelValue: boolean
@@ -118,11 +119,22 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  'reserve': [tickets: Record<number, number>]
 }>()
 
-// État local pour les quantités
-const ticketQuantities = ref<Record<number, number>>({})
+// Utilisation du composable
+const {
+  setEvent,
+  selectedTickets,
+  incrementQuantity,
+  decrementQuantity,
+  getTicketQuantity,
+  calculateTicketTotal,
+  totalPrice,
+  totalQuantity,
+  currency,
+  hasSelectedTickets,
+  startReservationWithId
+} = useTickets()
 
 // Computed pour l'ouverture/fermeture
 const isOpen = computed({
@@ -130,74 +142,26 @@ const isOpen = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
-// Fonctions de gestion des tickets
-const getTicketQuantity = (ticketId: number): number => {
-  return ticketQuantities.value[ticketId] || 0
-}
-
-const incrementQuantity = (ticketId: number) => {
-  if (!props.event?.tickets) return
-  
-  const ticket = props.event.tickets.find(t => t.id === ticketId)
-  if (!ticket) return
-  
-  const currentQuantity = getTicketQuantity(ticketId)
-  const maxQuantity = ticket.available || ticket.quantity
-  
-  if (currentQuantity < maxQuantity) {
-    ticketQuantities.value[ticketId] = currentQuantity + 1
+// Mettre à jour l'événement dans le composable
+watch(() => props.event, (newEvent) => {
+  if (newEvent) {
+    setEvent(newEvent)
   }
-}
-
-const decrementQuantity = (ticketId: number) => {
-  const currentQuantity = getTicketQuantity(ticketId)
-  if (currentQuantity > 0) {
-    ticketQuantities.value[ticketId] = currentQuantity - 1
-  }
-}
-
-const calculateTicketTotal = (ticketId: number): number => {
-  if (!props.event?.tickets) return 0
-  
-  const ticket = props.event.tickets.find(t => t.id === ticketId)
-  if (!ticket) return 0
-  
-  const quantity = getTicketQuantity(ticketId)
-  const price = parseFloat(ticket.price)
-  
-  return quantity * price
-}
-
-const calculateTotalPrice = (): number => {
-  if (!props.event?.tickets) return 0
-  
-  return props.event.tickets.reduce((total, ticket) => {
-    return total + calculateTicketTotal(ticket.id)
-  }, 0)
-}
-
-const getTotalQuantity = (): number => {
-  return Object.values(ticketQuantities.value).reduce((total, quantity) => total + quantity, 0)
-}
-
-const getCurrency = (): string => {
-  if (!props.event?.tickets || props.event.tickets.length === 0) return '€'
-  return props.event.tickets[0]?.devise || '€'
-}
-
-const hasSelectedTickets = computed(() => {
-  return getTotalQuantity() > 0
-})
+}, { immediate: true })
 
 const handleReservation = () => {
-  emit('reserve', ticketQuantities.value)
-  isOpen.value = false
-}
-
-// Réinitialiser les quantités quand le modal se ferme
-watch(isOpen, (newValue) => {
-  if (!newValue) {
-    ticketQuantities.value = {}
+  if (!props.event?.slug) {
+    console.error('Slug de l\'événement manquant')
+    return
   }
-})
+  
+  // Sauvegarder l'événement dans les cookies via le composable
+  // (cela se fait automatiquement grâce aux watchers)
+  
+  // Fermer le modal
+  emit('update:modelValue', false)
+  
+  // Naviguer vers la page de paiement
+  navigateTo(`/evenements/${props.event.slug}/paiement`)
+}
 </script>

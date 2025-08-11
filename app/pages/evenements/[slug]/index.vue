@@ -223,7 +223,7 @@
         <!-- Header Section -->
 
         <!-- Actions supplémentaires -->
-        <div class="flex  w-full flex-col sm:flex-row gap-4 justify-center">
+        <div class="flex  w-full  sm:flex-row gap-4 justify-center">
           <EventShare
             :event-title="event.name"
             :event-url="`/evenements/${slug}`"
@@ -244,7 +244,6 @@
       <TicketReservationModal
         v-model="showTicketModal"
         :event="event"
-        @reserve="handleTicketReservation"
       />
     </div>
 
@@ -313,24 +312,7 @@ watch(() => route.params.slug, (newSlug) => {
   }
 })
 
-// Gestion de la réservation des tickets
-const handleTicketReservation = (tickets: Record<number, number>) => {
-  // TODO: Implémenter la logique de réservation
-  console.log('Réservation des tickets:', tickets)
-  
-  const totalQuantity = Object.values(tickets).reduce((total, quantity) => total + quantity, 0)
-  const totalPrice = Object.entries(tickets).reduce((total, [ticketId, quantity]) => {
-    const ticket = event.value?.tickets?.find(t => t.id === parseInt(ticketId))
-    if (ticket) {
-      return total + (parseFloat(ticket.price) * quantity)
-    }
-    return total
-  }, 0)
-  
-  const currency = event.value?.tickets?.[0]?.devise || '€'
-  
-  alert(`Réservation de ${totalQuantity} billet(s) pour un total de ${totalPrice} ${currency}`)
-}
+
 
 // Couleur du badge selon la catégorie
 const categoryColorClass = computed(() => {

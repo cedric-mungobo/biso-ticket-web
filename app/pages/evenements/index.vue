@@ -5,8 +5,7 @@
         Découvrez les événements à venir
       </h1>
 
-      <!-- Composant de test pour la page de détail -->
-      <EventTest />
+   
 
       <!-- Filtres et recherche -->
       <EventFilters 
@@ -85,7 +84,8 @@
 
 <script setup lang="ts">
 import { onMounted, nextTick, ref, watch } from 'vue'
-import type { EventFilters } from '~/types/events'
+import type { EventFilters } from '../../types/events'
+import { useEvents } from '../../composables/useEvents'
 
 // Utilisation du composable useEvents
 const { 
