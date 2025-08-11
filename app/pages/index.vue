@@ -1,91 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted } from 'vue'
 
-const items = ref([
-  {
-    id: 1,
-    category: 'Événement',
-    title: 'Événement 1',
-    description: 'Description de l\'événement 1',
-    image: 'https://via.placeholder.com/150',
-    date: '2025-01-01',
-  },
-  {
-    id: 2,
-    category: 'Événement',
-    title: 'Événement 2',
-    description: 'Description de l\'événement 2',
-    image: 'https://via.placeholder.com/150',
-    date: '2025-01-01',
-  },
-])
+// Utilisation du composable useEvents
+const { 
+  events, 
+  loading, 
+  error, 
+  fetchFeaturedEvents, 
+  formatDate 
+} = useEvents()
+
+// Récupération des événements au montage du composant
+onMounted(() => {
+  fetchFeaturedEvents()
+})
 </script>
 
 <template>
   <div>
-
     <main id="content">
+      <div class="mt-20">
+        <Hero />
+      </div>
 
-        <div class="hs-accordion-group">
-  <div class="hs-accordion active" id="hs-basic-heading-one">
-    <button class="hs-accordion-toggle hs-accordion-active:text-blue-600 py-3 inline-flex items-center gap-x-3 w-full font-semibold text-start text-gray-800 hover:text-gray-500 focus:outline-hidden focus:text-gray-500 rounded-lg disabled:opacity-50 disabled:pointer-events-none" aria-expanded="true" aria-controls="hs-basic-collapse-one">
-      <svg class="hs-accordion-active:hidden block size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12h14"></path>
-        <path d="M12 5v14"></path>
-      </svg>
-      <svg class="hs-accordion-active:block hidden size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12h14"></path>
-      </svg>
-      Accordion #1
-    </button>
-    <div id="hs-basic-collapse-one" class="hs-accordion-content w-full overflow-hidden transition-[height] duration-300" role="region" aria-labelledby="hs-basic-heading-one">
-      <p class="text-gray-800">
-        <em>This is the first item's accordion body.</em> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions.
-      </p>
-    </div>
-  </div>
+   
 
-  <div class="hs-accordion" id="hs-basic-heading-two">
-    <button class="hs-accordion-toggle hs-accordion-active:text-blue-600 py-3 inline-flex items-center gap-x-3 w-full font-semibold text-start text-gray-800 hover:text-gray-500 focus:outline-hidden focus:text-gray-500 rounded-lg disabled:opacity-50 disabled:pointer-events-none" aria-expanded="false" aria-controls="hs-basic-collapse-two">
-      <svg class="hs-accordion-active:hidden block size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12h14"></path>
-        <path d="M12 5v14"></path>
-      </svg>
-      <svg class="hs-accordion-active:block hidden size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12h14"></path>
-      </svg>
-      Accordion #2
-    </button>
-    <div id="hs-basic-collapse-two" class="hs-accordion-content hidden w-full overflow-hidden transition-[height] duration-300" role="region" aria-labelledby="hs-basic-heading-two">
-      <p class="text-gray-800">
-        <em>This is the second item's accordion body.</em> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions.
-      </p>
-    </div>
-  </div>
-
-  <div class="hs-accordion" id="hs-basic-heading-three">
-    <button class="hs-accordion-toggle hs-accordion-active:text-blue-600 py-3 inline-flex items-center gap-x-3 w-full font-semibold text-start text-gray-800 hover:text-gray-500 focus:outline-hidden focus:text-gray-500 rounded-lg disabled:opacity-50 disabled:pointer-events-none" aria-expanded="false" aria-controls="hs-basic-collapse-three">
-      <svg class="hs-accordion-active:hidden block size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12h14"></path>
-        <path d="M12 5v14"></path>
-      </svg>
-      <svg class="hs-accordion-active:block hidden size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 12h14"></path>
-      </svg>
-      Accordion #3
-    </button>
-    <div id="hs-basic-collapse-three" class="hs-accordion-content hidden w-full overflow-hidden transition-[height] duration-300" role="region" aria-labelledby="hs-basic-heading-three">
-      <p class="text-gray-800">
-        <em>This is the third item's accordion body.</em> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions.
-      </p>
-    </div>
-  </div>
-</div>
-     
-        <div class="mt-20">
-            <Hero />
-        </div>
-  
       <!-- discover -->
       <div class="max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-24 mx-auto">
         <div class="mb-6 sm:mb-10 max-w-2xl text-center mx-auto">
@@ -93,29 +32,69 @@ const items = ref([
             Découvrez les événements à venir
           </h1>
         </div>
-  
-        <!-- Card Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
-          <!-- Card -->
-          
-          <EventCard
-            v-for="(item, index) in items" :key="index"
-            :category="item.category"
-            :title="item.title"
-            :image="item.image"
-            :date="item.date"
-          />
-          <!-- End Card -->
-  
-        
-          <!-- End Card -->
+
+        <!-- Loading State -->
+        <div v-if="loading" class="text-center py-12">
+          <div class="inline-flex items-center gap-2">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div>
+            <span class="text-gray-600 dark:text-gray-400">Chargement des événements...</span>
+          </div>
         </div>
-        <!-- End Card Grid -->
-  
-        <div class="mt-10 lg:mt-20 text-center">
-          <a class="relative inline-block font-medium md:text-lg text-black before:absolute before:bottom-0.5 before:start-0 before:-z-1 before:w-full before:h-1 before:bg-yellow-400 hover:before:bg-black focus:outline-hidden focus:before:bg-black dark:text-white dark:hover:before:bg-white dark:focus:before:bg-white" href="#">
+
+        <!-- Error State -->
+        <div v-else-if="error" class="text-center py-12">
+          <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-red-800 mb-2">Erreur de chargement</h3>
+            <p class="text-red-600 mb-4">{{ error }}</p>
+            <button 
+              @click="fetchFeaturedEvents"
+              class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+            >
+              Réessayer
+            </button>
+          </div>
+        </div>
+
+        <!-- Events Grid -->
+        <div v-else-if="events.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
+          <EventCard
+            v-for="event in events" 
+            :key="event.id"
+            :category="event.category"
+            :title="event.name"
+            :image="event.image_url || event.image"
+            :date="formatDate(event.date_time)"
+            :description="event.description"
+            :location="event.location"
+            :eventId="event.id"
+          />
+        </div>
+
+        <!-- No Events State -->
+        <div v-else class="text-center py-12">
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md mx-auto">
+            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-800 mb-2">Aucun événement disponible</h3>
+            <p class="text-gray-600">Aucun événement n'est actuellement disponible. Revenez plus tard !</p>
+          </div>
+        </div>
+
+        <div v-if="events.length > 0" class="mt-10 lg:mt-20 text-center">
+          <NuxtLink 
+            to="/evenements"
+            class="relative inline-block font-medium md:text-lg text-black before:absolute before:bottom-0.5 before:start-0 before:-z-1 before:w-full before:h-1 before:bg-yellow-400 hover:before:bg-black focus:outline-hidden focus:before:bg-black dark:text-white dark:hover:before:bg-white dark:focus:before:bg-white"
+          >
             Voir tous les événements
-          </a>
+          </NuxtLink>
         </div>
       </div>
       <!-- End Works -->
