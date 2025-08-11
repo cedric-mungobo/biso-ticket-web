@@ -19,21 +19,49 @@ interface ProfileResponse {
 
 // État de l'authentification
 const isLoading = ref(false)
+const isAuthenticated = ref(false)
+const user = ref<any>(null)
+const token = ref<string | null>(null)
 
-// Getters utilisant nuxt-auth-utils
-const isAuthenticated = computed(() => {
-  const { loggedIn } = useUserSession()
-  return loggedIn.value
-})
+// Initialiser l'état depuis le localStorage
+const initializeAuth = () => {
+  if (process.client) {
+    const storedToken = localStorage.getItem('auth_token')
+    const storedUser = localStorage.getItem('auth_user')
+    
+    if (storedToken && storedUser) {
+      token.value = storedToken
+      user.value = JSON.parse(storedUser)
+      isAuthenticated.value = true
+    }
+  }
+}
 
+// Sauvegarder l'état dans le localStorage
+const saveAuthState = (userData: any, userToken: string) => {
+  if (process.client) {
+    localStorage.setItem('auth_token', userToken)
+    localStorage.setItem('auth_user', JSON.stringify(userData))
+    token.value = userToken
+    user.value = userData
+    isAuthenticated.value = true
+  }
+}
+
+// Nettoyer l'état d'authentification
+const clearAuthState = () => {
+  if (process.client) {
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
+    token.value = null
+    user.value = null
+    isAuthenticated.value = false
+  }
+}
+
+// Getters
 const userRole = computed(() => {
-  const { user } = useUserSession()
-  return (user.value as any)?.role || null
-})
-
-const user = computed(() => {
-  const { user: sessionUser } = useUserSession()
-  return sessionUser.value
+  return user.value?.role || null
 })
 
 // Connexion
@@ -51,9 +79,8 @@ const login = async (identifier: string, password: string) => {
     }
 
     if (response.value?.success && response.value.data) {
-      // Rafraîchir la session côté client
-      const { fetch: refreshSession } = useUserSession()
-      await refreshSession()
+      // Sauvegarder l'état d'authentification
+      saveAuthState(response.value.data.user, response.value.data.token)
       
       return { success: true, user: response.value.data.user }
     } else {
@@ -97,9 +124,8 @@ const register = async (userData: {
     }
 
     if (response.value?.success && response.value.data) {
-      // Rafraîchir la session côté client
-      const { fetch: refreshSession } = useUserSession()
-      await refreshSession()
+      // Sauvegarder l'état d'authentification
+      saveAuthState(response.value.data.user, response.value.data.token)
       
       return { success: true, user: response.value.data.user }
     } else {
@@ -134,9 +160,8 @@ const logout = async () => {
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error)
   } finally {
-    // Nettoyer la session côté client
-    const { clear: clearSession } = useUserSession()
-    await clearSession()
+    // Nettoyer l'état d'authentification
+    clearAuthState()
   }
 }
 
@@ -152,7 +177,11 @@ const fetchUserProfile = async () => {
     }
 
     if (response.value?.success && response.value.data) {
-      // La session est automatiquement mise à jour par nuxt-auth-utils
+      // Mettre à jour les données utilisateur
+      user.value = response.value.data
+      if (process.client) {
+        localStorage.setItem('auth_user', JSON.stringify(response.value.data))
+      }
       return response.value.data
     }
   } catch (error: any) {
@@ -160,8 +189,7 @@ const fetchUserProfile = async () => {
     
     if (error.status === 401) {
       // Déconnexion automatique en cas d'erreur d'authentification
-      const { clear: clearSession } = useUserSession()
-      await clearSession()
+      clearAuthState()
       throw new Error('Session expirée. Veuillez vous reconnecter')
     } else {
       throw new Error('Erreur de récupération du profil')
@@ -171,20 +199,45 @@ const fetchUserProfile = async () => {
   }
 }
 
+// Forcer le rafraîchissement de la session
+const refreshSession = async () => {
+  try {
+    // Vérifier si le token existe et est valide
+    if (token.value) {
+      // Optionnel : vérifier la validité du token avec l'API
+      // Pour l'instant, on considère que le token est valide
+      isAuthenticated.value = true
+    } else {
+      isAuthenticated.value = false
+    }
+  } catch (error) {
+    console.error('Erreur lors du rafraîchissement de la session:', error)
+    clearAuthState()
+  }
+}
+
+// Initialiser l'authentification au chargement
+if (process.client) {
+  initializeAuth()
+}
+
 export const useAuth = () => {
   return {
     // État
     user: readonly(user),
     isLoading: readonly(isLoading),
+    token: readonly(token),
     
     // Getters
-    isAuthenticated,
+    isAuthenticated: readonly(isAuthenticated),
     userRole,
     
     // Actions
     login,
     register,
     logout,
-    fetchUserProfile
+    fetchUserProfile,
+    refreshSession,
+    initializeAuth
   }
 }

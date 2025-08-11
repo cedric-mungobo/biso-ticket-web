@@ -203,10 +203,8 @@ const handleRegister = async () => {
     if (result.success) {
       success.value = 'Compte créé avec succès ! Redirection...'
       
-      // Redirection vers la page d'accueil après 2 secondes
-      setTimeout(async () => {
-        await router.push('/')
-      }, 2000)
+      // Redirection immédiate vers la page d'accueil après inscription
+      await router.push('/')
     }
   } catch (err: any) {
     error.value = err.message || 'Une erreur est survenue lors de l\'inscription'

@@ -101,7 +101,7 @@ const error = ref('')
 const isLoading = ref(false)
 
 // Composables
-const { login } = useAuth()
+const { login, refreshSession } = useAuth()
 const router = useRouter()
 
 // Gestion de la connexion
@@ -113,7 +113,7 @@ const handleLogin = async () => {
     const result = await login(form.identifier, form.password)
     
     if (result.success) {
-      // Redirection vers la page d'accueil après connexion
+      // Redirection immédiate vers la page d'accueil après connexion
       await router.push('/')
     }
   } catch (err: any) {

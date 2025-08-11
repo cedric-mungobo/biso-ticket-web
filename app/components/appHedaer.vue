@@ -29,15 +29,51 @@
 
         <!-- Button Group -->
         <div class="md:order-3 flex items-center gap-x-2">
-          <div class="md:ps-3">
+       
+          
+          <!-- Boutons d'authentification (visibles uniquement si non connecté) -->
+          <div v-if="!isAuthenticated" class="md:ps-3">
             <NuxtLink class="group inline-flex items-center gap-x-2 py-2 px-2 bg-primary-100 font-medium text-sm text-nowrap text-neutral-800 rounded-full focus:outline-hidden" to="/connexion">
               Connexion
             </NuxtLink>
           </div>
-          <div class="md:ps-3">
+          <div v-if="!isAuthenticated" class="md:ps-3">
             <NuxtLink class="group inline-flex items-center gap-x-2 py-2 px-2 bg-white font-medium text-sm text-nowrap text-neutral-800 rounded-full focus:outline-hidden hover:bg-neutral-100" to="/inscription">
               Inscription
             </NuxtLink>
+          </div>
+
+          <!-- Menu utilisateur (visible uniquement si connecté) -->
+          <div v-if="isAuthenticated" class="relative user-menu">
+            <button
+              @click="toggleUserMenu"
+              class="flex items-center gap-x-2 py-2 px-3 bg-white/10 backdrop-blur-md text-white rounded-full hover:bg-white/20 transition-all duration-200"
+            >
+              <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-sm font-semibold text-white">
+                {{ userInitials }}
+              </div>
+              <span class="text-sm font-medium">{{ (user as any)?.name || 'Utilisateur' }}</span>
+              <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': isUserMenuOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+
+            <!-- Menu déroulant utilisateur -->
+            <div v-if="isUserMenuOpen" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+              <NuxtLink to="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                Mon profil
+              </NuxtLink>
+              <NuxtLink to="/mes-evenements" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                Mes événements
+              </NuxtLink>
+              <div class="border-t border-gray-200 my-1"></div>
+              <button
+                @click="handleLogout"
+                class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
+              >
+                Se déconnecter
+              </button>
+            </div>
           </div>
         </div>
         <!-- End Button Group -->
@@ -74,13 +110,36 @@
           <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/contact" @click="closeMobileMenu">
             Contact
           </NuxtLink>
-          <div class="pt-4 space-y-3 border-t border-neutral-700">
+          <!-- Boutons d'authentification mobile (visibles uniquement si non connecté) -->
+          <div v-if="!isAuthenticated" class="pt-4 space-y-3 border-t border-neutral-700">
             <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/connexion" @click="closeMobileMenu">
               Connexion
             </NuxtLink>
             <NuxtLink class="block bg-primary-500 text-neutral-800 px-3 py-2 text-sm font-medium rounded-full transition-colors duration-200 hover:bg-yellow-200" to="/inscription" @click="closeMobileMenu">
               Inscription
             </NuxtLink>
+          </div>
+
+          <!-- Menu utilisateur mobile (visible uniquement si connecté) -->
+          <div v-if="isAuthenticated" class="pt-4 space-y-3 border-t border-neutral-700">
+            <div class="flex items-center gap-x-3 px-3 py-2">
+              <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-sm font-semibold text-white">
+                {{ userInitials }}
+              </div>
+              <span class="text-white text-sm font-medium">{{ (user as any)?.name || 'Utilisateur' }}</span>
+            </div>
+            <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/profile" @click="closeMobileMenu">
+              Mon profil
+            </NuxtLink>
+            <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/mes-evenements" @click="closeMobileMenu">
+              Mes événements
+            </NuxtLink>
+            <button
+              @click="handleLogout"
+              class="w-full text-left text-red-400 hover:text-red-300 px-3 py-2 text-sm font-medium transition-colors duration-200"
+            >
+              Se déconnecter
+            </button>
           </div>
         </div>
       </div>
@@ -91,10 +150,28 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
+// Composables
+const { isAuthenticated, user, logout } = useAuth()
+
+// État local
 const isMobileMenuOpen = ref(false)
+const isUserMenuOpen = ref(false)
 
+// Computed properties
+const userInitials = computed(() => {
+  const userName = (user.value as any)?.name
+  if (!userName) return 'U'
+  return userName
+    .split(' ')
+    .map((n: string) => n.charAt(0))
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+})
+
+// Méthodes
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
 }
@@ -102,6 +179,31 @@ const toggleMobileMenu = () => {
 const closeMobileMenu = () => {
   isMobileMenuOpen.value = false
 }
+
+const toggleUserMenu = () => {
+  isUserMenuOpen.value = !isUserMenuOpen.value
+}
+
+const handleLogout = async () => {
+  try {
+    await logout()
+    isUserMenuOpen.value = false
+    // Redirection vers la page d'accueil après déconnexion
+    await navigateTo('/')
+  } catch (error) {
+    console.error('Erreur lors de la déconnexion:', error)
+  }
+}
+
+// Fermer le menu utilisateur quand on clique ailleurs
+onMounted(() => {
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement
+    if (!target.closest('.user-menu')) {
+      isUserMenuOpen.value = false
+    }
+  })
+})
 </script>
 
 <style scoped>
