@@ -503,48 +503,29 @@ const sendReservationRequest = async () => {
 
     console.log('Réservation en cours:', reservationRequest)
 
-    // Effectuer la réservation via l'API avec $fetch direct et timeout
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 secondes de timeout
-    
-    try {
-      const response = await $fetch<ReservationAPIResponse>('/tickets/reserve', {
-        method: 'POST',
-        baseURL: 'https://api.bisoticket.com/api/v1',
-        body: reservationRequest,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token.value}`
-        },
-        signal: controller.signal
-      })
-      
-            clearTimeout(timeoutId) // Annuler le timeout si la requête réussit
+    // Effectuer la réservation via l'API avec $fetch
+    const response = await $fetch<ReservationAPIResponse>('/tickets/reserve', {
+      method: 'POST',
+      baseURL: 'https://api.bisoticket.com/api/v1',
+      body: reservationRequest,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token.value}`
+      }
+    })
 
-      console.log('Réponse API reçue:', response)
-      
-      // Vérifier que l'API a vraiment répondu avec succès
-      if (response && response.success === true && response.data) {
-        console.log('✅ Réservation réussie confirmée par l\'API avec données:', response.data)
-        stopCountdown()
-        navigateTo('/tickets/my-tickets')
-      } else {
-        // L'API n'a pas confirmé le succès ou données manquantes
-        console.log('❌ API n\'a pas confirmé le succès ou données manquantes:', response)
-        throw new Error(response?.message || 'L\'API n\'a pas confirmé le succès de la réservation ou données manquantes')
-      }
-      
-    } catch (fetchError: any) {
-      clearTimeout(timeoutId) // Annuler le timeout en cas d'erreur
-      
-      // Gestion spécifique du timeout
-      if (fetchError.name === 'AbortError') {
-        throw new Error('La requête a pris trop de temps (60 secondes). Veuillez réessayer.')
-      }
-      
-      // Relancer l'erreur pour la gestion générale
-      throw fetchError
+    console.log('Réponse API reçue:', response)
+    
+    // Vérifier que l'API a vraiment répondu avec succès
+    if (response && response.success === true && response.data) {
+      console.log('✅ Réservation réussie confirmée par l\'API avec données:', response.data)
+      stopCountdown()
+      navigateTo('/tickets/my-tickets')
+    } else {
+      // L'API n'a pas confirmé le succès ou données manquantes
+      console.log('❌ API n\'a pas confirmé le succès ou données manquantes:', response)
+      throw new Error(response?.message || 'L\'API n\'a pas confirmé le succès de la réservation ou données manquantes')
     }
 
   } catch (error: any) {
@@ -554,9 +535,7 @@ const sendReservationRequest = async () => {
     stopCountdown()
     
     // Gestion des erreurs avec messages clairs pour l'utilisateur
-    if (error.message && error.message.includes('La requête a pris trop de temps')) {
-      paymentError.value = 'La requête a pris trop de temps (60 secondes). Veuillez réessayer.'
-    } else if (error.status === 401) {
+    if (error.status === 401) {
       paymentError.value = 'Votre session a expiré. Veuillez vous reconnecter et réessayer.'
       navigateTo('/connexion')
     } else if (error.status === 422) {
