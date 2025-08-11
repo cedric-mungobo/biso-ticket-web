@@ -1,3 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Inter", "system-ui", "sans-serif";
+  /* --font-display: "Outfit", "system-ui", "sans-serif"; */
+  --breakpoint-3xl: 120rem;
+  --color-avocado-100: oklch(0.99 0 0);
+  --color-avocado-200: oklch(0.98 0.04 113.22);
+  --color-avocado-300: oklch(0.94 0.11 115.03);
+  --color-avocado-400: oklch(0.92 0.19 114.08);
+  --color-avocado-500: oklch(0.84 0.18 117.33);
+  --color-avocado-600: oklch(0.53 0.12 118.34);
+  --ease-fluid: cubic-bezier(0.3, 0, 0, 1);
+  --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+  
+  /* Couleurs personnalisées pour primary et secondary */
+  --color-primary-50: #f5f0ff;
+  --color-primary-100: #ede4ff;
+  --color-primary-200: #dccdff;
+  --color-primary-300: #c5a5ff;
+  --color-primary-400: #aa72ff;
+  --color-primary-500: #933aff;
+  --color-primary-600: #8b12ff;
+  --color-primary-700: #7f01ff;
+  --color-primary-800: #6a00d6;
+  --color-primary-900: #5802b0;
+  --color-primary-950: #350078;
+  
+  --color-secondary-50: #fcf4ff;
+  --color-secondary-100: #f8e9fe;
+  --color-secondary-200: #f1d2fc;
+  --color-secondary-300: #e9aff8;
+  --color-secondary-400: #dd7ff3;
+  --color-secondary-500: #c439e5;
+  --color-secondary-600: #b02ecb;
+  --color-secondary-700: #9522a9;
+  --color-secondary-800: #7b1e8a;
+  --color-secondary-900: #671e71;
+  --color-secondary-950: #43074b;
+}
+
 @import "preline/variants.css";
 @source "../../node_modules/preline/dist/*.js";
 

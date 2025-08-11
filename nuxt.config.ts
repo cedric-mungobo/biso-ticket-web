@@ -1,3 +1,6 @@
+import { fileURLToPath } from 'node:url'
+import tailwindcss from "@tailwindcss/vite";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
@@ -5,49 +8,22 @@ export default defineNuxtConfig({
 
   css: ['~/assets/index.css'],
   plugins: ['~/plugins/preline.client.ts'],
+  vite: {
+    plugins: [
+      tailwindcss(),
+    ],
+  },
   modules: [
     '@nuxt/image',
     '@nuxt/scripts',
-    '@nuxtjs/tailwindcss',
-    'nuxt-auth-utils'
+    'nuxt-auth-utils',
+    // '@nuxtjs/tailwindcss'
   ],
   
-  // Configuration Tailwind CSS avec couleurs personnalisées
-  tailwindcss: {
-    config: {
-      theme: {
-        extend: {
-          colors: {
-            primary: {
-              '50': '#f5f0ff',
-              '100': '#ede4ff',
-              '200': '#dccdff',
-              '300': '#c5a5ff',
-              '400': '#aa72ff',
-              '500': '#933aff',
-              '600': '#8b12ff',
-              '700': '#7f01ff',
-              '800': '#6a00d6',
-              '900': '#5802b0',
-              '950': '#350078',
-            },
-            secondary: {
-              '50': '#fcf4ff',
-              '100': '#f8e9fe',
-              '200': '#f1d2fc',
-              '300': '#e9aff8',
-              '400': '#dd7ff3',
-              '500': '#c439e5',
-              '600': '#b02ecb',
-              '700': '#9522a9',
-              '800': '#7b1e8a',
-              '900': '#671e71',
-              '950': '#43074b',
-            },
-          },
-        },
-      },
-    },
+  // Configuration des alias de chemins
+  alias: {
+    '~': fileURLToPath(new URL('./app', import.meta.url)),
+    '@': fileURLToPath(new URL('./app', import.meta.url))
   },
   
   app: {
@@ -59,6 +35,9 @@ export default defineNuxtConfig({
       },
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { href: 'https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap', rel: 'stylesheet' }
       ]
     }
   }

@@ -2,7 +2,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     const { session } = useUserSession()
   
     const api = $fetch.create({
-      baseURL: 'https://api.nuxt.com',
+      baseURL: 'https://api.bisoticket.com/api/v1',
       onRequest({ request, options, error }) {
         if (session.value?.token) {
           // note that this relies on ofetch >= 1.4.0 - you may need to refresh your lockfile
@@ -11,7 +11,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       },
       async onResponseError({ response }) {
         if (response.status === 401) {
-          await nuxtApp.runWithContext(() => navigateTo('/login'))
+          await nuxtApp.runWithContext(() => navigateTo('/connexion'))
         }
       }
     })

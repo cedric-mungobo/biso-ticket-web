@@ -129,10 +129,13 @@
             </p>
           </div>
 
-          <!-- Erreur générale -->
-          <div v-if="generalError" class="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p class="text-sm text-red-600">{{ generalError }}</p>
-          </div>
+          <!-- Affichage des erreurs -->
+          <ErrorDisplay
+            :general-error="generalError"
+            :validation-errors="validationErrors"
+            :show-error-code="false"
+            error-title="Erreur d'inscription"
+          />
 
           <!-- Bouton d'inscription -->
           <button
@@ -167,7 +170,9 @@
 
 <script setup lang="ts">
 import { reactive, ref, computed } from 'vue'
-import { useAuth } from '~/composables/useAuth'
+import { useAuth } from '../composables/useAuth'
+import { useErrorHandler } from '../composables/useErrorHandler'
+import type { ValidationError } from '../types/errors'
 
 // Définition des types
 interface RegisterFormData {
@@ -213,6 +218,7 @@ const errors = reactive({
   password: '',
   password_confirmation: ''
 })
+const validationErrors = ref<ValidationError[]>([])
 
 // Validation en temps réel
 const isFormValid = computed(() => {
@@ -299,21 +305,30 @@ const handleRegister = async () => {
       generalError.value = result.message || 'Erreur lors de la création du compte'
     }
   } catch (error: any) {
-    console.error('Erreur d\'inscription:', error)
+    // Utilisation du gestionnaire d'erreurs centralisé
+    const { handleError, handleValidationErrors, getFieldError } = useErrorHandler()
     
-    if (error.status === 422) {
-      // Erreurs de validation du serveur
-      if (error.data?.errors) {
-        Object.keys(error.data.errors).forEach(key => {
-          if (key in errors) {
-            errors[key as keyof typeof errors] = error.data.errors[key][0]
-          }
-        })
-      }
-    } else if (error.status === 409) {
-      generalError.value = 'Un compte avec cet email ou téléphone existe déjà'
+    // Gestion des erreurs de validation
+    if (error.status === 422 && error.data?.errors) {
+      const validationErrorsList = handleValidationErrors(error.data.errors)
+      validationErrors.value = validationErrorsList
+      
+      // Mise à jour des erreurs de champs
+      Object.keys(error.data.errors).forEach(key => {
+        if (key in errors) {
+          errors[key as keyof typeof errors] = getFieldError(key) || error.data.errors[key][0]
+        }
+      })
     } else {
-      generalError.value = 'Erreur lors de la création du compte. Veuillez réessayer.'
+      // Gestion des autres types d'erreurs
+      const errorInfo = handleError(error, {
+        showToast: false, // Pas de toast car on affiche déjà l'erreur dans l'UI
+        logToConsole: true,
+        redirectOnAuthError: false
+      })
+      
+      // Affichage de l'erreur générale
+      generalError.value = errorInfo.message
     }
   } finally {
     isLoading.value = false
