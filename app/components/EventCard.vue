@@ -44,9 +44,12 @@
         <span class="text-sm text-gray-500">
           {{ formatDate }}
         </span>
-        <button class="text-primary-600 hover:text-primary-700 font-medium text-sm group-hover:underline transition-all duration-200">
+        <NuxtLink 
+          :to="`/evenements/${eventId}`"
+          class="text-primary-600 hover:text-primary-700 font-medium text-sm group-hover:underline transition-all duration-200"
+        >
           Voir détails →
-        </button>
+        </NuxtLink>
       </div>
     </div>
   </article>

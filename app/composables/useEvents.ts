@@ -1,10 +1,17 @@
 import { ref, readonly } from 'vue'
-import type { Event, EventsResponse, EventResponse, EventFilters } from '~/types/events'
+import type { Event, EventsResponse, EventResponse, EventFilters, Pagination } from '~/types/events'
+import { useAPI } from '~/composables/useAPI'
 
 export function useEvents() {
   const events = ref<Event[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const pagination = ref<Pagination | null>(null)
+  const currentFilters = ref<EventFilters>({
+    page: 1,
+    per_page: 12,
+    date_filter: 'all'
+  })
 
   // Fonction pour récupérer les événements mis en avant
   const fetchFeaturedEvents = async () => {
@@ -47,24 +54,29 @@ export function useEvents() {
     }
   }
 
-  // Fonction pour récupérer tous les événements avec filtres
+  // Fonction pour récupérer tous les événements avec filtres et pagination
   const fetchEvents = async (filters: EventFilters = {}) => {
     try {
       loading.value = true
       error.value = null
       
+      // Mise à jour des filtres actuels
+      currentFilters.value = { ...currentFilters.value, ...filters }
+      
       const queryParams = new URLSearchParams()
       
       // Ajout des paramètres de filtrage
-      if (filters.page) queryParams.append('page', filters.page.toString())
-      if (filters.per_page) queryParams.append('per_page', filters.per_page.toString())
-      if (filters.category) queryParams.append('category', filters.category)
-      if (filters.min_price) queryParams.append('min_price', filters.min_price.toString())
-      if (filters.max_price) queryParams.append('max_price', filters.max_price.toString())
-      if (filters.date_filter) queryParams.append('date_filter', filters.date_filter)
-      if (filters.search) queryParams.append('search', filters.search)
+      if (currentFilters.value.page) queryParams.append('page', currentFilters.value.page.toString())
+      if (currentFilters.value.per_page) queryParams.append('per_page', currentFilters.value.per_page.toString())
+      if (currentFilters.value.category) queryParams.append('category', currentFilters.value.category)
+      if (currentFilters.value.min_price) queryParams.append('min_price', currentFilters.value.min_price.toString())
+      if (currentFilters.value.max_price) queryParams.append('max_price', currentFilters.value.max_price.toString())
+      if (currentFilters.value.date_filter) queryParams.append('date_filter', currentFilters.value.date_filter)
+      if (currentFilters.value.search) queryParams.append('search', currentFilters.value.search)
       
       const url = `/events${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      
+      console.log('🚀 Appel API avec filtres:', url)
       
       const { data, error: fetchError } = await useAPI<EventsResponse>(url)
       
@@ -74,6 +86,14 @@ export function useEvents() {
       
       if (data.value?.success && data.value.data.events) {
         events.value = data.value.data.events
+        
+        // Mise à jour de la pagination si disponible
+        if (data.value.data.pagination) {
+          pagination.value = data.value.data.pagination
+        }
+        
+        console.log('✅ Événements récupérés:', events.value.length)
+        console.log('📄 Pagination:', pagination.value)
       } else {
         throw new Error('Format de réponse invalide')
       }
@@ -86,6 +106,35 @@ export function useEvents() {
     }
   }
 
+  // Fonction pour changer de page
+  const changePage = async (page: number) => {
+    if (page < 1 || (pagination.value && page > pagination.value.last_page)) {
+      return
+    }
+    
+    await fetchEvents({ ...currentFilters.value, page })
+  }
+
+  // Fonction pour changer le nombre d'éléments par page
+  const changePerPage = async (perPage: number) => {
+    await fetchEvents({ ...currentFilters.value, per_page: perPage, page: 1 })
+  }
+
+  // Fonction pour filtrer par date
+  const filterByDate = async (dateFilter: EventFilters['date_filter']) => {
+    await fetchEvents({ ...currentFilters.value, date_filter: dateFilter, page: 1 })
+  }
+
+  // Fonction pour rechercher
+  const searchEvents = async (searchTerm: string) => {
+    await fetchEvents({ ...currentFilters.value, search: searchTerm, page: 1 })
+  }
+
+  // Fonction pour filtrer par catégorie
+  const filterByCategory = async (category: string) => {
+    await fetchEvents({ ...currentFilters.value, category, page: 1 })
+  }
+
   // Fonction pour récupérer un événement spécifique
   const fetchEvent = async (identifier: string | number) => {
     try {
@@ -95,7 +144,14 @@ export function useEvents() {
       const { data, error: fetchError } = await useAPI<EventResponse>(`/events/${identifier}`)
       
       if (fetchError.value) {
-        throw new Error('Erreur lors de la récupération de l\'événement')
+        // Gestion spécifique des erreurs HTTP
+        if (fetchError.value.statusCode === 404) {
+          throw new Error('Événement non trouvé')
+        } else if (fetchError.value.statusCode === 500) {
+          throw new Error('Erreur serveur')
+        } else {
+          throw new Error('Erreur lors de la récupération de l\'événement')
+        }
       }
       
       if (data.value?.success && data.value.data.event) {
@@ -133,6 +189,22 @@ export function useEvents() {
     events.value = []
     loading.value = false
     error.value = null
+    pagination.value = null
+    currentFilters.value = {
+      page: 1,
+      per_page: 12,
+      date_filter: 'all'
+    }
+  }
+
+  // Fonction pour réinitialiser les filtres
+  const resetFilters = async () => {
+    currentFilters.value = {
+      page: 1,
+      per_page: 12,
+      date_filter: 'all'
+    }
+    await fetchEvents()
   }
 
   return {
@@ -140,12 +212,20 @@ export function useEvents() {
     events: readonly(events),
     loading: readonly(loading),
     error: readonly(error),
+    pagination: readonly(pagination),
+    currentFilters: readonly(currentFilters),
     
     // Actions
     fetchFeaturedEvents,
     fetchEvents,
     fetchEvent,
+    changePage,
+    changePerPage,
+    filterByDate,
+    searchEvents,
+    filterByCategory,
     formatDate,
-    resetState
+    resetState,
+    resetFilters
   }
 }

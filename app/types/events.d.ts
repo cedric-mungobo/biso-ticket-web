@@ -46,6 +46,7 @@ export interface EventsResponse {
   success: boolean
   data: {
     events: Event[]
+    pagination?: Pagination
   }
 }
 
