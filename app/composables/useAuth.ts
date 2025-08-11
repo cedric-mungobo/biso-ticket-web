@@ -17,46 +17,52 @@ interface ProfileResponse {
   data: any
 }
 
+// Cookies pour la persistance des données
+const authTokenCookie = useCookie('auth_token', {
+  default: () => null as string | null,
+  maxAge: 60 * 60 * 24 * 7, // 7 jours
+  secure: true,
+  sameSite: 'strict'
+})
+
+const authUserCookie = useCookie('auth_user', {
+  default: () => null as any,
+  maxAge: 60 * 60 * 24 * 7, // 7 jours
+  secure: true,
+  sameSite: 'strict'
+})
+
 // État de l'authentification
 const isLoading = ref(false)
 const isAuthenticated = ref(false)
 const user = ref<any>(null)
 const token = ref<string | null>(null)
 
-// Initialiser l'état depuis le localStorage
+// Initialiser l'état depuis les cookies
 const initializeAuth = () => {
-  if (process.client) {
-    const storedToken = localStorage.getItem('auth_token')
-    const storedUser = localStorage.getItem('auth_user')
-    
-    if (storedToken && storedUser) {
-      token.value = storedToken
-      user.value = JSON.parse(storedUser)
-      isAuthenticated.value = true
-    }
-  }
-}
-
-// Sauvegarder l'état dans le localStorage
-const saveAuthState = (userData: any, userToken: string) => {
-  if (process.client) {
-    localStorage.setItem('auth_token', userToken)
-    localStorage.setItem('auth_user', JSON.stringify(userData))
-    token.value = userToken
-    user.value = userData
+  if (authTokenCookie.value && authUserCookie.value) {
+    token.value = authTokenCookie.value
+    user.value = authUserCookie.value
     isAuthenticated.value = true
   }
 }
 
+// Sauvegarder l'état dans les cookies
+const saveAuthState = (userData: any, userToken: string) => {
+  authTokenCookie.value = userToken
+  authUserCookie.value = userData
+  token.value = userToken
+  user.value = userData
+  isAuthenticated.value = true
+}
+
 // Nettoyer l'état d'authentification
 const clearAuthState = () => {
-  if (process.client) {
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
-    token.value = null
-    user.value = null
-    isAuthenticated.value = false
-  }
+  authTokenCookie.value = null
+  authUserCookie.value = null
+  token.value = null
+  user.value = null
+  isAuthenticated.value = false
 }
 
 // Getters

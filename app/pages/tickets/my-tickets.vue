@@ -12,6 +12,23 @@
       <p class="text-gray-600">Chargement de vos billets...</p>
     </div>
 
+    <!-- Message d'erreur -->
+    <div v-if="errorMessage" class="text-center py-12">
+      <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium text-red-900 mb-2">Erreur lors du chargement</h3>
+      <p class="text-red-600 mb-6">{{ errorMessage }}</p>
+      <button
+        @click="fetchMyTickets"
+        class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+      >
+        Réessayer
+      </button>
+    </div>
+
     <!-- Message si aucun billet -->
     <div v-else-if="!ticketsByEvent || Object.keys(ticketsByEvent).length === 0" class="text-center py-12">
       <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -52,8 +69,8 @@
             </div>
             <div class="ml-4">
               <img 
-                v-if="eventData.event.image_url" 
-                :src="eventData.event.image_url" 
+                v-if="eventData.event.image" 
+                :src="`https://api.bisoticket.com/storage/${eventData.event.image}`" 
                 :alt="eventData.event.name"
                 class="w-16 h-16 object-cover rounded-lg"
               />
@@ -102,6 +119,8 @@
                   <span class="font-medium">{{ participant.ticket.type }}</span>
                   <br>
                   <span class="text-primary-600 font-semibold">{{ participant.ticket.price }} {{ participant.ticket.devise }}</span>
+                  <br>
+                  <span class="text-xs text-gray-500">QR: {{ participant.qr_code }}</span>
                 </div>
               </div>
             </div>
@@ -133,10 +152,61 @@
 
 <script setup lang="ts">
 import { useAuth } from '~/composables/useAuth'
+import { useTickets } from '~/composables/useTickets'
+
+// Types pour les tickets
+interface Ticket {
+  id: number
+  type: string
+  price: string
+  formatted_price: string
+  devise: string
+}
+
+interface Participant {
+  id: number
+  name: string
+  email: string
+  phone: string
+  qr_code: string
+  payment_status: 'completed' | 'pending' | 'failed'
+  event: {
+    id: number
+    name: string
+    date_time: string
+    location: string
+    image: string
+  }
+  ticket: Ticket
+  created_at: string
+  updated_at: string
+}
+
+interface EventData {
+  event: {
+    id: number
+    name: string
+    date_time: string
+    location: string
+    image: string
+  }
+  participants: Participant[]
+}
+
+interface MyTicketsResponse {
+  success: boolean
+  message?: string
+  data: {
+    tickets_by_event: Record<string, EventData>
+    total_tickets: number
+    total_events: number
+  }
+}
 
 // État local
 const isLoading = ref(true)
-const ticketsByEvent = ref<any>(null)
+const ticketsByEvent = ref<Record<string, EventData> | null>(null)
+const errorMessage = ref<string | null>(null)
 
 // Composables
 const { isAuthenticated, user } = useAuth()
@@ -165,27 +235,56 @@ const completedPayments = computed(() => {
 const fetchMyTickets = async () => {
   try {
     isLoading.value = true
+    errorMessage.value = null
     
-    // Appel API pour récupérer les billets
-    const { data: response, error } = await useAPI('/tickets/my-tickets')
+    console.log('🚀 Appel API /tickets/my-tickets...')
     
-    if (error.value) {
-      throw new Error(error.value.message || 'Erreur lors de la récupération des billets')
+    // Utiliser useAPI directement
+    const { data, error: fetchError } = await useAPI<MyTicketsResponse>('/tickets/my-tickets')
+    
+    console.log('📡 Réponse API:', { data: data.value, fetchError: fetchError.value })
+    
+    if (fetchError.value) {
+      console.error('❌ Erreur fetch:', fetchError.value)
+      throw new Error(`Erreur réseau: ${fetchError.value.message || 'Erreur inconnue'}`)
     }
     
-    if (response.value?.success) {
-      ticketsByEvent.value = response.value.data.tickets_by_event
+    if (!data.value) {
+      console.error('❌ Pas de données reçues')
+      throw new Error('Aucune donnée reçue de l\'API')
+    }
+    
+    console.log('✅ Données reçues:', data.value)
+    
+    if (data.value.success && data.value.data) {
+      console.log('🎯 Billets trouvés:', data.value.data.total_tickets)
+      ticketsByEvent.value = data.value.data.tickets_by_event
     } else {
-      throw new Error(response.value?.message || 'Erreur lors de la récupération des billets')
+      console.error('❌ Format de réponse invalide:', data.value)
+      throw new Error(`Format de réponse invalide: ${JSON.stringify(data.value)}`)
     }
-  } catch (error) {
-    console.error('Erreur lors de la récupération des billets:', error)
-    // En cas d'erreur, on peut afficher un message ou rediriger
+  } catch (error: any) {
+    console.error('💥 Erreur lors de la récupération des billets:', error)
+    
+    // Gestion des erreurs avec messages clairs
+    if (error.status === 401) {
+      // Rediriger vers la connexion si non authentifié
+      navigateTo('/connexion')
+    } else if (error.status === 404) {
+      // Aucun billet trouvé
+      ticketsByEvent.value = {}
+      errorMessage.value = null
+    } else {
+      // Autre erreur
+      console.error('Erreur API:', error)
+      errorMessage.value = error.message || 'Erreur lors de la récupération des billets'
+    }
   } finally {
     isLoading.value = false
   }
 }
 
+// Fonctions utilitaires
 const formatDate = (dateString: string) => {
   if (!dateString) return ''
   const date = new Date(dateString)

@@ -1,12 +1,21 @@
 export default defineNuxtPlugin((nuxtApp) => {
-    const { session } = useUserSession()
-  
+    const config = useRuntimeConfig()
+    
+    // Créer le cookie pour le token d'authentification
+    const authTokenCookie = useCookie('auth_token', {
+      default: () => null as string | null,
+      maxAge: 60 * 60 * 24 * 7, // 7 jours
+      secure: true,
+      sameSite: 'strict'
+    })
+    
     const api = $fetch.create({
-      baseURL: 'https://api.bisoticket.com/api/v1',
+      baseURL: config.public.apiBaseUrl,
       onRequest({ request, options, error }) {
-        if (session.value?.token) {
-          // note that this relies on ofetch >= 1.4.0 - you may need to refresh your lockfile
-          options.headers.set('Authorization', `Bearer ${session.value?.token}`)
+        // Récupérer le token depuis le cookie
+        const token = authTokenCookie.value
+        if (token) {
+          options.headers.set('Authorization', `Bearer ${token}`)
         }
       },
       async onResponseError({ response }) {

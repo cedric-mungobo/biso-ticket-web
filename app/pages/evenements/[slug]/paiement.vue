@@ -227,6 +227,7 @@ import type { Event } from '~/types/events'
 import { useTickets } from '~/composables/useTickets'
 import { useUserPreferences } from '~/composables/useUserPreferences'
 import { useAuth } from '~/composables/useAuth'
+import { useApiConfig } from '~/composables/useApiConfig'
 import Modal from '~/components/Modal.vue'
 
 // Interface pour la réponse de l'API de réservation
@@ -504,15 +505,17 @@ const sendReservationRequest = async () => {
     console.log('Réservation en cours:', reservationRequest)
 
     // Effectuer la réservation via l'API avec $fetch
+    const { baseUrl, createAuthHeaders } = useApiConfig()
+    
+    if (!token.value) {
+      throw new Error('Token d\'authentification manquant')
+    }
+    
     const response = await $fetch<ReservationAPIResponse>('/tickets/reserve', {
       method: 'POST',
-      baseURL: 'https://api.bisoticket.com/api/v1',
+      baseURL: baseUrl,
       body: reservationRequest,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.value}`
-      }
+      headers: createAuthHeaders(token.value)
     })
 
     console.log('Réponse API reçue:', response)

@@ -39,5 +39,16 @@ export default defineNuxtConfig({
         { href: 'https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap', rel: 'stylesheet' }
       ]
     }
+  },
+  
+  // Configuration runtime pour les variables d'environnement
+  runtimeConfig: {
+    // Variables privées (côté serveur uniquement)
+    apiSecret: '',
+    
+    // Variables publiques (côté client et serveur)
+    public: {
+      apiBaseUrl: 'https://api.bisoticket.com/api/v1'
+    }
   }
 })

@@ -21,6 +21,9 @@
           <NuxtLink class="pe-3 ps-px sm:px-3 md:py-4 text-sm text-white hover:text-neutral-300 focus:outline-hidden focus:text-neutral-300" to="/organisateur">
             Organisateur
           </NuxtLink>
+          <NuxtLink class="pe-3 ps-px sm:px-3 md:py-4 text-sm text-white hover:text-neutral-300 focus:outline-hidden focus:text-neutral-300" to="/tickets/my-tickets">
+            Mes billets
+          </NuxtLink>
           <NuxtLink class="pe-3 ps-px sm:px-3 md:py-4 text-sm text-white hover:text-neutral-300 focus:outline-hidden focus:text-neutral-300" to="/contact">
             Contact
           </NuxtLink>
@@ -107,6 +110,9 @@
           <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/organisateur" @click="closeMobileMenu">
             Organisateur
           </NuxtLink>
+          <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/tickets/my-tickets" @click="closeMobileMenu">
+            Mes billets
+          </NuxtLink>
           <NuxtLink class="block text-white hover:text-neutral-300 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/contact" @click="closeMobileMenu">
             Contact
           </NuxtLink>
@@ -150,7 +156,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useAuth } from '../composables/useAuth'
 
 // Composables
 const { isAuthenticated, user, logout } = useAuth()
