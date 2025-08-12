@@ -223,20 +223,43 @@
         <!-- Header Section -->
 
         <!-- Actions supplémentaires -->
-        <div class="flex  w-full  sm:flex-row gap-4 justify-center">
-          <EventShare
-            :event-title="event.name"
-            :event-url="`/evenements/${slug}`"
-            :event-description="event.description"
-          />
+        <div class="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 text-center flex items-center justify-center gap-2">
+            <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            Partager, organiser et créer
+          </h3>
           
-          <AddToCalendar
-            :event-title="event.name"
-            :event-description="event.description"
-            :event-date="event.date_time"
-            :event-location="event.location"
-            :event-url="`/evenements/${slug}`"
-          />
+          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <EventShare
+              :event-title="event.name"
+              :event-url="fullEventUrl"
+              :event-description="event.description"
+            />
+            
+            <AddToCalendar
+              :event-title="event.name"
+              :event-description="event.description"
+              :event-date="event.date_time"
+              :event-location="event.location"
+              :event-url="fullEventUrl"
+            />
+            
+            <NuxtLink
+              to="/organisateur"
+              class="bg-secondary-600 text-white px-6 py-3 rounded-lg hover:bg-secondary-700 transition-all duration-200 font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              Organiser un événement
+            </NuxtLink>
+          </div>
+          
+          <p class="text-sm text-gray-500 text-center mt-4">
+            Partagez cet événement avec vos amis, ajoutez-le à votre calendrier ou créez votre propre événement
+          </p>
         </div>
       </div>
 
@@ -248,10 +271,10 @@
     </div>
 
     <!-- Bouton fixe mobile pour réserver -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-50">
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-50 pb-6">
       <button
         @click="showTicketModal = true"
-        class="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-primary-700 transition-colors"
+        class="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-primary-700 transition-colors shadow-lg"
       >
         Réserver ma place
       </button>
@@ -385,6 +408,15 @@ useHead({
       content: computed(() => event.value?.description || 'Découvrez cet événement exceptionnel')
     }
   ]
+})
+
+// Computed property pour l'URL complète de l'événement
+const fullEventUrl = computed(() => {
+  if (process.client) {
+    return `${window.location.origin}/evenements/${slug}`
+  }
+  // Fallback pour SSR
+  return `/evenements/${slug}`
 })
 </script>
 

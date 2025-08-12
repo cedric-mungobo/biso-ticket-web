@@ -103,6 +103,9 @@ const {
   formatDate 
 } = useEvents()
 
+
+
+
 // État local pour les filtres
 const selectedPerPage = ref(12)
 

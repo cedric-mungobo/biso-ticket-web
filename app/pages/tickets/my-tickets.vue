@@ -154,6 +154,11 @@
 import { useAuth } from '~/composables/useAuth'
 import { useTickets } from '~/composables/useTickets'
 
+
+definePageMeta({
+  middleware: ['authenticated'],
+})
+
 // Types pour les tickets
 interface Ticket {
   id: number

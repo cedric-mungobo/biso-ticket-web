@@ -150,7 +150,8 @@ import { ref, reactive, computed } from 'vue'
 // Meta de la page
 definePageMeta({
   title: 'Inscription - Biso Ticket',
-  description: 'Créez votre compte Biso Ticket'
+  description: 'Créez votre compte Biso Ticket',
+  middleware: ['guest']
 })
 
 // État du formulaire

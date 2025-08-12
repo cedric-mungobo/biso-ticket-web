@@ -87,7 +87,8 @@ import { ref, reactive } from 'vue'
 // Meta de la page
 definePageMeta({
   title: 'Connexion - Biso Ticket',
-  description: 'Connectez-vous à votre compte Biso Ticket'
+  description: 'Connectez-vous à votre compte Biso Ticket',
+  middleware: ['guest']
 })
 
 // État du formulaire
@@ -113,8 +114,16 @@ const handleLogin = async () => {
     const result = await login(form.identifier, form.password)
     
     if (result.success) {
-      // Redirection immédiate vers la page d'accueil après connexion
-      await router.push('/')
+      // Récupérer l'URL de redirection depuis les paramètres de l'URL
+      const route = useRoute()
+      const redirectUrl = route.query.redirect as string
+      
+      // Rediriger vers la page d'origine ou vers l'accueil par défaut
+      if (redirectUrl && redirectUrl !== '/connexion') {
+        await router.push(decodeURIComponent(redirectUrl))
+      } else {
+        await router.push('/')
+      }
     }
   } catch (err: any) {
     error.value = err.message || 'Une erreur est survenue lors de la connexion'

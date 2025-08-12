@@ -109,7 +109,9 @@ onMounted(() => {
         <!-- End Approach -->
       </div>
 
-
+      <!-- Nos Services -->
+      <ServicesSection />
+  
       <!-- Testimonials -->
       <div class="py-10 md:py-16 lg:py-20 bg-secondary-100">
         <div class="px-4 sm:px-6 lg:px-8">

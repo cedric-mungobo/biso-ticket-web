@@ -229,6 +229,9 @@ import { useUserPreferences } from '~/composables/useUserPreferences'
 import { useAuth } from '~/composables/useAuth'
 import { useApiConfig } from '~/composables/useApiConfig'
 import Modal from '~/components/Modal.vue'
+definePageMeta({
+  middleware: ['authenticated'],
+})
 
 // Interface pour la réponse de l'API de réservation
 interface ReservationAPIResponse {

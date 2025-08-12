@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+  <div v-if="!isEventDetailPage" class="fixed bottom-0 left-0 right-0 z-50 md:hidden">
     <nav class="mx-2 mb-2">
       <div class="max-w-5xl mx-auto bg-neutral-800/30 backdrop-blur-md rounded-[26px] p-1">
         <div class="flex items-center justify-around">
@@ -78,6 +78,11 @@ const isActive = (path: string) => {
   }
   return route.path.startsWith(path)
 }
+
+// Vérifier si on est sur une page de détail d'événement
+const isEventDetailPage = computed(() => {
+  return route.path.match(/^\/evenements\/[^\/]+$/)
+})
 </script>
 
 <style scoped>
