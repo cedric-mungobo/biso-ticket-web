@@ -13,6 +13,7 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
+ 
   modules: [
     '@nuxt/image',
     '@nuxt/scripts',
@@ -26,6 +27,7 @@ export default defineNuxtConfig({
   },
   
   app: {
+    pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       title: 'Biso Ticket', // default fallback title
 

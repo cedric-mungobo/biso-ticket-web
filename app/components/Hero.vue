@@ -7,15 +7,24 @@
       
       <!-- Contenu principal -->
       <div class="relative z-10 mt-auto w-full md:w-2/3 lg:max-w-2xl ps-4 pb-4 md:ps-10 md:pb-10">
-        <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-6xl text-white font-bold mb-4 md:mb-6 leading-tight">
+        <h1 
+          ref="titleRef"
+          class="text-2xl sm:text-3xl md:text-4xl lg:text-6xl text-white font-bold mb-4 md:mb-6 leading-tight opacity-0"
+        >
           Biso Ticket
         </h1>
-        <p class="text-3xl sm:text-3xl md:text-4xl lg:text-4xl text-white/95 mb-6 md:mb-8 leading-relaxed max-w-lg">
+        <p 
+          ref="subtitleRef"
+          class="text-3xl sm:text-3xl md:text-4xl lg:text-4xl text-white/95 mb-6 md:mb-8 leading-relaxed max-w-lg opacity-0"
+        >
           Organisez, trouvez et réservez vos billets pour les meilleurs événements
         </p>
         
         <!-- Boutons d'action -->
-        <div class="flex flex-col gap-3 sm:gap-4 w-full sm:w-auto p-2">
+        <div 
+          ref="buttonsRef"
+          class="flex flex-col gap-3 sm:gap-4 w-full sm:w-auto p-2 opacity-0"
+        >
           <NuxtLink 
             to="/evenements" 
             class="group w-full sm:w-auto inline-flex items-center justify-center px-4 sm:px-6 md:px-8 py-3 sm:py-4 bg-primary-600 text-primary-50 font-bold text-sm sm:text-base md:text-lg rounded-full hover:bg-primary-700 hover:scale-105 transform transition-all duration-300 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
@@ -44,3 +53,70 @@
   </div>
   <!-- End Hero -->
 </template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+
+// Références pour les éléments à animer
+const titleRef = ref<HTMLElement>()
+const subtitleRef = ref<HTMLElement>()
+const buttonsRef = ref<HTMLElement>()
+
+// Animation d'entrée des éléments
+onMounted(() => {
+  const { gsap } = useGSAP()
+  
+  // Timeline principale pour orchestrer les animations
+  const tl = gsap.timeline({ delay: 0.3 })
+  
+  // Animation du titre
+  if (titleRef.value) {
+    tl.fromTo(titleRef.value, 
+      { 
+        y: 50, 
+        opacity: 0 
+      },
+      { 
+        y: 0, 
+        opacity: 1, 
+        duration: 1, 
+        ease: 'power2.out' 
+      }
+    )
+  }
+  
+  // Animation du sous-titre
+  if (subtitleRef.value) {
+    tl.fromTo(subtitleRef.value, 
+      { 
+        y: 30, 
+        opacity: 0 
+      },
+      { 
+        y: 0, 
+        opacity: 1, 
+        duration: 0.8, 
+        ease: 'power2.out' 
+      }, 
+      '-=0.4'
+    )
+  }
+  
+  // Animation des boutons
+  if (buttonsRef.value) {
+    tl.fromTo(buttonsRef.value, 
+      { 
+        y: 20, 
+        opacity: 0 
+      },
+      { 
+        y: 0, 
+        opacity: 1, 
+        duration: 0.6, 
+        ease: 'power2.out' 
+      }, 
+      '-=0.3'
+    )
+  }
+})
+</script>
