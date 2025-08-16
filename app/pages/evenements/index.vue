@@ -1,5 +1,5 @@
 <template>
-  <main class="px-4 py-8 md:px-8 pt-20 lg:px-12">
+  <main class="px-2 py-8 md:px-8 pt-24 lg:px-12">
     <div class="mx-auto max-w-7xl">
       <h1 class="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight mb-6">
         Découvrez les événements à venir
