@@ -1,35 +1,44 @@
 <template>
-
-<div class="container mx-auto px-1 sm:px-0 lg:px-8">
+  <div class="container mx-auto px-1 sm:px-0 lg:px-8">
     <div class="space-y-6">
-      <!-- Ligne 1 : Card 1 et Card 2 -->
+      <!-- Ligne 1 : Services principaux -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Billeterie en ligne -->
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-blue-800 p-8 text-white min-h-[500px] flex flex-col">
+        <div 
+          v-for="(service, index) in mainServices" 
+          :key="service.id"
+          class="relative overflow-hidden rounded-3xl bg-gradient-to-br p-8 text-white min-h-[500px] flex flex-col"
+          :class="getServiceGradient(service.id)"
+        >
           <div class="flex-1">
-            <p class="text-sm font-medium opacity-90 mb-2">Service Premium</p>
+            <p class="text-sm font-medium opacity-90 mb-2">{{ service.badge.text }}</p>
             <h2 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              Billeterie en ligne
+              {{ service.title }}
             </h2>
             <p class="text-lg opacity-90 leading-relaxed">
-             Biso Ticket une plateforme ultra-sécurisée qui vous permet de faire de la vente de billets en ligne avec paiement mobile money, cartes bancaires et transfert d'argent. Gestion des stocks en temps réel, réservations instantanées et notifications automatiques pour vos participants.
+              {{ service.description }}
             </p>
           </div>
           
           <!-- Image en bas -->
           <div class="mt-6 flex-1 relative">
-            <img 
-              src="/assets/images/ticket.jpg" 
-              alt="Billeterie en ligne" 
+            <NuxtImg 
+              :src="getServiceImage(service.id)" 
+              :alt="service.title" 
               class="w-full aspect-video h-full object-cover rounded-xl"
+              loading="lazy"
+              placeholder
             />
+            <!-- Fallback si l'image ne charge pas -->
+            <div class="absolute inset-0 bg-gray-200 rounded-xl flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+              <span class="text-gray-500 text-sm">{{ service.title }}</span>
+            </div>
           </div>
           
-          <!-- Icône de sécurité -->
+          <!-- Icône du service -->
           <div class="absolute top-8 right-8 z-20">
             <div class="bg-white/20 backdrop-blur-sm rounded-full p-3">
               <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="service.icon"></path>
               </svg>
             </div>
           </div>
@@ -37,68 +46,14 @@
           <!-- CTA Button -->
           <div class="absolute bottom-8 left-8 z-20">
             <button class="border border-white/30 backdrop-blur-sm rounded-full px-6 py-3 text-white font-medium hover:bg-white/10 transition-colors">
-              Découvrir
-            </button>
-          </div>
-        </div>
-
-        <!-- Bracelets personnalisés et billets papier -->
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 to-purple-800 p-8 text-white min-h-[500px] flex flex-col">
-          <div class="flex-1">
-            <p class="text-sm font-medium opacity-90 mb-2">Solutions Physiques</p>
-            <h2 class="text-3xl md:text-4xl font-bold mb-6 leading-tight">
-              Bracelets & Billets Papier
-            </h2>
-            <div class="space-y-4">
-              <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                <h3 class="font-semibold text-lg mb-2">Bracelets d'accès</h3>
-                <p class="text-sm opacity-90">
-                  Personnalisés et élégants avec QR code intégré, design personnalisable aux couleurs de votre événement. Parfaits pour festivals, concerts et événements d'entreprise.
-                </p>
-              </div>
-              <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                <h3 class="font-semibold text-lg mb-2">Billets papier</h3>
-                <p class="text-sm opacity-90">
-                  De haute qualité avec design personnalisé, hologrammes de sécurité et QR codes uniques. Impression sur différents supports pour tous types d'événements.
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Image en bas -->
-          <div class="mt-6 flex-1 relative">
-            <img 
-              src="/assets/images/bracelet.jpeg" 
-              alt="Bracelets et billets" 
-              class="w-full aspect-video h-full object-cover rounded-xl"
-            />
-          </div>
-          
-          <!-- Icônes des services -->
-          <div class="absolute top-8 right-8 z-20 flex space-x-2">
-            <div class="bg-white/20 backdrop-blur-sm rounded-full p-2">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-            </div>
-            <div class="bg-white/20 backdrop-blur-sm rounded-full p-2">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-              </svg>
-            </div>
-          </div>
-          
-          <!-- CTA Button -->
-          <div class="absolute bottom-8 left-8 z-20">
-            <button class="border border-white/30 backdrop-blur-sm rounded-full px-6 py-3 text-white font-medium hover:bg-white/10 transition-colors">
-              Commander
+              {{ service.cta }}
             </button>
           </div>
         </div>
       </div>
 
       <!-- Ligne 2 : CTA Section -->
-      <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl p-8 md:p-12">
+      <div class="bg-gradient-to-br from-secondary-500 to-primary-500 rounded-3xl p-8 md:p-12">
         <div class="max-w-2xl">
           <h3 class="text-4xl md:text-5xl font-bold text-white leading-tight mb-6">
             Prêt à<br>organiser votre<br>
@@ -122,8 +77,11 @@
         </div>
       </div>
 
-      <!-- Ligne 3 : Invitation électronique -->
-      <div class="bg-gradient-to-r rounded-2xl from-green-900 to-green-950">
+      <!-- Ligne 3 : Service spécial (Invitation électronique) -->
+      <div 
+        v-if="digitalInvitationService"
+        class="bg-gradient-to-r rounded-2xl from-primary-900 to-secondary-900"
+      >
         <section class="">
           <!-- Layout principal -->
           <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch min-h-[600px]">
@@ -146,10 +104,10 @@
               <!-- Titre de la section -->
               <div class="max-w-3xl mb-4 lg:mb-6">
                 <h2 class="text-white font-semibold text-2xl md:text-4xl md:leading-tight">
-                  Invitations électroniques
+                  {{ digitalInvitationService.title }}
                 </h2>
                 <p class="mt-1 text-secondary-200">
-                  Invitations 2.0 digitales élégantes et personnalisées pour vos événements privés,Mariage, soirées d'entreprise et célébrations.
+                  {{ digitalInvitationService.description }}
                 </p>
               </div>
 
@@ -162,56 +120,24 @@
 
               <!-- Étapes de la timeline -->
               <div class="space-y-4">
-                <div class="flex gap-x-5 ms-1">
+                <div 
+                  v-for="(feature, index) in digitalFeatures" 
+                  :key="index"
+                  class="flex gap-x-5 ms-1"
+                >
                   <!-- Icône avec ligne de connexion -->
                   <div class="relative">
                     <div class="relative z-10 size-8 flex justify-center items-center">
                       <span class="flex shrink-0 justify-center items-center size-8 border border-secondary-200 text-secondary-200 font-semibold text-xs uppercase rounded-full">
-                        1
+                        {{ index + 1 }}
                       </span>
                     </div>
                   </div>
                   <!-- Contenu de l'étape -->
                   <div class="grow pt-0.5">
                     <p class="text-sm lg:text-base text-neutral-400">
-                      <span class="text-white">Templates modernes:</span>
-                      Design élégant et personnalisable aux couleurs de votre événement
-                    </p>
-                  </div>
-                </div>
-
-                <div class="flex gap-x-5 ms-1">
-                  <!-- Icône avec ligne de connexion -->
-                  <div class="relative">
-                    <div class="relative z-10 size-8 flex justify-center items-center">
-                      <span class="flex shrink-0 justify-center items-center size-8 border border-secondary-200 text-secondary-200 font-semibold text-xs uppercase rounded-full">
-                        2
-                      </span>
-                    </div>
-                  </div>
-                  <!-- Contenu de l'étape -->
-                  <div class="grow pt-0.5">
-                    <p class="text-sm lg:text-base text-neutral-400">
-                      <span class="text-white">Animations interactives:</span>
-                      Expérience utilisateur engageante et moderne
-                    </p>
-                  </div>
-                </div>
-
-                <div class="flex gap-x-5 ms-1">
-                  <!-- Icône avec ligne de connexion -->
-                  <div class="relative">
-                    <div class="relative z-10 size-8 flex justify-center items-center">
-                      <span class="flex shrink-0 justify-center items-center size-8 border border-secondary-200 text-secondary-200 font-semibold text-xs uppercase rounded-full">
-                        3
-                      </span>
-                    </div>
-                  </div>
-                  <!-- Contenu de l'étape -->
-                  <div class="grow pt-0.5">
-                    <p class="text-sm lg:text-base text-neutral-400">
-                      <span class="text-white">RSVP intégré:</span>
-                      Gestion des confirmations et partage sur réseaux sociaux
+                      <span class="text-white">{{ feature.title }}:</span>
+                      {{ feature.description }}
                     </p>
                   </div>
                 </div>
@@ -236,7 +162,7 @@
                     <path class="opacity-0 group-hover:opacity-100 group-focus:opacity-100 group-hover:delay-100 transition" d="M14.05 2a9 9 0 0 1 8 7.94"></path>
                     <path class="opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition" d="M14.05 6A5 5 0 0 1 18 10"></path>
                   </svg>
-                  Créer une invitation
+                  {{ digitalInvitationService.cta }}
                 </button>
               </div>
             </div>
@@ -267,6 +193,64 @@ interface Service {
   cta: string
 }
 
+interface DigitalFeature {
+  title: string
+  description: string
+}
+
+// Propriétés computed
+const mainServices = computed(() => services.slice(0, 2)) // Prend les 2 premiers services
+const digitalInvitationService = computed(() => services.find(s => s.id === 'digital-invitations'))
+
+// Fonctions utilitaires
+const getServiceGradient = (serviceId: string) => {
+  const service = services.find(s => s.id === serviceId)
+  if (!service) return 'from-gray-600 to-gray-800'
+  
+  // Mapping des gradients par service
+  const gradients: Record<string, string> = {
+    'online-ticketing': 'from-secondary-600 to-secondary-800',
+    'wristband-tickets': 'from-primary-600 to-primary-800',
+    'paper-tickets': 'from-secondary-600 to-secondary-800',
+    'digital-invitations': 'from-primary-600 to-primary-800',
+    'event-management': 'from-secondary-600 to-secondary-800',
+    'customer-support': 'from-secondary-600 to-secondary-800'
+  }
+  
+  return gradients[serviceId] || 'from-gray-600 to-gray-800'
+}
+
+const getServiceImage = (serviceId: string) => {
+  // Mapping des images par service
+  const images: Record<string, string> = {
+    'online-ticketing': '/assets/images/ticket.jpg',
+    'wristband-tickets': '/assets/images/bracelet.jpeg',
+    'paper-tickets': '/assets/images/ticket.jpg',
+    'digital-invitations': '/assets/images/hero.jpg',
+    'event-management': '/assets/images/hero.jpg',
+    'customer-support': '/assets/images/hero.jpg'
+  }
+  
+  const imagePath = images[serviceId] || '/assets/images/hero.jpg'
+  console.log(`Service ${serviceId}: Image path = ${imagePath}`)
+  return imagePath
+}
+
+// Fonctionnalités digitales
+const digitalFeatures: DigitalFeature[] = [
+  {
+    title: 'Templates modernes',
+    description: 'Design élégant et personnalisable aux couleurs de votre événement'
+  },
+  {
+    title: 'Animations interactives',
+    description: 'Expérience utilisateur engageante et moderne'
+  },
+  {
+    title: 'RSVP intégré',
+    description: 'Gestion des confirmations et partage sur réseaux sociaux'
+  }
+]
 
 const sliderPosition = ref(75)
 const isDragging = ref(false)
@@ -302,29 +286,29 @@ const services: Service[] = [
   {
     id: 'online-ticketing',
     badge: {
-      text: 'Billeterie',
+      text: 'Service Premium',
       color: 'text-blue-700',
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200'
     },
     title: 'Billeterie en ligne',
-    description: 'Plateforme de vente de billets en ligne ultra-sécurisée avec paiement mobile money, cartes bancaires et transfert d\'argent. Gestion des stocks en temps réel, réservations instantanées et notifications automatiques pour vos participants.',
+    description: 'Biso Ticket une plateforme ultra-sécurisée qui vous permet de faire de la vente de billets en ligne avec paiement mobile money, cartes bancaires et transfert d\'argent. Gestion des stocks en temps réel, réservations instantanées et notifications automatiques pour vos participants.',
     icon: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z',
     gradient: { from: 'from-blue-100', to: 'to-blue-200' },
     iconColor: 'text-blue-600',
     tag: 'Vente en ligne',
-    cta: 'Commencer'
+    cta: 'Découvrir'
   },
   {
     id: 'wristband-tickets',
     badge: {
-      text: 'Bracelet',
+      text: 'Solutions Physiques',
       color: 'text-green-700',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-200'
     },
-    title: 'Billet bracelet',
-    description: 'Bracelets d\'accès personnalisés et élégants avec QR code intégré, design personnalisable aux couleurs de votre événement. Parfaits pour festivals, concerts et événements d\'entreprise. Suivi des entrées en temps réel et statistiques détaillées.',
+    title: 'Bracelets & Billets Papier',
+    description: 'Bracelets d\'accès personnalisés et élégants avec QR code intégré, design personnalisable aux couleurs de votre événement. Parfaits pour festivals, concerts et événements d\'entreprise. Suivi des entrées en temps réel et statistiques détaillées. Billets papier de haute qualité avec design personnalisé, hologrammes de sécurité et QR codes uniques.',
     icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
     gradient: { from: 'from-green-100', to: 'to-green-200' },
     iconColor: 'text-green-600',
@@ -356,7 +340,7 @@ const services: Service[] = [
       borderColor: 'border-purple-200'
     },
     title: 'Invitation électronique',
-    description: 'Invitations digitales élégantes et personnalisées pour vos événements privés, soirées d\'entreprise et célébrations. Templates modernes, animations interactives, RSVP intégré et partage facile sur les réseaux sociaux.',
+    description: 'Invitations 2.0 digitales élégantes et personnalisées pour vos événements privés, Mariage, soirées d\'entreprise et célébrations. Templates modernes, animations interactives, RSVP intégré et partage facile sur les réseaux sociaux.',
     icon: 'M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
     gradient: { from: 'from-purple-100', to: 'to-purple-200' },
     iconColor: 'text-purple-600',
