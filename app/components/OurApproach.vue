@@ -1,8 +1,22 @@
 <template>
     <div class="bg-gradient-to-r rounded-2xl from-primary-900 to-primary-950">
-  <section class="max-w-7xl px-4 xl:px-0 py-10 lg:pt-20 mx-auto">
-    <!-- Titre de la section -->
-    <div class="max-w-3xl mb-10 lg:mb-14">
+  <section class="">
+    <!-- Layout principal -->
+    <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch min-h-[600px]">
+      <!-- Image -->
+      <div class="lg:w-1/2 rounded-xl overflow-hidden">
+        <img 
+          class="w-full h-full object-cover rounded-xl" 
+          :src="imageSrc" 
+          :alt="imageAlt"
+        >
+      </div>
+
+      <!-- Timeline des étapes -->
+      <div class="lg:w-1/2 p-2 lg:p-4 flex flex-col justify-center">
+
+          <!-- Titre de la section -->
+    <div class="max-w-3xl mb-4 lg:mb-6">
       <h2 class="text-white font-semibold text-2xl md:text-4xl md:leading-tight">
         {{ title }}
       </h2>
@@ -10,20 +24,6 @@
         {{ description }}
       </p>
     </div>
-
-    <!-- Grille principale -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 lg:items-center">
-      <!-- Image -->
-      <div class=" aspect-square rounded-xl">
-        <img 
-          class="w-full object-cover aspect-square rounded-xl" 
-          :src="imageSrc" 
-          :alt="imageAlt"
-        >
-      </div>
-
-      <!-- Timeline des étapes -->
-      <div>
         <!-- En-tête de la timeline -->
         <div class="mb-4">
           <h3 class="text-secondary-200 text-xs font-medium uppercase">

@@ -1,198 +1,250 @@
 <template>
 
-<div class="min-h-screen bg-gray-50 p-2 ">
-    <div class="container mx-auto space-y-6">
-      <!-- Top Row -->
+<div class="container mx-auto px-1 sm:px-0 lg:px-8">
+    <div class="space-y-6">
+      <!-- Ligne 1 : Card 1 et Card 2 -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Extended RAW Support Card -->
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-400 to-blue-500 p-8 text-white min-h-[500px]">
-          <div class="relative z-10">
-            <p class="text-sm font-medium opacity-90 mb-2">What's New</p>
-            <h2 class="text-4xl md:text-5xl font-bold mb-8 leading-tight">
-              Extended RAW<br>Support
+        <!-- Billeterie en ligne -->
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-blue-800 p-8 text-white min-h-[500px] flex flex-col">
+          <div class="flex-1">
+            <p class="text-sm font-medium opacity-90 mb-2">Service Premium</p>
+            <h2 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+              Billeterie en ligne
             </h2>
+            <p class="text-lg opacity-90 leading-relaxed">
+             Biso Ticket une plateforme ultra-sécurisée qui vous permet de faire de la vente de billets en ligne avec paiement mobile money, cartes bancaires et transfert d'argent. Gestion des stocks en temps réel, réservations instantanées et notifications automatiques pour vos participants.
+            </p>
           </div>
           
-          <!-- Camera Model Pills -->
-          <div class="absolute inset-0 z-20">
-            <div class="absolute top-24 right-8 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
-              Sony 7CR
-            </div>
-            <div class="absolute top-32 left-4 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
-              Olympus E-M1 Mark III
-            </div>
-            <div class="absolute top-40 right-16 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
-              Nikon Z 8
-            </div>
-            <div class="absolute top-48 left-8 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
-              Nikon Z9
-            </div>
-            <div class="absolute top-56 right-4 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
-              Nikon Z6 III
-            </div>
-            <div class="absolute top-64 left-16 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
-              Fujifilm X-T50
-            </div>
-            <div class="absolute top-72 right-12 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
-              Fujifilm A20
-            </div>
-            <div class="absolute top-80 left-4 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
-              Fujifilm X-A20
-            </div>
-            <div class="absolute top-88 right-8 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
-              GoPro HERO10 Black
-            </div>
-            <div class="absolute bottom-24 right-16 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
-              Sony A700
-            </div>
-          </div>
-          
-          <!-- Background Image -->
-          <div class="absolute inset-0 z-0">
-                <img 
-                src="/assets/images/hero.jpg" 
-              alt="Desert landscape" 
-              class="w-full h-full object-cover opacity-60"
+          <!-- Image en bas -->
+          <div class="mt-6 flex-1 relative">
+            <img 
+              src="/assets/images/ticket.jpg" 
+              alt="Billeterie en ligne" 
+              class="w-full aspect-video h-full object-cover rounded-xl"
             />
           </div>
           
-          <!-- Learn More Button -->
+          <!-- Icône de sécurité -->
+          <div class="absolute top-8 right-8 z-20">
+            <div class="bg-white/20 backdrop-blur-sm rounded-full p-3">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+              </svg>
+            </div>
+          </div>
+          
+          <!-- CTA Button -->
           <div class="absolute bottom-8 left-8 z-20">
             <button class="border border-white/30 backdrop-blur-sm rounded-full px-6 py-3 text-white font-medium hover:bg-white/10 transition-colors">
-              Learn more
+              Découvrir
             </button>
           </div>
         </div>
 
-        <!-- Photo Grid Section -->
-        <div class="relative overflow-hidden rounded-3xl bg-gray-900 p-8 min-h-[500px]">
-          <div class="grid grid-cols-3 gap-2 h-full">
-            <div class="space-y-2">
-              <img src="/assets/images/hero.jpg" alt="Portrait" class="w-full h-24 object-cover rounded-lg" />
-              <img src="/assets/images/hero.jpg" alt="Desert" class="w-full h-24 object-cover rounded-lg" />
-              <img src="/assets/images/hero.jpg" alt="Portrait" class="w-full h-24 object-cover rounded-lg" />
-            </div>
-            <div class="space-y-2">
-              <img src="/assets/images/hero.jpg" alt="Joshua Tree" class="w-full h-24 object-cover rounded-lg" />
-              <img src="/assets/images/hero.jpg" alt="Nature" class="w-full h-24 object-cover rounded-lg" />
-              <img src="/assets/images/hero.jpg" alt="Portrait" class="w-full h-24 object-cover rounded-lg" />
-            </div>
-            <div class="space-y-2">
-              <img src="/assets/images/hero.jpg" alt="Silhouette" class="w-full h-24 object-cover rounded-lg" />
-              <img src="/assets/images/hero.jpg" alt="Abstract" class="w-full h-24 object-cover rounded-lg" />
-              <img src="/assets/images/hero.jpg" alt="Bridge" class="w-full h-24 object-cover rounded-lg" />
+        <!-- Bracelets personnalisés et billets papier -->
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 to-purple-800 p-8 text-white min-h-[500px] flex flex-col">
+          <div class="flex-1">
+            <p class="text-sm font-medium opacity-90 mb-2">Solutions Physiques</p>
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 leading-tight">
+              Bracelets & Billets Papier
+            </h2>
+            <div class="space-y-4">
+              <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <h3 class="font-semibold text-lg mb-2">Bracelets d'accès</h3>
+                <p class="text-sm opacity-90">
+                  Personnalisés et élégants avec QR code intégré, design personnalisable aux couleurs de votre événement. Parfaits pour festivals, concerts et événements d'entreprise.
+                </p>
+              </div>
+              <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                <h3 class="font-semibold text-lg mb-2">Billets papier</h3>
+                <p class="text-sm opacity-90">
+                  De haute qualité avec design personnalisé, hologrammes de sécurité et QR codes uniques. Impression sur différents supports pour tous types d'événements.
+                </p>
+              </div>
             </div>
           </div>
           
-          <!-- Overlay Text -->
-          <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <h3 class="text-white text-3xl md:text-4xl font-bold text-center leading-tight">
-              Batch edit your<br>photos in seconds.
-            </h3>
+          <!-- Image en bas -->
+          <div class="mt-6 flex-1 relative">
+            <img 
+              src="/assets/images/bracelet.jpeg" 
+              alt="Bracelets et billets" 
+              class="w-full aspect-video h-full object-cover rounded-xl"
+            />
+          </div>
+          
+          <!-- Icônes des services -->
+          <div class="absolute top-8 right-8 z-20 flex space-x-2">
+            <div class="bg-white/20 backdrop-blur-sm rounded-full p-2">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <div class="bg-white/20 backdrop-blur-sm rounded-full p-2">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+              </svg>
+            </div>
+          </div>
+          
+          <!-- CTA Button -->
+          <div class="absolute bottom-8 left-8 z-20">
+            <button class="border border-white/30 backdrop-blur-sm rounded-full px-6 py-3 text-white font-medium hover:bg-white/10 transition-colors">
+              Commander
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Color Adjustments Section -->
-      <div class="bg-white rounded-3xl p-8 md:p-12">
+      <!-- Ligne 2 : CTA Section -->
+      <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl p-8 md:p-12">
         <div class="max-w-2xl">
-          <h3 class="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-8">
-            Powerful,<br>nondestructive<br>
-            <span class="bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">
-              color adjustments.
+          <h3 class="text-4xl md:text-5xl font-bold text-white leading-tight mb-6">
+            Prêt à<br>organiser votre<br>
+            <span class="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
+              événement ?
             </span>
           </h3>
+          <p class="text-xl text-white/90 mb-8 leading-relaxed">
+            Rejoignez des milliers d'organisateurs qui font confiance à Biso Ticket pour leurs événements.
+          </p>
           
-          <!-- Color Slider -->
-          <div class="relative">
-            <div class="h-3 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 mb-4"></div>
-            <div class="h-3 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 ml-auto w-32"></div>
-            <div 
-              class="absolute top-0 w-6 h-6 bg-white rounded-full shadow-lg border-2 border-gray-200 cursor-pointer transform -translate-y-1.5"
-              :style="{ left: sliderPosition + '%' }"
-              @mousedown="startDrag"
-            ></div>
+          <!-- CTA Buttons -->
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button class="bg-white text-orange-600 font-semibold py-4 px-8 rounded-full hover:bg-gray-100 transition-colors">
+              Commencer maintenant
+            </button>
+            <button class="border-2 border-white text-white font-semibold py-4 px-8 rounded-full hover:bg-white/10 transition-colors">
+              Voir la démo
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Magic Removal Section -->
-      <div class="relative overflow-hidden rounded-3xl bg-gray-900 p-8 md:p-12 min-h-[400px]">
-        <div class="relative z-10 max-w-xl">
-          <h3 class="text-4xl md:text-5xl font-bold text-white leading-tight">
-            Make objects<br>disappear like<br>
-            <span class="text-yellow-400 italic">magic.</span>
-          </h3>
-        </div>
-        
-        <!-- Background Image -->
-        <div class="absolute inset-0 z-0">
-          <img 
-            src="/assets/images/hero.jpg" 
-            alt="Underwater boat view" 
-            class="w-full h-full object-cover opacity-80"
-          />
-        </div>
+      <!-- Ligne 3 : Invitation électronique -->
+      <div class="bg-gradient-to-r rounded-2xl from-green-900 to-green-950">
+        <section class="">
+          <!-- Layout principal -->
+          <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch min-h-[600px]">
+            <!-- Image/Video -->
+            <div class="lg:w-1/2 rounded-xl overflow-hidden">
+              <video 
+                class="w-full h-full object-cover rounded-xl"
+                autoplay 
+                muted 
+                loop 
+                playsinline
+              >
+                <source src="/assets/videos/invitation-demo.mp4" type="video/mp4">
+                Votre navigateur ne supporte pas la lecture de vidéos.
+              </video>
+            </div>
+
+            <!-- Contenu texte -->
+            <div class="lg:w-1/2 p-6 lg:p-8 flex flex-col justify-center">
+              <!-- Titre de la section -->
+              <div class="max-w-3xl mb-4 lg:mb-6">
+                <h2 class="text-white font-semibold text-2xl md:text-4xl md:leading-tight">
+                  Invitations électroniques
+                </h2>
+                <p class="mt-1 text-secondary-200">
+                  Invitations 2.0 digitales élégantes et personnalisées pour vos événements privés,Mariage, soirées d'entreprise et célébrations.
+                </p>
+              </div>
+
+              <!-- Timeline des étapes -->
+              <div class="mb-4">
+                <h3 class="text-secondary-200 text-xs font-medium uppercase">
+                  Fonctionnalités
+                </h3>
+              </div>
+
+              <!-- Étapes de la timeline -->
+              <div class="space-y-4">
+                <div class="flex gap-x-5 ms-1">
+                  <!-- Icône avec ligne de connexion -->
+                  <div class="relative">
+                    <div class="relative z-10 size-8 flex justify-center items-center">
+                      <span class="flex shrink-0 justify-center items-center size-8 border border-secondary-200 text-secondary-200 font-semibold text-xs uppercase rounded-full">
+                        1
+                      </span>
+                    </div>
+                  </div>
+                  <!-- Contenu de l'étape -->
+                  <div class="grow pt-0.5">
+                    <p class="text-sm lg:text-base text-neutral-400">
+                      <span class="text-white">Templates modernes:</span>
+                      Design élégant et personnalisable aux couleurs de votre événement
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex gap-x-5 ms-1">
+                  <!-- Icône avec ligne de connexion -->
+                  <div class="relative">
+                    <div class="relative z-10 size-8 flex justify-center items-center">
+                      <span class="flex shrink-0 justify-center items-center size-8 border border-secondary-200 text-secondary-200 font-semibold text-xs uppercase rounded-full">
+                        2
+                      </span>
+                    </div>
+                  </div>
+                  <!-- Contenu de l'étape -->
+                  <div class="grow pt-0.5">
+                    <p class="text-sm lg:text-base text-neutral-400">
+                      <span class="text-white">Animations interactives:</span>
+                      Expérience utilisateur engageante et moderne
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex gap-x-5 ms-1">
+                  <!-- Icône avec ligne de connexion -->
+                  <div class="relative">
+                    <div class="relative z-10 size-8 flex justify-center items-center">
+                      <span class="flex shrink-0 justify-center items-center size-8 border border-secondary-200 text-secondary-200 font-semibold text-xs uppercase rounded-full">
+                        3
+                      </span>
+                    </div>
+                  </div>
+                  <!-- Contenu de l'étape -->
+                  <div class="grow pt-0.5">
+                    <p class="text-sm lg:text-base text-neutral-400">
+                      <span class="text-white">RSVP intégré:</span>
+                      Gestion des confirmations et partage sur réseaux sociaux
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bouton d'action -->
+              <div class="mt-8">
+                <button class="group inline-flex items-center gap-x-2 py-2 px-3 bg-secondary-200 font-medium text-sm text-neutral-800 rounded-full focus:outline-hidden hover:bg-secondary-300 transition-colors">
+                  <svg 
+                    class="shrink-0 size-4" 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    stroke-width="2" 
+                    stroke-linecap="round" 
+                    stroke-linejoin="round"
+                  >
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    <path class="opacity-0 group-hover:opacity-100 group-focus:opacity-100 group-hover:delay-100 transition" d="M14.05 2a9 9 0 0 1 8 7.94"></path>
+                    <path class="opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition" d="M14.05 6A5 5 0 0 1 18 10"></path>
+                  </svg>
+                  Créer une invitation
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   </div>
-  <section class=" px-2 sm:px-0 lg:px-8 py-12 lg:py-24 mx-auto">
-    <!-- En-tête de section -->
-    <div class="mb-6 sm:mb-10 max-w-3xl text-center mx-auto">
-      <h2 class="font-medium text-black text-3xl sm:text-4xl dark:text-white mb-4">
-        Nos Services
-      </h2>
-      <p class="text-lg text-gray-600 dark:text-gray-400">
-        <span class="font-semibold text-primary-600">Biso Ticket</span> - La solution complète et innovante pour le succès de vos événements
-      </p>
-      
-      <!-- Valeurs clés -->
-      <div class="mt-6 flex flex-wrap justify-center gap-4 text-sm text-gray-500">
-        <span 
-          v-for="value in coreValues" 
-          :key="value"
-          class="flex items-center gap-2"
-        >
-          <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          {{ value }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Description -->
-    <p class="text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto">
-      Découvrez notre écosystème complet de solutions de billetterie et d'invitations électroniques. 
-      De la vente en ligne sécurisée à la gestion d'événements, nous vous accompagnons à chaque étape 
-      pour créer des expériences mémorables et réussies.
-    </p>
-
-    <!-- Grille des services -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-8">
-      <ServiceCard
-        v-for="service in services"
-        :key="service.id"
-        :service="service"
-      />
-    </div>
-
-    <!-- Call-to-action -->
-    <div class="mt-12 text-center">
-      <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
-        Prêt à transformer vos événements ? Rejoignez des milliers d'organisateurs qui font confiance à Biso Ticket
-      </p>
-      <NuxtLink 
-        to="/organisateur"
-        class="relative inline-block font-medium md:text-lg text-black before:absolute before:bottom-0.5 before:start-0 before:-z-1 before:w-full before:h-1 before:bg-yellow-400 hover:before:bg-black focus:outline-hidden focus:before:bg-black dark:text-white dark:hover:before:bg-white dark:focus:before:bg-white"
-      >
-        Commencer à organiser votre événement
-      </NuxtLink>
-      <p class="text-sm text-gray-500 mt-4">
-        ✓ Essai gratuit • ✓ Support 24/7 • ✓ Mise en place en 24h
-      </p>
-    </div>
-  </section>
 </template>
 <script setup lang="ts">
 interface Service {

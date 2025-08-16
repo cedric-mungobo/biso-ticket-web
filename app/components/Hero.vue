@@ -1,7 +1,7 @@
 <template>
   <!-- Hero -->
-  <div class="px-1 sm:px-6 lg:px-8">
-    <div class="min-h-[500px] h-[70vh] sm:h-[80vh] md:h-[85vh] lg:h-[90vh] flex flex-col bg-[url('/assets/images/hero.jpg')] bg-cover bg-center bg-no-repeat rounded-2xl relative overflow-hidden">
+  <div class="w-full">
+    <div class="min-h-[500px] w-full h-[70vh] sm:h-[90vh] md:h-[90vh] lg:h-[90vh] flex flex-col bg-[url('/assets/images/hero.jpg')] bg-cover bg-center bg-no-repeat rounded-2xl relative overflow-hidden">
       <!-- Overlay sombre pour améliorer la lisibilité -->
       <div class="absolute inset-0 bg-black/40 md:bg-black/30"></div>
       

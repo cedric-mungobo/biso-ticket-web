@@ -1,5 +1,5 @@
 <template>
-  <div class="font-display bg-primary-50 relative min-h-screen">
+  <div class="font-display bg-primary-50 relative min-h-[100dvh] w-full">
     <!-- Gradient mesh background -->
     <div class="absolute inset-0 bg-gradient-to-br from-primary-50 via-primary-100/30 to-primary-200/20"></div>
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,rgba(59,130,246,0.08),transparent_40%)]"></div>
