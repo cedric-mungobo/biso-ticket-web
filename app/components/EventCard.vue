@@ -1,4 +1,5 @@
 <template>
+  <NuxtLink :to="`/evenements/${eventId}`"> 
   <article class="rounded-xl border bg-white transition-all hover:shadow-lg border-primary-400 hover:border-primary-300 group">
     <div class="p-4">
       <!-- Badge de catégorie -->
@@ -53,6 +54,7 @@
       </div>
     </div>
   </article>
+</NuxtLink>
 </template>
 
 <script setup lang="ts">
