@@ -1,29 +1,29 @@
 <template>
   <div class="ticket-card group cursor-pointer" @click="openTicketModal">
     <!-- Carte principale avec layout horizontal -->
-    <div class="bg-white rounded-xl border border-neutral-200/50 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+    <div class="bg-white rounded-xl border border-primary-200/50 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-primary-300">
       
       <div class="flex items-center p-4">
         <!-- Section gauche : Détails de l'événement -->
-        <div class="flex-1 space-y-2">
+        <div class="flex-1 space-y-3">
           <!-- Nom de l'événement -->
-          <h3 class="text-lg font-semibold text-neutral-900 line-clamp-2 group-hover:text-primary-600 transition-colors">
+          <h3 class="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-primary-600 transition-colors duration-200">
             {{ ticket.event.name }}
           </h3>
           
           <!-- Date et heure -->
-          <div class="flex items-center space-x-2 text-sm text-neutral-600">
-            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="flex items-center space-x-2 text-sm text-gray-600">
+            <svg class="w-4 h-4 flex-shrink-0 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <span>{{ formatDate(ticket.event.date_time) }}</span>
-            <span class="text-neutral-400">•</span>
+            <span class="text-gray-400">•</span>
             <span>{{ formatTime(ticket.event.date_time) }}</span>
           </div>
           
           <!-- Lieu -->
-          <div class="flex items-center space-x-2 text-sm text-neutral-600">
-            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="flex items-center space-x-2 text-sm text-gray-600">
+            <svg class="w-4 h-4 flex-shrink-0 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
@@ -33,7 +33,7 @@
           <!-- Statut et prix -->
           <div class="flex items-center space-x-3">
             <span 
-              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+              class="inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors duration-200"
               :class="getStatusClasses(ticket.status)"
             >
               {{ getStatusText(ticket.status) }}
@@ -44,12 +44,10 @@
         
         <!-- Section droite : QR Code -->
         <div class="flex-shrink-0 ml-4">
-          <div class="w-20 h-20 bg-neutral-100 rounded-lg flex items-center justify-center border-2 border-neutral-200">
-            <!-- Placeholder pour le QR Code - à remplacer par un vrai QR code -->
+          <div class="w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center border-2 border-gray-200 group-hover:border-primary-200 transition-colors duration-200">
             <Qrcode variant="circle" :value="ticket.participant.qr_code" />
-
           </div>
-          <div class="text-xs text-neutral-500 text-center mt-1">#{{ ticket.participant.qr_code }}</div>
+          <div class="text-xs text-gray-500 text-center mt-1 font-medium">#{{ ticket.participant.qr_code }}</div>
         </div>
       </div>
     </div>
@@ -57,19 +55,24 @@
     <!-- Modal pour afficher les détails du ticket -->
     <Modal v-model="showModal" :title="`Ticket - ${ticket.event.name}`">
       <div class="space-y-6">
-        <!-- Image de l'événement -->
-        <div v-if="ticket.event.image" class="relative h-48 bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-lg overflow-hidden">
-          <img 
-            :src="`https://api.bisoticket.com/storage/${ticket.event.image}`" 
+        <!-- Image de l'événement avec qualité optimisée -->
+        <div v-if="ticket.event.image" class="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden">
+          <NuxtImg
+            :src="`https://api.bisoticket.com/storage/${ticket.event.image}`"
             :alt="ticket.event.name"
             class="w-full h-full object-cover"
+            loading="eager"
+            placeholder
+            format="webp"
+            quality="90"
+            sizes="sm:100vw md:50vw lg:400px"
           />
           <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
         </div>
         
         <!-- Détails complets de l'événement -->
         <div class="space-y-4">
-          <h2 class="text-2xl font-bold text-neutral-900">{{ ticket.event.name }}</h2>
+          <h2 class="text-2xl font-bold text-gray-900">{{ ticket.event.name }}</h2>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-3">
@@ -78,9 +81,9 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <div>
-                  <div class="text-sm text-neutral-500">Date et heure</div>
-                  <div class="font-medium">{{ formatDate(ticket.event.date_time) }}</div>
-                  <div class="text-sm text-neutral-600">{{ formatTime(ticket.event.date_time) }}</div>
+                  <div class="text-sm text-gray-500">Date et heure</div>
+                  <div class="font-medium text-gray-900">{{ formatDate(ticket.event.date_time) }}</div>
+                  <div class="text-sm text-gray-600">{{ formatTime(ticket.event.date_time) }}</div>
                 </div>
               </div>
               
@@ -90,8 +93,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <div>
-                  <div class="text-sm text-neutral-500">Lieu</div>
-                  <div class="font-medium">{{ ticket.event.location }}</div>
+                  <div class="text-sm text-gray-500">Lieu</div>
+                  <div class="font-medium text-gray-900">{{ ticket.event.location }}</div>
                 </div>
               </div>
             </div>
@@ -102,8 +105,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 <div>
-                  <div class="text-sm text-neutral-500">Participant</div>
-                  <div class="font-medium">{{ ticket.participant.name }}</div>
+                  <div class="text-sm text-gray-500">Participant</div>
+                  <div class="font-medium text-gray-900">{{ ticket.participant.name }}</div>
                 </div>
               </div>
               
@@ -112,7 +115,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                 </svg>
                 <div>
-                  <div class="text-sm text-neutral-500">Prix</div>
+                  <div class="text-sm text-gray-500">Prix</div>
                   <div class="text-xl font-bold text-primary-600">{{ formatPrice(ticket.price) }}</div>
                 </div>
               </div>
@@ -122,20 +125,19 @@
         
         <!-- QR Code en grand -->
         <div class="text-center">
-          <div class="inline-block p-4 bg-neutral-50 rounded-lg">
-            <div class="w-32 h-32 bg-white rounded-lg flex items-center justify-center border-2 border-neutral-200">
-              <!-- Placeholder pour le QR Code - à remplacer par un vrai QR code -->
+          <div class="inline-block p-4 bg-gray-50 rounded-lg">
+            <div class="w-32 h-32 bg-white rounded-lg flex items-center justify-center border-2 border-gray-200">
               <Qrcode variant="circle" :value="ticket.participant.qr_code" />
             </div>
-            <div class="text-sm text-neutral-500 mt-2">{{ ticket.participant.qr_code }}</div>
+            <div class="text-sm text-gray-500 mt-2 font-medium">{{ ticket.participant.qr_code }}</div>
           </div>
         </div>
         
         <!-- Actions -->
-        <div class="flex items-center justify-center space-x-3 pt-4 border-t border-neutral-100">
+        <div class="flex items-center justify-center space-x-3 pt-4 border-t border-gray-100">
           <button 
             @click="downloadTicket"
-            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           >
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -145,7 +147,7 @@
           
           <button 
             @click="closeModal"
-            class="inline-flex items-center px-4 py-2 text-sm font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
           >
             Fermer
           </button>
@@ -158,7 +160,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-// Interface pour le ticket
+// Interface pour le ticket (correspondant à l'API)
 interface Ticket {
   id: string | number
   status: string
@@ -172,6 +174,11 @@ interface Ticket {
   participant: {
     name: string
     qr_code: string
+  }
+  ticket: {
+    type: string
+    price: string
+    devise: string
   }
 }
 
@@ -203,73 +210,86 @@ const closeModal = () => {
 
 const downloadTicket = async () => {
   try {
+    // Validation des données du ticket
+    if (!props.ticket) {
+      throw new Error('Ticket non défini')
+    }
+    
+    if (!props.ticket.event) {
+      throw new Error('Informations de l\'événement manquantes')
+    }
+    
+    if (!props.ticket.participant) {
+      throw new Error('Informations du participant manquantes')
+    }
+    
+    if (!props.ticket.ticket) {
+      throw new Error('Type de ticket manquant')
+    }
+    
+    if (!props.ticket.participant.qr_code) {
+      throw new Error('Code QR manquant')
+    }
+    
+    console.log('Données du ticket validées:', {
+      event: props.ticket.event,
+      participant: props.ticket.participant,
+      ticketType: props.ticket.ticket
+    })
+    
     // Importer la bibliothèque QR code
     const QRCode = await import('qrcode')
     
-    // Créer un canvas avec les dimensions appropriées (format horizontal comme le TicketCard)
+    // Créer un canvas simple
+    const scale = 2
+    const baseWidth = 600
+    const baseHeight = 400
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // Dimensions du ticket (format horizontal comme le composant)
-    const width = 800
-    const height = 300 // Augmenté pour accommoder le QR code en bas
-    canvas.width = width
-    canvas.height = height
-
-    // Couleurs exactes du design (basées sur les classes Tailwind)
-    const colors = {
-      primary: '#3B82F6', // primary-600
-      white: '#FFFFFF',
-      neutral: {
-        50: '#F9FAFB',
-        100: '#F3F4F6',
-        200: '#E5E7EB',
-        300: '#D1D5DB',
-        400: '#9CA3AF',
-        500: '#6B7280',
-        600: '#4B5563',
-        700: '#374151',
-        800: '#1F2937',
-        900: '#111827'
-      }
+    if (!ctx) {
+      throw new Error('Impossible de créer le contexte 2D')
     }
 
-    // Fond principal avec border radius (rounded-xl)
+    // Configuration
+    canvas.width = baseWidth * scale
+    canvas.height = baseHeight * scale
+    ctx.imageSmoothingEnabled = true
+    ctx.scale(scale, scale)
+
+    // Dimensions
+    const width = baseWidth
+    const height = baseHeight
+
+    // Couleurs simples
+    const colors = {
+      primary: '#8b12ff',
+      white: '#FFFFFF',
+      black: '#000000',
+      gray: '#6B7280'
+    }
+
+    // Fond blanc
     ctx.fillStyle = colors.white
     ctx.fillRect(0, 0, width, height)
 
-    // Bordure avec transparence (border-neutral-200/50)
-    ctx.strokeStyle = colors.neutral[200]
-    ctx.lineWidth = 1
-    ctx.strokeRect(0.5, 0.5, width - 1, height - 1)
+    // Bordure
+    ctx.strokeStyle = colors.primary
+    ctx.lineWidth = 3
+    ctx.strokeRect(2, 2, width - 4, height - 4)
 
-    // Ombre subtile (shadow-sm)
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.05)'
-    ctx.shadowBlur = 10
-    ctx.shadowOffsetX = 0
-    ctx.shadowOffsetY = 1
+    // En-tête avec nom de l'événement
+    ctx.fillStyle = colors.primary
+    ctx.fillRect(0, 0, width, 80)
 
-    // Padding interne (p-4 = 16px)
-    const padding = 16
-    const contentWidth = width - (padding * 2)
-    const contentHeight = height - (padding * 2)
-
-    // Section principale : Détails de l'événement (pleine largeur)
-    const mainSectionX = padding
-    const mainSectionY = padding
-    const mainSectionWidth = contentWidth
-
-    // Nom de l'événement (agrandi)
-    ctx.font = 'bold 28px Arial, sans-serif' // Augmenté de 18px à 28px
-    ctx.fillStyle = colors.neutral[900]
-    ctx.textAlign = 'left'
+    // Nom de l'événement
+    ctx.font = 'bold 28px Inter, Arial, sans-serif'
+    ctx.fillStyle = colors.white
+    ctx.textAlign = 'center'
     
     const eventName = props.ticket.event.name
-    const maxEventNameWidth = mainSectionWidth - 20
+    const maxEventNameWidth = width - 40
     let displayEventName = eventName
     
-    // Tronquer le nom si trop long (line-clamp-2)
     if (ctx.measureText(eventName).width > maxEventNameWidth) {
       let truncatedName = eventName
       while (ctx.measureText(truncatedName + '...').width > maxEventNameWidth) {
@@ -278,224 +298,249 @@ const downloadTicket = async () => {
       displayEventName = truncatedName + '...'
     }
     
-    ctx.fillText(displayEventName, mainSectionX, mainSectionY + 35) // Augmenté de 20 à 35
+    ctx.fillText(displayEventName, width / 2, 50)
 
-    // Date et heure (agrandi)
-    ctx.font = '20px Arial, sans-serif' // Augmenté de 14px à 20px
-    ctx.fillStyle = colors.neutral[600]
-    
-    // Icône calendrier
-    const calendarIconX = mainSectionX
-    const calendarIconY = mainSectionY + 75 // Augmenté de 45 à 75
-    ctx.fillStyle = colors.neutral[600]
-    ctx.fillText('📅', calendarIconX, calendarIconY)
-    
-    // Texte de la date
-    ctx.fillText(formatDate(props.ticket.event.date_time), calendarIconX + 35, calendarIconY) // Augmenté de 25 à 35
-    ctx.fillText('•', calendarIconX + 35 + ctx.measureText(formatDate(props.ticket.event.date_time)).width + 12, calendarIconY) // Augmenté de 8 à 12
-    ctx.fillText(formatTime(props.ticket.event.date_time), calendarIconX + 35 + ctx.measureText(formatDate(props.ticket.event.date_time)).width + 30, calendarIconY) // Augmenté de 20 à 30
+    // Informations principales (gauche) et QR Code (droite)
+    const infoStartY = 150
+    const lineHeight = 40 // Plus d'espace entre les lignes
+    const leftColumnX = 30
+    const labelWidth = 100 // Largeur fixe pour les labels
+    const dataStartX = leftColumnX + labelWidth + 20 // Espacement entre label et données
 
-    // Lieu (agrandi)
-    const locationIconX = mainSectionX
-    const locationIconY = mainSectionY + 110 // Augmenté de 70 à 110
-    ctx.fillText('📍', locationIconX, locationIconY)
+    // Lieu
+    ctx.font = 'bold 20px Inter, Arial, sans-serif'
+    ctx.fillStyle = colors.black
+    ctx.textAlign = 'left'
+    ctx.fillText('📍 Lieu:', leftColumnX, infoStartY)
     
-    const locationText = props.ticket.event.location
-    const maxLocationWidth = mainSectionWidth - 70 // Augmenté de 50 à 70
-    let displayLocation = locationText
-    
-    // Tronquer le lieu si trop long (line-clamp-1)
-    if (ctx.measureText(locationText).width > maxLocationWidth) {
-      let truncatedLocation = locationText
-      while (ctx.measureText(truncatedLocation + '...').width > maxLocationWidth) {
-        truncatedLocation = truncatedLocation.slice(0, -1)
-      }
-      displayLocation = truncatedLocation + '...'
-    }
-    
-    ctx.fillText(displayLocation, locationIconX + 35, locationIconY) // Augmenté de 25 à 35
+    ctx.font = '18px Inter, Arial, sans-serif'
+    ctx.fillStyle = colors.gray
+    ctx.fillText(props.ticket.event.location, dataStartX, infoStartY)
 
-    // Statut et prix (agrandi)
-    const statusY = mainSectionY + 145 // Augmenté de 95 à 145
+    // Date
+    ctx.font = 'bold 20px Inter, Arial, sans-serif'
+    ctx.fillStyle = colors.black
+    ctx.fillText('📅 Date:', leftColumnX, infoStartY + lineHeight)
     
-    // Badge de statut (agrandi)
-    const statusText = getStatusText(props.ticket.status)
-    const statusWidth = ctx.measureText(statusText).width + 20 // Augmenté de 16 à 20
-    const statusHeight = 28 // Augmenté de 20 à 28
-    
-    // Couleurs du statut
-    let statusBgColor, statusTextColor
-    switch (props.ticket.status) {
-      case 'confirmed':
-        statusBgColor = '#DCFCE7' // bg-green-100
-        statusTextColor = '#166534' // text-green-800
-        break
-      case 'pending':
-        statusBgColor = '#FEF3C7' // bg-yellow-100
-        statusTextColor = '#92400E' // text-yellow-800
-        break
-      case 'cancelled':
-        statusBgColor = '#FEE2E2' // bg-red-100
-        statusTextColor = '#991B1B' // text-red-800
-        break
-      case 'used':
-        statusBgColor = '#DBEAFE' // bg-blue-100
-        statusTextColor = '#1E40AF' // text-blue-800
-        break
-      case 'expired':
-        statusBgColor = '#F3F4F6' // bg-gray-100
-        statusTextColor = '#374151' // text-gray-800
-        break
-      default:
-        statusBgColor = '#F3F4F6'
-        statusTextColor = '#374151'
-    }
-    
-    // Dessiner le badge de statut
-    ctx.fillStyle = statusBgColor
-    ctx.beginPath()
-    ctx.roundRect(calendarIconX, statusY - 20, statusWidth, statusHeight, 14) // Augmenté de 10 à 14
-    ctx.fill()
-    
-    // Texte du statut (agrandi)
-    ctx.fillStyle = statusTextColor
-    ctx.font = 'bold 16px Arial, sans-serif' // Augmenté de 12px à 16px
-    ctx.fillText(statusText, calendarIconX + 10, statusY + 2) // Ajusté pour centrer
+    ctx.font = '18px Inter, Arial, sans-serif'
+    ctx.fillStyle = colors.gray
+    ctx.fillText(formatDate(props.ticket.event.date_time), dataStartX, infoStartY + lineHeight)
 
-    // Prix (agrandi)
-    const priceX = calendarIconX + statusWidth + 30 // Augmenté de 24 à 30
-    ctx.fillStyle = colors.primary
-    ctx.font = 'bold 20px Arial, sans-serif' // Augmenté de 14px à 20px
-    ctx.fillText(formatPrice(props.ticket.price), priceX, statusY + 2) // Ajusté pour centrer
-
-    // Ligne de séparation avant le QR code
-    ctx.strokeStyle = colors.neutral[200]
-    ctx.lineWidth = 2
-    ctx.beginPath()
-    ctx.moveTo(padding, mainSectionY + 180) // Position après le contenu principal
-    ctx.lineTo(width - padding, mainSectionY + 180)
-    ctx.stroke()
-
-    // Section QR Code en bas (centré)
-    const qrSectionY = mainSectionY + 200 // Position en bas
-    const qrSize = 100 // Augmenté de 80 à 100
-    const qrX = (width - qrSize) / 2 // Centré horizontalement
-    const qrY = qrSectionY
+    // Heure
+    ctx.font = 'bold 20px Inter, Arial, sans-serif'
+    ctx.fillStyle = colors.black
+    ctx.fillText('🕐 Heure:', leftColumnX, infoStartY + lineHeight * 2)
     
+    ctx.font = '18px Inter, Arial, sans-serif'
+    ctx.fillStyle = colors.gray
+    ctx.fillText(formatTime(props.ticket.event.date_time), dataStartX, infoStartY + lineHeight * 2)
+
+    // Type de billet
+    ctx.font = 'bold 20px Inter, Arial, sans-serif'
+    ctx.fillStyle = colors.black
+    ctx.fillText('🎫 Type:', leftColumnX, infoStartY + lineHeight * 3)
+    
+    ctx.font = '18px Inter, Arial, sans-serif'
+    ctx.fillStyle = colors.gray
+    ctx.fillText(props.ticket.ticket.type, dataStartX, infoStartY + lineHeight * 3)
+
+    // Prix
+    ctx.font = 'bold 20px Inter, Arial, sans-serif'
+    ctx.fillStyle = colors.black
+    ctx.fillText('💰 Prix:', leftColumnX, infoStartY + lineHeight * 5)
+    
+    ctx.font = '18px Inter, Arial, sans-serif'
+    ctx.fillStyle = colors.gray
+    ctx.fillText(formatPrice(props.ticket.price), dataStartX, infoStartY + lineHeight * 5)
+
+    // QR Code à droite
+    const qrSize = 120
+    const qrX = width - qrSize - 30 // Positionné à droite
+    const qrY = infoStartY + 20 // Aligné avec les informations
+
     // Fond du QR code
-    ctx.fillStyle = colors.neutral[100]
-    ctx.beginPath()
-    ctx.roundRect(qrX, qrY, qrSize, qrSize, 12) // Augmenté de 8 à 12
-    ctx.fill()
+    ctx.fillStyle = colors.white
+    ctx.fillRect(qrX, qrY, qrSize, qrSize)
     
     // Bordure du QR code
-    ctx.strokeStyle = colors.neutral[200]
-    ctx.lineWidth = 3 // Augmenté de 2 à 3
+    ctx.strokeStyle = colors.primary
+    ctx.lineWidth = 3
     ctx.strokeRect(qrX, qrY, qrSize, qrSize)
 
-    // Générer le vrai QR code
+    // Numéro de ticket sous le QR code
+    ctx.fillStyle = colors.gray
+    ctx.font = 'bold 16px Inter, Arial, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText(`#${props.ticket.participant.qr_code}`, qrX + qrSize/2, qrY + qrSize + 25)
+
+    // Générer le QR code
     try {
-      // Créer le QR code avec la bibliothèque qrcode
       const qrDataURL = await QRCode.toDataURL(props.ticket.participant.qr_code, {
         width: qrSize - 8,
         margin: 0,
         color: {
-          dark: colors.neutral[800],
-          light: colors.neutral[100]
+          dark: colors.black,
+          light: colors.white
         }
       })
       
-      // Créer une image pour le QR code
       const qrImage = new Image()
       qrImage.onload = () => {
         ctx.drawImage(qrImage, qrX + 4, qrY + 4, qrSize - 8, qrSize - 8)
         
-        // Numéro de ticket sous le QR code (agrandi)
-        ctx.fillStyle = colors.neutral[500]
-        ctx.font = 'bold 16px Arial, sans-serif' // Augmenté de 12px à 16px
-        ctx.textAlign = 'center'
-        ctx.fillText(`#${props.ticket.participant.qr_code}`, qrX + qrSize/2, qrY + qrSize + 25) // Ajusté position
-        
-        // Télécharger l'image générée
+        // Télécharger l'image
         const link = document.createElement('a')
-        link.href = canvas.toDataURL()
+        link.href = canvas.toDataURL('image/png', 1.0)
         link.download = `ticket-${props.ticket.event.name.replace(/[^a-zA-Z0-9]/g, '-')}-${props.ticket.participant.qr_code}.png`
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
+        
+        // Émettre l'événement
+        emit('download', props.ticket)
+      }
+      qrImage.onerror = () => {
+        // Fallback si erreur QR code
+        ctx.fillStyle = colors.gray
+        ctx.font = 'bold 16px Inter, Arial, sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText('QR CODE', qrX + qrSize/2, qrY + qrSize/2)
+        
+        // Télécharger quand même
+        const link = document.createElement('a')
+        link.href = canvas.toDataURL('image/png', 1.0)
+        link.download = `ticket-${props.ticket.event.name.replace(/[^a-zA-Z0-9]/g, '-')}-${props.ticket.participant.qr_code}.png`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        
+        emit('download', props.ticket)
       }
       qrImage.src = qrDataURL
+      
     } catch (qrError) {
       console.error('Erreur lors de la génération du QR code:', qrError)
       
-      // Fallback : afficher un message d'erreur
-      ctx.fillStyle = colors.neutral[500]
-      ctx.font = 'bold 20px Arial, sans-serif' // Augmenté de 16px à 20px
+      // Fallback simple
+      ctx.fillStyle = colors.gray
+      ctx.font = 'bold 16px Inter, Arial, sans-serif'
       ctx.textAlign = 'center'
       ctx.fillText('QR CODE', qrX + qrSize/2, qrY + qrSize/2)
-      ctx.fillText('ERREUR', qrX + qrSize/2, qrY + qrSize/2 + 25)
       
-      // Numéro de ticket sous le QR code
-      ctx.fillStyle = colors.neutral[500]
-      ctx.font = 'bold 16px Arial, sans-serif'
-      ctx.fillText(`#${props.ticket.participant.qr_code}`, qrX + qrSize/2, qrY + qrSize + 25)
-      
-      // Télécharger l'image générée
+      // Télécharger
       const link = document.createElement('a')
-      link.href = canvas.toDataURL()
+      link.href = canvas.toDataURL('image/png', 1.0)
       link.download = `ticket-${props.ticket.event.name.replace(/[^a-zA-Z0-9]/g, '-')}-${props.ticket.participant.qr_code}.png`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+      
+      emit('download', props.ticket)
     }
 
-    // Émettre l'événement de téléchargement
-    emit('download', props.ticket)
   } catch (error) {
     console.error('Erreur lors de la génération du ticket:', error)
-    // Fallback vers l'ancienne méthode
-  emit('download', props.ticket)
-}
-}
-
-
-
-
-// Fonctions utilitaires
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
-const formatTime = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'CDF'
-  }).format(price)
-}
-
-const getStatusText = (status: string) => {
-  const statusMap: Record<string, string> = {
-    'confirmed': 'Confirmé',
-    'pending': 'En attente',
-    'cancelled': 'Annulé',
-    'used': 'Utilisé',
-    'expired': 'Expiré'
+    
+    // Gestion d'erreur améliorée avec plus de détails
+    let errorMessage = 'Erreur lors de la génération du ticket.'
+    
+    if (error instanceof Error) {
+      errorMessage += ` Détails: ${error.message}`
+    }
+    
+    // Vérifier les données du ticket
+    if (!props.ticket) {
+      errorMessage += ' Données du ticket manquantes.'
+    } else if (!props.ticket.event) {
+      errorMessage += ' Informations de l\'événement manquantes.'
+    } else if (!props.ticket.participant) {
+      errorMessage += ' Informations du participant manquantes.'
+    } else if (!props.ticket.ticket) {
+      errorMessage += ' Type de ticket manquant.'
+    }
+    
+    console.error('Détails de l\'erreur:', {
+      ticket: props.ticket,
+      error: error,
+      errorMessage: errorMessage
+    })
+    
+    alert(errorMessage + ' Veuillez réessayer.')
+    emit('download', props.ticket)
   }
-  return statusMap[status] || status
+}
+
+// Fonctions utilitaires améliorées avec gestion d'erreur
+const formatDate = (dateString: string): string => {
+  try {
+    if (!dateString) return 'Date non définie'
+    
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return 'Date invalide'
+    
+    return date.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch (error) {
+    console.error('Erreur formatage date:', error)
+    return 'Date invalide'
+  }
+}
+
+const formatTime = (dateString: string): string => {
+  try {
+    if (!dateString) return 'Heure non définie'
+    
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return 'Heure invalide'
+    
+    return date.toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (error) {
+    console.error('Erreur formatage heure:', error)
+    return 'Heure invalide'
+  }
+}
+
+const formatPrice = (price: number | string): string => {
+  try {
+    if (price === null || price === undefined) return 'Prix non défini'
+    
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price
+    if (isNaN(numPrice)) return 'Prix invalide'
+    
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'CDF'
+    }).format(numPrice)
+  } catch (error) {
+    console.error('Erreur formatage prix:', error)
+    return 'Prix invalide'
+  }
+}
+
+const getStatusText = (status: string): string => {
+  try {
+    if (!status) return 'Statut non défini'
+    
+    const statusMap: Record<string, string> = {
+      'confirmed': 'Confirmé',
+      'pending': 'En attente',
+      'cancelled': 'Annulé',
+      'used': 'Utilisé',
+      'expired': 'Expiré',
+      'completed': 'Terminé'
+    }
+    return statusMap[status] || status
+  } catch (error) {
+    console.error('Erreur formatage statut:', error)
+    return 'Statut invalide'
+  }
 }
 
 const getStatusClasses = (status: string) => {
@@ -539,5 +584,27 @@ const getStatusClasses = (status: string) => {
 /* Amélioration des ombres au hover */
 .ticket-card:hover {
   filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
+}
+
+/* Amélioration de l'accessibilité */
+.ticket-card:focus-within {
+  outline: 2px solid #8b12ff;
+  outline-offset: 2px;
+}
+
+/* Animation d'entrée */
+.ticket-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
