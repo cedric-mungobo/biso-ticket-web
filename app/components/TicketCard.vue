@@ -54,18 +54,18 @@
     
     <!-- Modal pour afficher les détails du ticket -->
     <Modal v-model="showModal" :title="`Ticket - ${ticket.event.name}`" class="max-w-5xl">
-      <div class="space-y-8">
+      <div class="space-y-1">
         <!-- En-tête stylisé avec image de fond -->
-        <div v-if="ticket.event.image" class="relative h-72 bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl overflow-hidden">
+        <div v-if="ticket.event.image" class="relative  bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl overflow-hidden">
           <NuxtImg
             :src="`https://api.bisoticket.com/storage/${ticket.event.image}`"
             :alt="ticket.event.name"
-            class="w-full h-full object-cover opacity-20"
+            class="w-full h-full aspect-video object-cover opacity-20"
             loading="eager"
             placeholder
             format="webp"
             quality="90"
-            sizes="sm:100vw md:50vw lg:600px"
+            
           />
           <div class="absolute inset-0 bg-gradient-to-t from-primary-900/80 via-primary-800/60 to-transparent"></div>
           <div class="absolute bottom-8 left-8 right-8">
@@ -88,117 +88,11 @@
           </div>
         </div>
         
-        <!-- Contenu principal avec design moderne -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- Colonne gauche : Informations détaillées -->
-          <div class="lg:col-span-2 space-y-6">
-            <!-- Cartes d'information stylisées -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Carte Date et Heure -->
-              <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 hover:shadow-lg transition-all duration-300">
-                <div class="flex items-center space-x-3 mb-4">
-                  <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 class="font-semibold text-blue-900 text-lg">Date et Heure</h3>
-                  </div>
-                </div>
-                <div class="space-y-2">
-                  <p class="text-xl font-semibold text-blue-800">{{ formatDate(ticket.event.date_time) }}</p>
-                  <p class="text-blue-600 font-medium">{{ formatTime(ticket.event.date_time) }}</p>
-                </div>
-              </div>
-              
-              <!-- Carte Lieu -->
-              <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 hover:shadow-lg transition-all duration-300">
-                <div class="flex items-center space-x-3 mb-4">
-                  <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 class="font-semibold text-green-900 text-lg">Lieu</h3>
-                  </div>
-                </div>
-                <p class="text-xl font-semibold text-green-800">{{ ticket.event.location }}</p>
-              </div>
-              
-              <!-- Carte Type de Billet -->
-              <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 hover:shadow-lg transition-all duration-300">
-                <div class="flex items-center space-x-3 mb-4">
-                  <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 class="font-semibold text-purple-900 text-lg">Type de Billet</h3>
-                  </div>
-                </div>
-                <p class="text-xl font-semibold text-purple-800">{{ ticket.ticket.type }}</p>
-              </div>
-              
-              <!-- Carte Prix -->
-              <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-xl border border-amber-200 hover:shadow-lg transition-all duration-300">
-                <div class="flex items-center space-x-3 mb-4">
-                  <div class="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 class="font-semibold text-amber-900 text-lg">Prix</h3>
-                  </div>
-                </div>
-                <p class="text-3xl font-bold text-amber-800">{{ formatPrice(ticket.price) }}</p>
-              </div>
-            </div>
-            
-            <!-- Informations du participant -->
-            <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300">
-              <div class="flex items-center space-x-3 mb-4">
-                <div class="w-12 h-12 bg-gray-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="font-semibold text-gray-900 text-lg">Participant</h3>
-                </div>
-              </div>
-              <p class="text-2xl font-semibold text-gray-800">{{ ticket.participant.name }}</p>
-            </div>
-          </div>
-          
-          <!-- Colonne droite : QR Code stylisé -->
-          <div class="lg:col-span-1">
-            <div class="bg-white p-8 rounded-2xl border-2 border-primary-200 shadow-xl hover:shadow-2xl transition-all duration-300">
-              <div class="text-center mb-6">
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">Votre QR Code</h3>
-                <p class="text-sm text-gray-600">Scannez pour vérifier votre billet</p>
-              </div>
-              
-              <!-- QR Code avec design amélioré -->
-              <div class="bg-white p-4 rounded-xl border-2 border-primary-300 shadow-lg mb-4">
-                <div class="w-40 h-40 mx-auto">
-                  <Qrcode variant="circle" :value="ticket.participant.qr_code" />
-                </div>
-              </div>
-              
-              <!-- Numéro de ticket -->
-              <div class="text-center">
-                <div class="bg-primary-50 text-primary-800 px-4 py-2 rounded-lg font-mono text-sm font-medium">
-                  #{{ ticket.participant.qr_code }}
-                </div>
-              </div>
-            </div>
-          </div>
+        <h3 class="text-xl text-center font-semibold text-gray-900 mb-2">Votre QR Code  || {{ ticket.ticket.type }} </h3>
+        <div class="w-40 h-40 mx-auto">
+          <Qrcode variant="circle" :value="ticket.participant.qr_code" />
         </div>
+      
         
         <!-- Actions avec design amélioré -->
         <div class="flex items-center justify-center space-x-4 pt-6 border-t border-gray-100">
