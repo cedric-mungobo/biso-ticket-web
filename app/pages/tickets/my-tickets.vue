@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 py-8 md:px-8 pt-20 lg:px-12 max-w-5xl mx-auto">
+  <div class="px-1 py-8 md:px-8 pt-24 lg:px-12 max-w-5xl mx-auto">
     <!-- En-tête de la page -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Mes Billets</h1>
@@ -78,52 +78,31 @@
           </div>
         </div>
 
-        <!-- Liste des participants -->
-        <div class="p-6">
-          <h4 class="font-medium text-gray-900 mb-4">Vos billets ({{ eventData.participants.length }})</h4>
-          <div class="space-y-4">
-            <div
+        <!-- Grille des billets avec TicketCard -->
+        <div class="p-2">
+          <h4 class="font-medium text-gray-900 mb-6">Vos billets ({{ eventData.participants.length }})</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            <TicketCard
               v-for="participant in eventData.participants"
               :key="participant.id"
-              class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-            >
-              <div class="flex-1">
-                <div class="flex items-center space-x-3">
-                  <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                    <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h5 class="font-medium text-gray-900">{{ participant.name }}</h5>
-                    <p class="text-sm text-gray-600">{{ participant.email }}</p>
-                    <p class="text-sm text-gray-600">{{ participant.phone }}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="text-right">
-                <div class="mb-2">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="{
-                      'bg-green-100 text-green-800': participant.payment_status === 'completed',
-                      'bg-yellow-100 text-yellow-800': participant.payment_status === 'pending',
-                      'bg-red-100 text-red-800': participant.payment_status === 'failed'
-                    }"
-                  >
-                    {{ getPaymentStatusLabel(participant.payment_status) }}
-                  </span>
-                </div>
-                
-                <div class="text-sm text-gray-600">
-                  <span class="font-medium">{{ participant.ticket.type }}</span>
-                  <br>
-                  <span class="text-primary-600 font-semibold">{{ participant.ticket.price }} {{ participant.ticket.devise }}</span>
-                  <br>
-                  <span class="text-xs text-gray-500">QR: {{ participant.qr_code }}</span>
-                </div>
-              </div>
-            </div>
+              :ticket="{
+                id: participant.id,
+                status: participant.payment_status,
+                price: parseFloat(participant.ticket.price),
+                event: {
+                  name: participant.event.name,
+                  date_time: participant.event.date_time,
+                  location: participant.event.location,
+                  image: participant.event.image
+                },
+                participant: {
+                  name: participant.name,
+                  qr_code: participant.qr_code
+                }
+              }"
+              @view-details="handleViewTicketDetails"
+              @download="handleDownloadTicket"
+            />
           </div>
         </div>
       </div>
@@ -153,6 +132,9 @@
 <script setup lang="ts">
 import { useAuth } from '~/composables/useAuth'
 import { useTickets } from '~/composables/useTickets'
+
+// Import du composant TicketCard
+import TicketCard from '~/components/TicketCard.vue'
 
 
 definePageMeta({
@@ -290,6 +272,18 @@ const fetchMyTickets = async () => {
 }
 
 // Fonctions utilitaires
+const handleViewTicketDetails = (ticket: any) => {
+  console.log('🔍 Voir les détails du billet:', ticket)
+  // Ici vous pouvez ajouter la logique pour afficher les détails
+  // Par exemple, ouvrir une modal ou naviguer vers une page de détails
+}
+
+const handleDownloadTicket = (ticket: any) => {
+  console.log('📥 Télécharger le billet:', ticket)
+  // Ici vous pouvez ajouter la logique pour télécharger le billet
+  // Par exemple, générer un PDF ou télécharger une image
+}
+
 const formatDate = (dateString: string) => {
   if (!dateString) return ''
   const date = new Date(dateString)

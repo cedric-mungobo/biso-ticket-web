@@ -2,7 +2,7 @@
   <div class="">
     <!-- ========== HEADER ========== -->
     <header class="fixed top-2 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full">
-      <nav class="relative max-w-5xl w-full flex flex-wrap md:flex-nowrap basis-full items-center justify-between py-2 ps-5 pe-2 md:py-0 mx-2 lg:mx-auto bg-neutral-100/50 backdrop-blur-md rounded-[26px] border border-neutral-200/50">
+      <nav class="relative max-w-5xl w-full flex flex-wrap md:flex-nowrap basis-full items-center justify-between py-2 ps-5 pe-2 md:py-0 mx-2 lg:mx-auto bg-neutral-100/50 backdrop-blur-md rounded-[26px] border border-secondary-200">
         <!-- Logo -->
         <div class="flex items-center">
           <NuxtLink class="flex-none rounded-md text-xl inline-block font-semibold focus:outline-hidden focus:opacity-80" to="/" aria-label="Biso Ticket">

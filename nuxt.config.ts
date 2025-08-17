@@ -18,6 +18,7 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxt/scripts',
     'nuxt-auth-utils',
+    'nuxt-qrcode'
   ],
   
   // Configuration des alias de chemins
@@ -25,7 +26,9 @@ export default defineNuxtConfig({
     '~': fileURLToPath(new URL('./app', import.meta.url)),
     '@': fileURLToPath(new URL('./app', import.meta.url))
   },
+
   
+
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
