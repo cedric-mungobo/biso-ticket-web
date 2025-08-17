@@ -65,7 +65,17 @@
                     </svg>
                     <div>
                       <span class="font-medium text-neutral-700">Téléphone:</span>
-                      <span class="text-neutral-600 ml-2">{{ userData?.phone || 'Non renseigné' }}</span>
+                      <span class="text-neutral-600 ml-2">{{ userData?.phone_number || 'Non renseigné' }}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
+                    <svg class="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <span class="font-medium text-neutral-700">Rôle:</span>
+                      <span class="text-neutral-600 ml-2">{{ userData?.role || 'Utilisateur' }}</span>
                     </div>
                   </div>
                 </div>
@@ -147,7 +157,7 @@
                       <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <span>{{ formatDate(event.date_time || event.date) }}</span>
+                      <span>{{ formatDate(event.date_time) }}</span>
                     </div>
                     
                     <div v-if="event.location" class="flex items-center gap-2 text-sm text-neutral-600">
@@ -156,6 +166,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       <span class="line-clamp-1">{{ event.location }}</span>
+                    </div>
+                    
+                    <div v-if="event.category" class="flex items-center gap-2 text-sm text-neutral-600">
+                      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                      <span>{{ event.category }}</span>
                     </div>
                   </div>
                   
@@ -205,7 +222,7 @@
   import { ref, onMounted } from 'vue'
   
   // Composables
-  const { user, fetchUserProfile } = useAuth()
+  const { user } = useAuth()
   
   // État local
   const userData = ref<any>(null)
@@ -213,17 +230,72 @@
   const loading = ref(false)
   const error = ref<string | null>(null)
   
+  // Interface pour l'utilisateur selon l'API
+  interface User {
+    id: number
+    name: string
+    email: string
+    phone_number: string
+    role: string
+    created_at: string
+    updated_at: string
+  }
+  
+  // Interface pour les événements selon l'API
+  interface Event {
+    id: number
+    name: string
+    description: string
+    date_time: string
+    location: string
+    image: string | null
+    image_url: string | null
+    category: string
+    is_featured: boolean | null
+    share_token: string | null
+    slug: string | null
+    created_at: string
+  }
+  
+  // Interface pour la réponse API du profil
+  interface ProfileResponse {
+    success: boolean
+    data: {
+      user: User
+    }
+    message?: string
+  }
+  
+  // Interface pour la réponse API des événements
+  interface EventsResponse {
+    success: boolean
+    data: {
+      events: Event[]
+    }
+    message?: string
+  }
+  
   // Fonction pour charger le profil utilisateur
   const loadUserProfile = async () => {
     try {
       loading.value = true
       error.value = null
       
-      // Récupérer le profil depuis l'API
-      const profileData = await fetchUserProfile()
-      userData.value = profileData
+      // Utiliser l'endpoint correct de l'API
+      const response = await $fetch<ProfileResponse>('/api/v1/auth/profile', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${user.value?.token || ''}`
+        }
+      })
       
-      console.log('✅ Profil utilisateur chargé:', profileData)
+      if (response.success) {
+        userData.value = response.data.user
+        console.log('✅ Profil utilisateur chargé:', userData.value)
+      } else {
+        throw new Error(response.message || 'Erreur lors du chargement du profil')
+      }
     } catch (err: any) {
       console.error('❌ Erreur lors du chargement du profil:', err)
       error.value = err.message || 'Erreur lors du chargement du profil'
@@ -238,8 +310,26 @@
       loading.value = true
       error.value = null
       
-      // Pour l'instant, on utilise des données factices
-      // TODO: Implémenter l'API pour récupérer les événements de l'utilisateur
+      // Utiliser l'endpoint correct de l'API
+      const response = await $fetch<EventsResponse>('/api/v1/events/my-events', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${user.value?.token || ''}`
+        }
+      })
+      
+      if (response.success) {
+        userEvents.value = response.data.events
+        console.log('✅ Événements utilisateur chargés:', userEvents.value)
+      } else {
+        throw new Error(response.message || 'Erreur lors du chargement des événements')
+      }
+    } catch (err: any) {
+      console.error('❌ Erreur lors du chargement des événements:', err)
+      error.value = err.message || 'Erreur lors du chargement des événements'
+      
+      // Fallback avec des données factices en cas d'erreur
       userEvents.value = [
         {
           id: 1,
@@ -247,7 +337,13 @@
           description: 'Une soirée exceptionnelle avec les meilleurs musiciens de jazz de la région.',
           date_time: '2024-06-15T19:00:00',
           location: 'Parc Central, Kinshasa',
-          image: null
+          category: 'Concert',
+          image: null,
+          image_url: null,
+          is_featured: false,
+          share_token: null,
+          slug: null,
+          created_at: '2024-06-01T00:00:00'
         },
         {
           id: 2,
@@ -255,14 +351,15 @@
           description: 'Découvrez la richesse culturelle à travers la danse traditionnelle.',
           date_time: '2024-07-20T18:00:00',
           location: 'Centre Culturel, Kinshasa',
-          image: null
+          category: 'Festival',
+          image: null,
+          image_url: null,
+          is_featured: false,
+          share_token: null,
+          slug: null,
+          created_at: '2024-07-01T00:00:00'
         }
       ]
-      
-      console.log('✅ Événements utilisateur chargés:', userEvents.value)
-    } catch (err: any) {
-      console.error('❌ Erreur lors du chargement des événements:', err)
-      error.value = err.message || 'Erreur lors du chargement des événements'
     } finally {
       loading.value = false
     }
@@ -274,6 +371,8 @@
     
     try {
       const date = new Date(dateString)
+      if (isNaN(date.getTime())) return 'Date invalide'
+      
       return date.toLocaleDateString('fr-FR', {
         weekday: 'long',
         year: 'numeric',
@@ -285,4 +384,10 @@
       return 'Date non définie'
     }
   }
+  
+  // Charger les données au montage
+  onMounted(async () => {
+    await loadUserProfile()
+    await loadUserEvents()
+  })
 </script>
