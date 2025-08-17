@@ -128,7 +128,7 @@ const setupScrollAnimations = () => {
             start: "top 80%",
             end: "bottom 20%",
             toggleActions: "play none none reverse",
-            markers: true,
+            markers: false,
             onEnter: () => console.log('🎯 Image ENTER'),
             onLeave: () => console.log('🎯 Image LEAVE')
           }
@@ -156,7 +156,7 @@ const setupScrollAnimations = () => {
             start: "top 85%",
             end: "bottom 15%",
             toggleActions: "play none none reverse",
-            markers: true,
+            markers: false,
             onEnter: () => console.log('🎯 Sous-titre ENTER'),
             onLeave: () => console.log('🎯 Sous-titre LEAVE')
           }
@@ -184,7 +184,7 @@ const setupScrollAnimations = () => {
             start: "top 85%",
             end: "bottom 15%",
             toggleActions: "play none none reverse",
-            markers: true,
+            markers: false,
             onEnter: () => console.log('🎯 Citation ENTER'),
             onLeave: () => console.log('🎯 Citation LEAVE')
           }
@@ -212,7 +212,7 @@ const setupScrollAnimations = () => {
             start: "top 90%",
             end: "bottom 10%",
             toggleActions: "play none none reverse",
-            markers: true,
+            markers: false,
             onEnter: () => console.log('🎯 Auteur ENTER'),
             onLeave: () => console.log('🎯 Auteur LEAVE')
           }
@@ -242,7 +242,7 @@ const setupScrollAnimations = () => {
             start: "top 90%",
             end: "bottom 10%",
             toggleActions: "play none none reverse",
-            markers: true,
+            markers: false,
             onEnter: () => console.log('🎯 Bouton CTA ENTER'),
             onLeave: () => console.log('🎯 Bouton CTA LEAVE')
           }

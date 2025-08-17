@@ -271,15 +271,15 @@ const setupScrollAnimations = () => {
             rotationY: 0,
             duration: 1.0,
             ease: "power3.out",
-            scrollTrigger: {
-              trigger: card,
-              start: "top 85%",
-              end: "bottom 15%",
-              toggleActions: "play none none reverse",
-              markers: true,
-              onEnter: () => console.log(`🎯 Carte service ${index} ENTER`),
-              onLeave: () => console.log(`🎯 Carte service ${index} LEAVE`)
-            }
+                      scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            end: "bottom 15%",
+            toggleActions: "play none none reverse",
+            markers: false,
+            onEnter: () => console.log(`🎯 Carte service ${index} ENTER`),
+            onLeave: () => console.log(`🎯 Carte service ${index} LEAVE`)
+          }
           }
         )
         
@@ -309,7 +309,7 @@ const setupScrollAnimations = () => {
             start: "top 80%",
             end: "bottom 20%",
             toggleActions: "play none none reverse",
-            markers: true,
+            markers: false,
             onEnter: () => console.log('🎯 Section CTA ENTER'),
             onLeave: () => console.log('🎯 Section CTA LEAVE')
           }
@@ -337,7 +337,7 @@ const setupScrollAnimations = () => {
             start: "top 85%",
             end: "bottom 15%",
             toggleActions: "play none none reverse",
-            markers: true,
+            markers: false,
             onEnter: () => console.log('🎯 Service digital ENTER'),
             onLeave: () => console.log('🎯 Service digital LEAVE')
           }
@@ -365,13 +365,13 @@ const setupScrollAnimations = () => {
             scale: 1,
             duration: 0.8,
             ease: "power2.out",
-            scrollTrigger: {
-              trigger: feature,
-              start: "top 90%",
-              end: "bottom 10%",
-              toggleActions: "play none none reverse",
-              markers: true,
-              onEnter: () => console.log(`🎯 Fonctionnalité ${index} ENTER`),
+                      scrollTrigger: {
+            trigger: feature,
+            start: "top 90%",
+            end: "bottom 10%",
+            toggleActions: "play none none reverse",
+            markers: false,
+            onEnter: () => console.log(`🎯 Fonctionnalité ${index} ENTER`),
               onLeave: () => console.log(`🎯 Fonctionnalité ${index} LEAVE`)
             }
           }

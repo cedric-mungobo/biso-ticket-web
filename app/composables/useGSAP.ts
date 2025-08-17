@@ -6,6 +6,18 @@ import { TextPlugin } from 'gsap/TextPlugin'
 export const useGSAP = () => {
   // Vérifier que nous sommes côté client
   if (process.client) {
+    // Désactiver le debug GSAP
+    gsap.config({ 
+      nullTargetWarn: false,
+      trialWarn: false 
+    })
+    
+    // Désactiver les markers de ScrollTrigger
+    ScrollTrigger.config({ 
+      ignoreMobileResize: true,
+      autoRefreshEvents: "visibilitychange,DOMContentLoaded,load"
+    })
+    
     gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, TextPlugin)
   }
 

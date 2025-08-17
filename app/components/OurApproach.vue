@@ -421,7 +421,7 @@ const setupScrollAnimations = () => {
             start: "top 80%",
             end: "bottom 20%",
             toggleActions: "play none none reverse",
-            markers: true,
+            markers: false,
             onEnter: () => console.log('🎯 Titre ENTER'),
             onLeave: () => console.log('🎯 Titre LEAVE')
           }
@@ -446,7 +446,7 @@ const setupScrollAnimations = () => {
             start: "top 80%",
             end: "bottom 20%",
             toggleActions: "play none none reverse",
-            markers: true,
+            markers: false,
             onEnter: () => console.log('🎯 Description ENTER'),
             onLeave: () => console.log('🎯 Description LEAVE')
           }
@@ -477,7 +477,7 @@ const setupScrollAnimations = () => {
               start: "top 80%",
               end: "bottom 20%",
               toggleActions: "play none none reverse",
-              markers: true,
+              markers: false,
               onEnter: () => console.log(`🎯 Étape ${index} ENTER`),
               onLeave: () => console.log(`🎯 Étape ${index} LEAVE`)
             }
