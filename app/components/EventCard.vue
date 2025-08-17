@@ -1,63 +1,67 @@
 <template>
   <NuxtLink :to="`/evenements/${eventId}`"> 
-  <article class="rounded-xl border bg-white transition-all hover:shadow-lg border-primary-400 hover:border-primary-300 group">
-    <div class="p-4">
-      <!-- Badge de catégorie -->
-      <div class="text-xs font-semibold mb-3">
-        <span
-          class="inline-flex items-center rounded-md px-2.5 py-1.5 text-[12px] leading-none font-medium"
-          :class="categoryColorClass"
-        >
-          {{ category }}
-        </span>
-      </div>
+    <article 
+      ref="cardRef"
+      class="rounded-xl border bg-white transition-all hover:shadow-lg border-primary-400 hover:border-primary-300 group event-card-animated"
+    >
+      <div class="p-4">
+        <!-- Badge de catégorie avec animation -->
+        <div class="text-xs font-semibold mb-3">
+          <span
+            class="inline-flex items-center rounded-md px-2.5 py-1.5 text-[12px] leading-none font-medium category-badge"
+            :class="categoryColorClass"
+          >
+            {{ category }}
+          </span>
+        </div>
 
-      <!-- Titre de l'événement -->
-      <h3 class="text-[15px] leading-5 md:text-base font-semibold text-gray-900 mb-4 group-hover:text-primary-700 transition-colors duration-200">
-        {{ title }}
-      </h3>
+        <!-- Titre de l'événement avec animation -->
+        <h3 class="text-[15px] leading-5 md:text-base font-semibold text-gray-900 mb-4 group-hover:text-primary-700 transition-colors duration-200 event-title">
+          {{ title }}
+        </h3>
 
-      <!-- Image de l'événement -->
-      <div class="rounded-lg overflow-hidden aspect-square w-full group-hover:scale-[1.02] transition-transform duration-300">
-        <NuxtImg
-          v-if="image"
-          :src="image"
-          :alt="title"
-          class="h-full w-full object-cover"
-          loading="lazy"
-          placeholder
-          format="webp"
-          quality="80"
-          sizes="sm:100vw md:50vw lg:400px"
-        />
-        <div
-          v-else
-          class="h-full w-full bg-gradient-to-br from-primary-100 to-teal-200 flex items-center justify-center"
-        >
-          <svg class="w-12 h-12 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-          </svg>
+        <!-- Image de l'événement avec animation -->
+        <div class="rounded-lg overflow-hidden aspect-square w-full group-hover:scale-[1.02] transition-transform duration-300 event-image-container">
+          <NuxtImg
+            v-if="image"
+            :src="image"
+            :alt="title"
+            class="h-full w-full object-cover event-image"
+            loading="lazy"
+            placeholder
+            format="webp"
+            quality="80"
+            sizes="sm:100vw md:50vw lg:400px"
+          />
+          <div
+            v-else
+            class="h-full w-full bg-gradient-to-br from-primary-100 to-teal-200 flex items-center justify-center event-placeholder"
+          >
+            <svg class="w-12 h-12 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Actions avec animation -->
+        <div class="mt-4 flex justify-between items-center event-actions">
+          <span class="text-sm text-gray-500 event-date">
+            {{ formatDate }}
+          </span>
+          <NuxtLink 
+            :to="`/evenements/${eventId}`"
+            class="text-primary-600 hover:text-primary-700 font-medium text-sm group-hover:underline transition-all duration-200 event-link"
+          >
+            Voir détails →
+          </NuxtLink>
         </div>
       </div>
-
-      <!-- Actions -->
-      <div class="mt-4 flex justify-between items-center">
-        <span class="text-sm text-gray-500">
-          {{ formatDate }}
-        </span>
-        <NuxtLink 
-          :to="`/evenements/${eventId}`"
-          class="text-primary-600 hover:text-primary-700 font-medium text-sm group-hover:underline transition-all duration-200"
-        >
-          Voir détails →
-        </NuxtLink>
-      </div>
-    </div>
-  </article>
-</NuxtLink>
+    </article>
+  </NuxtLink>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, nextTick } from 'vue'
 import type { Event } from '~/types/events'
 
 interface Props {
@@ -77,6 +81,17 @@ const props = withDefaults(defineProps<Props>(), {
   location: '',
   eventId: undefined
 })
+
+// Référence pour l'animation
+const cardRef = ref<HTMLElement>()
+
+// Composable GSAP
+const { 
+  animateIn, 
+  createScrollAnimation, 
+  accessibleAnimation,
+  prefersReducedMotion 
+} = useGSAP()
 
 // Couleur du badge selon la catégorie
 const categoryColorClass = computed(() => {
@@ -134,18 +149,130 @@ const formatDate = computed(() => {
     return 'Date à définir'
   }
 })
+
+// Animation d'entrée de la carte
+const animateCardEnter = () => {
+  if (prefersReducedMotion() || !cardRef.value) return
+  
+  accessibleAnimation(
+    cardRef.value,
+    () => animateIn(cardRef.value!, {
+      duration: 1.2,
+      y: 30,
+      scale: 0.95,
+      ease: 'power2.out'
+    })
+  )
+}
+
+// Configuration des animations au montage
+onMounted(async () => {
+  await nextTick()
+  
+  // Configuration des animations au scroll
+  if (cardRef.value) {
+    createScrollAnimation(cardRef.value, {
+      start: 'top 85%',
+      end: 'bottom 15%',
+      onEnter: () => {
+        // Délai pour l'animation séquentielle
+        setTimeout(animateCardEnter, 100)
+      }
+    })
+  }
+})
 </script>
 
 <style scoped>
+/* Animations pour les cartes d'événements */
+.event-card-animated {
+  opacity: 0;
+  transform: translateY(30px) scale(0.95);
+  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.event-card-animated.animated {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Animation des éléments internes */
+.category-badge {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.event-title {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.event-image-container {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.event-image {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.event-placeholder {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.event-actions {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.event-date {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.event-link {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Effets de hover améliorés */
+.event-card-animated:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.event-card-animated:hover .category-badge {
+  transform: scale(1.05);
+}
+
+.event-card-animated:hover .event-title {
+  transform: translateX(4px);
+}
+
+.event-card-animated:hover .event-image-container {
+  transform: scale(1.05);
+}
+
+.event-card-animated:hover .event-link {
+  transform: translateX(4px);
+}
+
 /* Optimisations pour les préférences de réduction de mouvement */
 @media (prefers-reduced-motion: reduce) {
-  .group-hover\:scale-\[1\.02\]:hover,
-  .transition-transform,
-  .transition-colors {
+  .event-card-animated,
+  .category-badge,
+  .event-title,
+  .event-image-container,
+  .event-image,
+  .event-placeholder,
+  .event-actions,
+  .event-date,
+  .event-link {
     transition: none;
   }
   
-  .group-hover\:scale-\[1\.02\]:hover {
+  .event-card-animated:hover {
+    transform: none;
+  }
+  
+  .event-card-animated:hover .category-badge,
+  .event-card-animated:hover .event-title,
+  .event-card-animated:hover .event-image-container,
+  .event-card-animated:hover .event-link {
     transform: none;
   }
 }
@@ -156,5 +283,10 @@ const formatDate = computed(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Optimisations de performance */
+* {
+  will-change: transform, opacity;
 }
 </style>
