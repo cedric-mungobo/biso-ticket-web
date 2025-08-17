@@ -6,7 +6,8 @@
         <div 
           v-for="(service, index) in mainServices" 
           :key="service.id"
-          class="relative overflow-hidden rounded-3xl bg-gradient-to-br p-8 text-white min-h-[500px] flex flex-col"
+          :ref="el => setServiceRef(el, index)"
+          class="relative overflow-hidden rounded-3xl bg-gradient-to-br p-8 text-white min-h-[500px] flex flex-col service-card"
           :class="getServiceGradient(service.id)"
         >
           <div class="flex-1">
@@ -53,7 +54,10 @@
       </div>
 
       <!-- Ligne 2 : CTA Section -->
-      <div class="bg-gradient-to-br from-secondary-500 to-primary-500 rounded-3xl p-8 md:p-12">
+      <div 
+        ref="ctaSectionRef"
+        class="bg-gradient-to-br from-secondary-500 to-primary-500 rounded-3xl p-8 md:p-12 cta-section"
+      >
         <div class="max-w-2xl">
           <h3 class="text-4xl md:text-5xl font-bold text-white leading-tight mb-6">
             Prêt à<br>organiser votre<br>
@@ -80,7 +84,8 @@
       <!-- Ligne 3 : Service spécial (Invitation électronique) -->
       <div 
         v-if="digitalInvitationService"
-        class="bg-gradient-to-r rounded-2xl from-primary-900 to-secondary-900"
+        ref="digitalServiceRef"
+        class="bg-gradient-to-r rounded-2xl from-primary-900 to-secondary-900 digital-service"
       >
         <section class="">
           <!-- Layout principal -->
@@ -123,7 +128,8 @@
                 <div 
                   v-for="(feature, index) in digitalFeatures" 
                   :key="index"
-                  class="flex gap-x-5 ms-1"
+                  :ref="el => setFeatureRef(el, index)"
+                  class="flex gap-x-5 ms-1 feature-item"
                 >
                   <!-- Icône avec ligne de connexion -->
                   <div class="relative">
@@ -173,6 +179,8 @@
   </div>
 </template>
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+
 interface Service {
   id: string
   badge: {
@@ -197,6 +205,199 @@ interface DigitalFeature {
   title: string
   description: string
 }
+
+// Références pour les animations GSAP
+const serviceRefs = ref<HTMLElement[]>([])
+const ctaSectionRef = ref<HTMLElement>()
+const digitalServiceRef = ref<HTMLElement>()
+const featureRefs = ref<HTMLElement[]>([])
+
+// Stockage des triggers pour pouvoir les nettoyer
+const scrollTriggers = ref<any[]>([])
+
+// Composable GSAP
+const { gsap, prefersReducedMotion } = useGSAP()
+
+// Fonction pour définir les références des services
+const setServiceRef = (el: Element | ComponentPublicInstance | null, index: number) => {
+  if (el && 'tagName' in el) {
+    serviceRefs.value[index] = el as HTMLElement
+  }
+}
+
+// Fonction pour définir les références des fonctionnalités
+const setFeatureRef = (el: Element | ComponentPublicInstance | null, index: number) => {
+  if (el && 'tagName' in el) {
+    featureRefs.value[index] = el as HTMLElement
+  }
+}
+
+// Animation des éléments au scroll
+const setupScrollAnimations = () => {
+  if (prefersReducedMotion()) {
+    console.log('❌ Animations désactivées (prefersReducedMotion)')
+    return
+  }
+  
+  console.log('🎯 Configuration des animations au scroll pour ServicesSection')
+  
+  // Attendre que le DOM soit complètement prêt
+  setTimeout(() => {
+    console.log('🎯 Tentative de configuration après délai...')
+    
+    // Nettoyer les triggers existants
+    scrollTriggers.value.forEach(trigger => trigger.kill())
+    scrollTriggers.value = []
+    
+    // Animation des cartes de services
+    const serviceCards = document.querySelectorAll('.service-card')
+    console.log('🎯 Cartes de services trouvées:', serviceCards.length)
+    
+    serviceCards.forEach((card, index) => {
+      console.log(`🎯 Configuration carte service ${index}:`, card)
+      
+      try {
+        gsap.fromTo(card, 
+          { 
+            y: 60, 
+            opacity: 0,
+            scale: 0.95,
+            rotationY: -5
+          },
+          { 
+            y: 0, 
+            opacity: 1, 
+            scale: 1,
+            rotationY: 0,
+            duration: 1.0,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: card,
+              start: "top 85%",
+              end: "bottom 15%",
+              toggleActions: "play none none reverse",
+              markers: true,
+              onEnter: () => console.log(`🎯 Carte service ${index} ENTER`),
+              onLeave: () => console.log(`🎯 Carte service ${index} LEAVE`)
+            }
+          }
+        )
+        
+        console.log(`🎯 Animation GSAP créée pour carte service ${index}`)
+      } catch (error) {
+        console.error(`❌ Erreur carte service ${index}:`, error)
+      }
+    })
+    
+    // Animation de la section CTA
+    if (ctaSectionRef.value) {
+      console.log('🎯 Configuration animation section CTA au scroll')
+      gsap.fromTo(ctaSectionRef.value, 
+        { 
+          y: 50, 
+          opacity: 0,
+          scale: 0.98
+        },
+        { 
+          y: 0, 
+          opacity: 1, 
+          scale: 1,
+          duration: 1.2,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: ctaSectionRef.value,
+            start: "top 80%",
+            end: "bottom 20%",
+            toggleActions: "play none none reverse",
+            markers: true,
+            onEnter: () => console.log('🎯 Section CTA ENTER'),
+            onLeave: () => console.log('🎯 Section CTA LEAVE')
+          }
+        }
+      )
+    }
+    
+    // Animation du service digital
+    if (digitalServiceRef.value) {
+      console.log('🎯 Configuration animation service digital au scroll')
+      gsap.fromTo(digitalServiceRef.value, 
+        { 
+          y: 60, 
+          opacity: 0,
+          scale: 0.95
+        },
+        { 
+          y: 0, 
+          opacity: 1, 
+          scale: 1,
+          duration: 1.0,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: digitalServiceRef.value,
+            start: "top 85%",
+            end: "bottom 15%",
+            toggleActions: "play none none reverse",
+            markers: true,
+            onEnter: () => console.log('🎯 Service digital ENTER'),
+            onLeave: () => console.log('🎯 Service digital LEAVE')
+          }
+        }
+      )
+    }
+    
+    // Animation des fonctionnalités
+    const featureItems = document.querySelectorAll('.feature-item')
+    console.log('🎯 Fonctionnalités trouvées:', featureItems.length)
+    
+    featureItems.forEach((feature, index) => {
+      console.log(`🎯 Configuration fonctionnalité ${index}:`, feature)
+      
+      try {
+        gsap.fromTo(feature, 
+          { 
+            x: -30, 
+            opacity: 0,
+            scale: 0.95
+          },
+          { 
+            x: 0, 
+            opacity: 1, 
+            scale: 1,
+            duration: 0.8,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: feature,
+              start: "top 90%",
+              end: "bottom 10%",
+              toggleActions: "play none none reverse",
+              markers: true,
+              onEnter: () => console.log(`🎯 Fonctionnalité ${index} ENTER`),
+              onLeave: () => console.log(`🎯 Fonctionnalité ${index} LEAVE`)
+            }
+          }
+        )
+        
+        console.log(`🎯 Animation GSAP créée pour fonctionnalité ${index}`)
+      } catch (error) {
+        console.error(`❌ Erreur fonctionnalité ${index}:`, error)
+      }
+    })
+    
+    console.log('🎯 Configuration terminée pour ServicesSection')
+  }, 2000) // Attendre 2 secondes
+}
+
+// Initialiser les animations au montage
+onMounted(() => {
+  console.log('🎯 ServicesSection monté - Configuration des animations...')
+  setupScrollAnimations()
+})
+
+// Nettoyer les animations au démontage
+onUnmounted(() => {
+  scrollTriggers.value.forEach(trigger => trigger.kill())
+  scrollTriggers.value = []
+})
 
 // Propriétés computed
 const mainServices = computed(() => services.slice(0, 2)) // Prend les 2 premiers services
@@ -382,10 +583,31 @@ const services: Service[] = [
 ]
 </script>
 
-<style>
+<style scoped>
 .bg-clip-text {
   -webkit-background-clip: text;
   background-clip: text;
+}
+
+/* États initiaux pour les animations GSAP au scroll */
+.service-card {
+  opacity: 0;
+  transform: translateY(60px) scale(0.95) rotateY(-5deg);
+}
+
+.cta-section {
+  opacity: 0;
+  transform: translateY(50px) scale(0.98);
+}
+
+.digital-service {
+  opacity: 0;
+  transform: translateY(60px) scale(0.95);
+}
+
+.feature-item {
+  opacity: 0;
+  transform: translateX(-30px) scale(0.95);
 }
 </style>
 
