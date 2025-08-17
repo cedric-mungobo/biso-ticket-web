@@ -7,59 +7,10 @@
             <h1 class="text-3xl font-bold text-neutral-900">Mon Profil</h1>
             <p class="text-neutral-600 mt-2">Gérez vos informations personnelles et vos événements</p>
             
-            <!-- Indicateur d'état de connexion -->
-            <div v-if="!isAuthenticated" class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div class="flex items-center space-x-3">
-                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                <div>
-                  <p class="text-yellow-800 font-medium">Vous n'êtes pas connecté</p>
-                  <p class="text-yellow-700 text-sm">Connectez-vous pour accéder à votre profil</p>
-                </div>
-                <NuxtLink to="/connexion" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors">
-                  Se connecter
-                </NuxtLink>
-              </div>
-            </div>
+           
+          
             
-            <div v-else-if="error" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <div class="flex items-center space-x-3">
-                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                <div>
-                  <p class="text-red-800 font-medium">Erreur de chargement</p>
-                  <p class="text-red-700 text-sm">{{ error }}</p>
-                </div>
-                <button @click="loadUserProfile" class="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors">
-                  Réessayer
-                </button>
-              </div>
-            </div>
-            
-            <!-- Bouton de debug (visible en développement) -->
-            <div v-if="isAuthenticated" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                  <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <p class="text-blue-800 font-medium">État de connexion</p>
-                    <p class="text-blue-700 text-sm">Connecté en tant que {{ user?.name || 'Utilisateur' }}</p>
-                  </div>
-                </div>
-                <div class="flex space-x-2">
-                  <button @click="debugAuth" class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors">
-                    Debug Console
-                  </button>
-                  <button @click="loadUserProfile" class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
-                    Charger Profil
-                  </button>
-                </div>
-              </div>
-            </div>
+          
           </div>
   
           <div class="flex flex-col md:flex-row gap-8">
