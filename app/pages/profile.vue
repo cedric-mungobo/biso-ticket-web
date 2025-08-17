@@ -6,6 +6,37 @@
           <div class="mb-8">
             <h1 class="text-3xl font-bold text-neutral-900">Mon Profil</h1>
             <p class="text-neutral-600 mt-2">Gérez vos informations personnelles et vos événements</p>
+            
+            <!-- Indicateur d'état de connexion -->
+            <div v-if="!user?.token" class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div>
+                  <p class="text-yellow-800 font-medium">Vous n'êtes pas connecté</p>
+                  <p class="text-yellow-700 text-sm">Connectez-vous pour accéder à votre profil</p>
+                </div>
+                <NuxtLink to="/connexion" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors">
+                  Se connecter
+                </NuxtLink>
+              </div>
+            </div>
+            
+            <div v-else-if="error" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div>
+                  <p class="text-red-800 font-medium">Erreur de chargement</p>
+                  <p class="text-red-700 text-sm">{{ error }}</p>
+                </div>
+                <button @click="loadUserProfile" class="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors">
+                  Réessayer
+                </button>
+              </div>
+            </div>
           </div>
   
           <div class="flex flex-col md:flex-row gap-8">
@@ -21,12 +52,14 @@
                 
                 <!-- Nom de l'utilisateur -->
                 <h3 class="text-xl font-semibold text-neutral-900 text-center mb-2">
-                  {{ userData?.name || 'Utilisateur' }}
+                  <span v-if="loading" class="inline-block w-32 h-6 bg-gray-200 rounded animate-pulse"></span>
+                  <span v-else>{{ userData?.name || 'Utilisateur' }}</span>
                 </h3>
                 
                 <!-- Statut -->
                 <div class="text-center">
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <span v-if="loading" class="inline-block w-16 h-5 bg-gray-200 rounded animate-pulse"></span>
+                  <span v-else class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     Actif
                   </span>
                 </div>
@@ -38,7 +71,19 @@
               <div class="bg-white rounded-xl shadow-md p-6">
                 <h2 class="text-2xl font-bold text-neutral-900 mb-6">Informations personnelles</h2>
                 
-                <div class="space-y-4">
+                <!-- État de chargement -->
+                <div v-if="loading" class="space-y-4">
+                  <div v-for="i in 4" :key="i" class="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
+                    <div class="w-5 h-5 bg-gray-200 rounded animate-pulse"></div>
+                    <div class="flex-1">
+                      <div class="w-24 h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
+                      <div class="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Informations chargées -->
+                <div v-else class="space-y-4">
                   <div class="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
                     <svg class="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -281,14 +326,25 @@
       loading.value = true
       error.value = null
       
+      // Vérifier si l'utilisateur est connecté
+      if (!user.value || !user.value.token) {
+        console.warn('⚠️ Utilisateur non connecté ou token manquant')
+        error.value = 'Utilisateur non connecté. Veuillez vous connecter.'
+        return
+      }
+      
+      console.log('🔑 Tentative de chargement du profil avec token:', user.value.token.substring(0, 20) + '...')
+      
       // Utiliser l'endpoint correct de l'API
       const response = await $fetch<ProfileResponse>('/api/v1/auth/profile', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'Authorization': `Bearer ${user.value?.token || ''}`
+          'Authorization': `Bearer ${user.value.token}`
         }
       })
+      
+      console.log('📡 Réponse API profil:', response)
       
       if (response.success) {
         userData.value = response.data.user
@@ -298,7 +354,15 @@
       }
     } catch (err: any) {
       console.error('❌ Erreur lors du chargement du profil:', err)
-      error.value = err.message || 'Erreur lors du chargement du profil'
+      
+      // Gestion spécifique des erreurs
+      if (err.status === 401) {
+        error.value = 'Session expirée. Veuillez vous reconnecter.'
+      } else if (err.status === 404) {
+        error.value = 'Profil non trouvé.'
+      } else {
+        error.value = err.message || 'Erreur lors du chargement du profil'
+      }
     } finally {
       loading.value = false
     }
@@ -310,14 +374,24 @@
       loading.value = true
       error.value = null
       
+      // Vérifier si l'utilisateur est connecté
+      if (!user.value || !user.value.token) {
+        console.warn('⚠️ Utilisateur non connecté ou token manquant pour les événements')
+        return
+      }
+      
+      console.log('🔑 Tentative de chargement des événements avec token:', user.value.token.substring(0, 20) + '...')
+      
       // Utiliser l'endpoint correct de l'API
       const response = await $fetch<EventsResponse>('/api/v1/events/my-events', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'Authorization': `Bearer ${user.value?.token || ''}`
+          'Authorization': `Bearer ${user.value.token}`
         }
       })
+      
+      console.log('📡 Réponse API événements:', response)
       
       if (response.success) {
         userEvents.value = response.data.events
@@ -327,7 +401,15 @@
       }
     } catch (err: any) {
       console.error('❌ Erreur lors du chargement des événements:', err)
-      error.value = err.message || 'Erreur lors du chargement des événements'
+      
+      // Gestion spécifique des erreurs
+      if (err.status === 401) {
+        error.value = 'Session expirée. Veuillez vous reconnecter.'
+      } else if (err.status === 404) {
+        error.value = 'Aucun événement trouvé.'
+      } else {
+        error.value = err.message || 'Erreur lors du chargement des événements'
+      }
       
       // Fallback avec des données factices en cas d'erreur
       userEvents.value = [
