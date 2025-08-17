@@ -111,127 +111,6 @@
               </div>
             </div>
           </div>
-  
-          <!-- Section des événements -->
-          <div class="mt-8">
-            <div class="flex items-center justify-between mb-6">
-              <h3 class="text-xl font-semibold text-neutral-900">Mes événements</h3>
-              <button class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Créer un événement
-              </button>
-            </div>
-            
-            <!-- État de chargement -->
-            <div v-if="loading" class="text-center py-12">
-              <div class="inline-flex items-center px-4 py-2 text-sm text-neutral-600">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Chargement des événements...
-              </div>
-            </div>
-            
-            <!-- État d'erreur -->
-            <div v-else-if="error" class="text-center py-12">
-              <div class="bg-red-50 border border-red-200 rounded-lg p-6">
-                <svg class="w-12 h-12 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                <h4 class="text-lg font-medium text-red-800 mb-2">Erreur de chargement</h4>
-                <p class="text-red-600 mb-4">{{ error }}</p>
-                <button @click="loadUserEvents" class="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors">
-                  Réessayer
-                </button>
-              </div>
-            </div>
-            
-            <!-- Liste des événements -->
-            <div v-else-if="userEvents.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div v-for="event in userEvents" :key="event.id" class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                <!-- Image de l'événement -->
-                <div v-if="event.image" class="h-48 bg-gradient-to-br from-neutral-50 to-neutral-100">
-                  <img 
-                    :src="`https://api.bisoticket.com/storage/${event.image}`" 
-                    :alt="event.name"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-                <div v-else class="h-48 bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
-                  <svg class="w-16 h-16 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
-                  </svg>
-                </div>
-                
-                <!-- Contenu de l'événement -->
-                <div class="p-6">
-                  <h4 class="text-lg font-semibold text-neutral-900 mb-2 line-clamp-2">{{ event.name }}</h4>
-                  <p v-if="event.description" class="text-sm text-neutral-600 mb-4 line-clamp-2">{{ event.description }}</p>
-                  
-                  <div class="space-y-2">
-                    <div class="flex items-center gap-2 text-sm text-neutral-600">
-                      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span>{{ formatDate(event.date_time) }}</span>
-                    </div>
-                    
-                    <div v-if="event.location" class="flex items-center gap-2 text-sm text-neutral-600">
-                      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span class="line-clamp-1">{{ event.location }}</span>
-                    </div>
-                    
-                    <div v-if="event.category" class="flex items-center gap-2 text-sm text-neutral-600">
-                      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                      </svg>
-                      <span>{{ event.category }}</span>
-                    </div>
-                  </div>
-                  
-                  <!-- Actions -->
-                  <div class="mt-4 flex items-center gap-2">
-                    <button class="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      Voir
-                    </button>
-                    
-                    <button class="inline-flex items-center px-3 py-2 text-sm font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- État vide -->
-            <div v-else class="text-center py-12">
-              <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-6">
-                <svg class="w-16 h-16 text-neutral-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
-                </svg>
-                <h4 class="text-lg font-medium text-neutral-800 mb-2">Aucun événement créé</h4>
-                <p class="text-neutral-600 mb-4">Vous n'avez pas encore créé d'événements. Commencez par en créer un !</p>
-                <button class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors">
-                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Créer votre premier événement
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -245,7 +124,6 @@
   
   // État local
   const userData = ref<any>(null)
-  const userEvents = ref<any[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
   
@@ -268,31 +146,6 @@
     role: string
     created_at: string
     updated_at: string
-  }
-  
-  // Interface pour les événements selon l'API
-  interface Event {
-    id: number
-    name: string
-    description: string
-    date_time: string
-    location: string
-    image: string | null
-    image_url: string | null
-    category: string
-    is_featured: boolean | null
-    share_token: string | null
-    slug: string | null
-    created_at: string
-  }
-  
-  // Interface pour la réponse API des événements
-  interface EventsResponse {
-    success: boolean
-    data: {
-      events: Event[]
-    }
-    message?: string
   }
   
   // Fonction pour charger le profil utilisateur
@@ -326,108 +179,8 @@
     }
   }
   
-  // Fonction pour charger les événements de l'utilisateur
-  const loadUserEvents = async () => {
-    try {
-      loading.value = true
-      error.value = null
-      
-      // Vérifier si l'utilisateur est connecté
-      if (!isAuthenticated.value || !token.value) {
-        console.warn('⚠️ Utilisateur non connecté ou token manquant pour les événements')
-        return
-      }
-      
-      console.log('🔑 Tentative de chargement des événements')
-      
-      // Utiliser l'endpoint correct de l'API
-      const response = await $fetch<EventsResponse>('/api/v1/events/my-events', {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token.value}`
-        }
-      })
-      
-      console.log('📡 Réponse API événements:', response)
-      
-      if (response.success) {
-        userEvents.value = response.data.events
-        console.log('✅ Événements utilisateur chargés:', userEvents.value)
-      } else {
-        throw new Error(response.message || 'Erreur lors du chargement des événements')
-      }
-    } catch (err: any) {
-      console.error('❌ Erreur lors du chargement des événements:', err)
-      
-      // Gestion spécifique des erreurs
-      if (err.status === 401) {
-        error.value = 'Session expirée. Veuillez vous reconnecter.'
-      } else if (err.status === 404) {
-        error.value = 'Aucun événement trouvé.'
-      } else {
-        error.value = err.message || 'Erreur lors du chargement des événements'
-      }
-      
-      // Fallback avec des données factices en cas d'erreur
-      userEvents.value = [
-        {
-          id: 1,
-          name: 'Concert Jazz en plein air',
-          description: 'Une soirée exceptionnelle avec les meilleurs musiciens de jazz de la région.',
-          date_time: '2024-06-15T19:00:00',
-          location: 'Parc Central, Kinshasa',
-          category: 'Concert',
-          image: null,
-          image_url: null,
-          is_featured: false,
-          share_token: null,
-          slug: null,
-          created_at: '2024-06-01T00:00:00'
-        },
-        {
-          id: 2,
-          name: 'Festival de danse traditionnelle',
-          description: 'Découvrez la richesse culturelle à travers la danse traditionnelle.',
-          date_time: '2024-07-20T18:00:00',
-          location: 'Centre Culturel, Kinshasa',
-          category: 'Festival',
-          image: null,
-          image_url: null,
-          is_featured: false,
-          share_token: null,
-          slug: null,
-          created_at: '2024-07-01T00:00:00'
-        }
-      ]
-    } finally {
-      loading.value = false
-    }
-  }
-  
-  // Fonction utilitaire pour formater les dates
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'Date non définie'
-    
-    try {
-      const date = new Date(dateString)
-      if (isNaN(date.getTime())) return 'Date invalide'
-      
-      return date.toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    } catch (e) {
-      console.error('Erreur lors du formatage de la date:', e)
-      return 'Date non définie'
-    }
-  }
-  
   // Charger les données au montage
   onMounted(async () => {
     await loadUserProfile()
-    await loadUserEvents()
   })
 </script>
