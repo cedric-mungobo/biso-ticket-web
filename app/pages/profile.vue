@@ -7,9 +7,6 @@
             <h1 class="text-3xl font-bold text-neutral-900">Mon Profil</h1>
             <p class="text-neutral-600 mt-2">Gérez vos informations personnelles et vos événements</p>
             
-           
-          
-            
           
           </div>
   
