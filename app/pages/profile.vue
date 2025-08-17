@@ -290,7 +290,7 @@
   import { ref, onMounted } from 'vue'
   
   // Composables
-  const { user, token, isAuthenticated } = useAuth()
+  const { user, token, isAuthenticated, fetchUserProfile } = useAuth()
   
   // État local
   const userData = ref<any>(null)
@@ -335,15 +335,6 @@
     created_at: string
   }
   
-  // Interface pour la réponse API du profil
-  interface ProfileResponse {
-    success: boolean
-    data: {
-      user: User
-    }
-    message?: string
-  }
-  
   // Interface pour la réponse API des événements
   interface EventsResponse {
     success: boolean
@@ -369,36 +360,16 @@
         return
       }
       
-      console.log('🔑 Tentative de chargement du profil avec token:', token.value.substring(0, 20) + '...')
+      console.log('🔑 Tentative de chargement du profil avec fetchUserProfile')
       
-      // Utiliser l'endpoint correct de l'API
-      const response = await $fetch<ProfileResponse>('/api/v1/auth/profile', {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token.value}`
-        }
-      })
+      // Utiliser la fonction existante de useAuth
+      const profileData = await fetchUserProfile()
+      userData.value = profileData
       
-      console.log('📡 Réponse API profil:', response)
-      
-      if (response.success) {
-        userData.value = response.data.user
-        console.log('✅ Profil utilisateur chargé:', userData.value)
-      } else {
-        throw new Error(response.message || 'Erreur lors du chargement du profil')
-      }
+      console.log('✅ Profil utilisateur chargé:', userData.value)
     } catch (err: any) {
       console.error('❌ Erreur lors du chargement du profil:', err)
-      
-      // Gestion spécifique des erreurs
-      if (err.status === 401) {
-        error.value = 'Session expirée. Veuillez vous reconnecter.'
-      } else if (err.status === 404) {
-        error.value = 'Profil non trouvé.'
-      } else {
-        error.value = err.message || 'Erreur lors du chargement du profil'
-      }
+      error.value = err.message || 'Erreur lors du chargement du profil'
     } finally {
       loading.value = false
     }
@@ -416,7 +387,7 @@
         return
       }
       
-      console.log('🔑 Tentative de chargement des événements avec token:', token.value.substring(0, 20) + '...')
+      console.log('🔑 Tentative de chargement des événements')
       
       // Utiliser l'endpoint correct de l'API
       const response = await $fetch<EventsResponse>('/api/v1/events/my-events', {

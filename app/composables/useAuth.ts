@@ -175,7 +175,7 @@ const fetchUserProfile = async () => {
   try {
     isLoading.value = true
     
-    const { data: response, error } = await useAPI<ProfileResponse>('/api/user/profile')
+    const { data: response, error } = await useAPI<ProfileResponse>('/auth/profile')
 
     if (error.value) {
       throw error.value
@@ -183,11 +183,11 @@ const fetchUserProfile = async () => {
 
     if (response.value?.success && response.value.data) {
       // Mettre à jour les données utilisateur
-      user.value = response.value.data
+      user.value = response.value.data.user
       if (process.client) {
-        localStorage.setItem('auth_user', JSON.stringify(response.value.data))
+        localStorage.setItem('auth_user', JSON.stringify(response.value.data.user))
       }
-      return response.value.data
+      return response.value.data.user
     }
   } catch (error: any) {
     console.error('Erreur de récupération du profil:', error)
