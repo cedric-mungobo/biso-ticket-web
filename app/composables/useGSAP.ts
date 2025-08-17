@@ -8,14 +8,7 @@ export const useGSAP = () => {
   if (process.client) {
     // Désactiver le debug GSAP
     gsap.config({ 
-      nullTargetWarn: false,
-      trialWarn: false 
-    })
-    
-    // Désactiver les markers de ScrollTrigger
-    ScrollTrigger.config({ 
-      ignoreMobileResize: true,
-      autoRefreshEvents: "visibilitychange,DOMContentLoaded,load"
+      nullTargetWarn: false
     })
     
     gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, TextPlugin)
