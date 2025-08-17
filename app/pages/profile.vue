@@ -8,7 +8,7 @@
             <p class="text-neutral-600 mt-2">Gérez vos informations personnelles et vos événements</p>
             
             <!-- Indicateur d'état de connexion -->
-            <div v-if="!user?.token" class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div v-if="!isAuthenticated" class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div class="flex items-center space-x-3">
                 <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -35,6 +35,29 @@
                 <button @click="loadUserProfile" class="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors">
                   Réessayer
                 </button>
+              </div>
+            </div>
+            
+            <!-- Bouton de debug (visible en développement) -->
+            <div v-if="isAuthenticated" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p class="text-blue-800 font-medium">État de connexion</p>
+                    <p class="text-blue-700 text-sm">Connecté en tant que {{ user?.name || 'Utilisateur' }}</p>
+                  </div>
+                </div>
+                <div class="flex space-x-2">
+                  <button @click="debugAuth" class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors">
+                    Debug Console
+                  </button>
+                  <button @click="loadUserProfile" class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                    Charger Profil
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -267,13 +290,23 @@
   import { ref, onMounted } from 'vue'
   
   // Composables
-  const { user } = useAuth()
+  const { user, token, isAuthenticated } = useAuth()
   
   // État local
   const userData = ref<any>(null)
   const userEvents = ref<any[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+  
+  // Debug de l'état d'authentification
+  const debugAuth = () => {
+    console.log('🔍 DEBUG AUTHENTIFICATION:')
+    console.log('user.value:', user.value)
+    console.log('token.value:', token.value)
+    console.log('isAuthenticated.value:', isAuthenticated.value)
+    console.log('localStorage auth_token:', process.client ? localStorage.getItem('auth_token') : 'N/A')
+    console.log('localStorage auth_user:', process.client ? localStorage.getItem('auth_user') : 'N/A')
+  }
   
   // Interface pour l'utilisateur selon l'API
   interface User {
@@ -326,21 +359,24 @@
       loading.value = true
       error.value = null
       
+      // Debug de l'état d'authentification
+      debugAuth()
+      
       // Vérifier si l'utilisateur est connecté
-      if (!user.value || !user.value.token) {
+      if (!isAuthenticated.value || !token.value) {
         console.warn('⚠️ Utilisateur non connecté ou token manquant')
         error.value = 'Utilisateur non connecté. Veuillez vous connecter.'
         return
       }
       
-      console.log('🔑 Tentative de chargement du profil avec token:', user.value.token.substring(0, 20) + '...')
+      console.log('🔑 Tentative de chargement du profil avec token:', token.value.substring(0, 20) + '...')
       
       // Utiliser l'endpoint correct de l'API
       const response = await $fetch<ProfileResponse>('/api/v1/auth/profile', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'Authorization': `Bearer ${user.value.token}`
+          'Authorization': `Bearer ${token.value}`
         }
       })
       
@@ -375,19 +411,19 @@
       error.value = null
       
       // Vérifier si l'utilisateur est connecté
-      if (!user.value || !user.value.token) {
+      if (!isAuthenticated.value || !token.value) {
         console.warn('⚠️ Utilisateur non connecté ou token manquant pour les événements')
         return
       }
       
-      console.log('🔑 Tentative de chargement des événements avec token:', user.value.token.substring(0, 20) + '...')
+      console.log('🔑 Tentative de chargement des événements avec token:', token.value.substring(0, 20) + '...')
       
       // Utiliser l'endpoint correct de l'API
       const response = await $fetch<EventsResponse>('/api/v1/events/my-events', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'Authorization': `Bearer ${user.value.token}`
+          'Authorization': `Bearer ${token.value}`
         }
       })
       
