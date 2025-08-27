@@ -485,6 +485,28 @@ Authorization: Bearer {token}
 }
 ```
 
+### Suppression d'un événement
+```http
+DELETE /events/{eventId}
+Authorization: Bearer {token}
+```
+
+**Réponse :**
+```json
+{
+    "success": true,
+    "message": "Événement supprimé avec succès",
+    "data": {
+        "event_id": 16
+    }
+}
+```
+
+**Codes d'erreur possibles :**
+- `404` : Événement non trouvé
+- `403` : Non autorisé (pas l'organisateur de l'événement)
+- `422` : Événement ne peut pas être supprimé (réservations existantes)
+
 ---
 
 ## 📊 Audit Réservations & Paiements

@@ -115,6 +115,11 @@
   
   <script setup lang="ts">
   import { ref, onMounted } from 'vue'
+
+  definePageMeta({
+    middleware: 'authenticated'
+
+  })
   
   // Composables
   const { user, token, isAuthenticated, fetchUserProfile } = useAuth()

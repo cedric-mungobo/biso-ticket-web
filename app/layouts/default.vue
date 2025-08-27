@@ -2,7 +2,12 @@
   <div>
     <!-- <Announcement/> -->
     <AppHeader/>
-    <slot/>
+
+    <div class=" min-h-[100dvh]">
+
+      <slot/>
+
+    </div>
     <AppFooter/>
     <MobileBottomNav/>
   </div>

@@ -1,5 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import type { Event, Ticket } from '~/types/events'
+import { reservationService } from '~/services/reservationService'
+import type { ReservationAPIResponse } from '~/types/reservation'
 
 export interface TicketSelection {
   ticketId: number
@@ -265,36 +267,49 @@ export function useTickets() {
     clearSelection()
   }
 
-  const confirmReservation = async (paymentData?: any) => {
+  // Nouvelle méthode pour confirmer la réservation avec la nouvelle API
+  const confirmReservation = async (paymentData: {
+    payment_method: 'mobile_money' | 'card'
+    payment_currency: 'USD' | 'CDF'
+    telephone?: string
+  }) => {
     try {
-      if (!reservationSummary.value) {
-        throw new Error('Aucune réservation en cours')
+      if (!reservationSummary.value || !currentEvent.value) {
+        throw new Error('Aucune réservation en cours ou événement manquant')
       }
 
-      // TODO: Appel API pour confirmer la réservation
-      const reservationData = {
-        event_id: reservationSummary.value.event.id,
-        tickets: reservationSummary.value.selectedTickets.map(t => ({
-          ticket_id: t.ticketId,
-          quantity: t.quantity
-        })),
-        total_price: reservationSummary.value.totalPrice,
-        currency: reservationSummary.value.currency,
-        payment_data: paymentData
-      }
+      console.log('🚀 Début de la confirmation de réservation avec nouvelle API:', paymentData)
+      console.log('📋 Résumé de la réservation:', reservationSummary.value)
+      console.log('🎯 Événement:', currentEvent.value)
 
-      console.log('Confirmation de réservation:', reservationData)
+      // Utiliser le service de réservation mis à jour
+      const response = await reservationService.performReservation(
+        reservationSummary.value.selectedTickets,
+        currentEvent.value,
+        paymentData
+      )
 
-      // Simuler un appel API
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      console.log('✅ Réservation réussie avec nouvelle API:', response)
 
       // Réinitialiser après confirmation
       isReservationActive.value = false
       clearSelection()
 
-      return { success: true, data: reservationData }
+      return { success: true, data: response }
     } catch (error) {
-      console.error('Erreur lors de la confirmation:', error)
+      console.error('❌ Erreur lors de la confirmation de réservation:', error)
+      
+      // Log détaillé de l'erreur
+      if (error instanceof Error) {
+        console.error('📝 Détails de l\'erreur:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        })
+      } else {
+        console.error('📝 Erreur non-standard:', error)
+      }
+      
       return { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' }
     }
   }
@@ -327,6 +342,33 @@ export function useTickets() {
     }
   }
 
+  // Méthodes utilitaires pour la nouvelle API
+  const hasPaidTickets = computed(() => {
+    if (!currentEvent.value || !hasSelectedTickets.value) return false
+    return reservationService.hasPaidTickets(
+      Object.entries(selectedTickets.value)
+        .filter(([_, quantity]) => quantity > 0)
+        .map(([ticketId, quantity]) => ({
+          ticketId: parseInt(ticketId),
+          quantity
+        })),
+      currentEvent.value
+    )
+  })
+
+  const calculateTotalPrice = computed(() => {
+    if (!currentEvent.value || !hasSelectedTickets.value) return 0
+    return reservationService.calculateTotalPrice(
+      Object.entries(selectedTickets.value)
+        .filter(([_, quantity]) => quantity > 0)
+        .map(([ticketId, quantity]) => ({
+          ticketId: parseInt(ticketId),
+          quantity
+        })),
+      currentEvent.value
+    )
+  })
+
   return {
     // État
     selectedTickets: readonly(selectedTickets),
@@ -356,6 +398,10 @@ export function useTickets() {
     confirmReservation,
     
     // Validation
-    validateReservation
+    validateReservation,
+    
+    // Nouvelles méthodes utilitaires
+    hasPaidTickets,
+    calculateTotalPrice
   }
 }

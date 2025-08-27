@@ -1,15 +1,31 @@
 import { ref, readonly } from 'vue'
 import type { Event, EventsResponse, EventResponse } from '~/types/events'
 import { useAPI } from '~/composables/useAPI'
+import { useAuth } from '~/composables/useAuth'
 
-export interface CreateEventData {
+// Types pour les réponses API
+interface ApiResponse<T = any> {
+  success: boolean
+  message?: string
+  data: T
+}
+
+// Type spécifique pour la réponse de my-events
+interface MyEventsResponse {
+  events: Event[]
+  total_events: number
+}
+
+interface CreateEventData {
   name: string
   description: string
   date_time: string
   location: string
   category: string
-  image?: string
+  image?: File | string | null
 }
+
+export type { CreateEventData }
 
 export interface CreateTicketData {
   type: string
@@ -28,66 +44,95 @@ export interface GuestData {
   drink_preferences?: string
 }
 
-export function useOrganizerEvents() {
+export const useOrganizerEvents = () => {
+  // État local
   const events = ref<Event[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
   const currentEvent = ref<Event | null>(null)
+  
+  // Récupérer le token d'authentification
+  const { token } = useAuth()
 
-  // Récupérer les événements de l'organisateur
-  const fetchMyEvents = async () => {
+  // Récupérer mes événements
+  const fetchMyEvents = async (): Promise<void> => {
     try {
       loading.value = true
       error.value = null
       
-      const { data, error: fetchError } = await useAPI<EventsResponse>('/events/my-events')
+      const { data, error: fetchError } = await useAPI<ApiResponse<MyEventsResponse>>('/events/my-events')
       
       if (fetchError.value) {
-        throw new Error('Erreur lors de la récupération de vos événements')
+        throw new Error(fetchError.value.message || 'Erreur lors de la récupération des événements')
       }
       
-      if (data.value?.success && data.value.data.events) {
-        events.value = data.value.data.events
-        console.log('✅ Événements organisateur récupérés:', events.value.length)
+      if (data.value?.success && data.value.data) {
+        // L'API retourne {events: Array, total_events: number}
+        const eventsArray = data.value.data.events || data.value.data
+        
+        if (Array.isArray(eventsArray)) {
+          events.value = eventsArray
+        } else {
+          throw new Error('Format de données invalide - events doit être un tableau')
+        }
       } else {
         throw new Error('Format de réponse invalide')
       }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Une erreur est survenue'
-      console.error('Erreur lors de la récupération des événements:', err)
-      throw err
+    } catch (err: any) {
+      console.error('❌ Erreur lors de la récupération des événements:', err)
+      error.value = err.message || 'Erreur lors de la récupération des événements'
     } finally {
       loading.value = false
     }
   }
 
-  // Créer un nouvel événement
-  const createEvent = async (eventData: CreateEventData) => {
+  // Créer un événement
+  const createEvent = async (eventData: CreateEventData): Promise<Event | null> => {
     try {
       loading.value = true
       error.value = null
       
-      const { data, error: fetchError } = await useAPI<EventResponse>('/events/create', {
+      const { data, error: fetchError } = await useAPI<ApiResponse<{ event: Event }>>('/events/create', {
         method: 'POST',
         body: eventData
       })
       
       if (fetchError.value) {
-        throw new Error('Erreur lors de la création de l\'événement')
+        // Gestion spécifique des erreurs 422 (validation)
+        if (fetchError.value.statusCode === 422) {
+          const errorMessage = fetchError.value.message || 'Données de validation invalides'
+          throw new Error(`Erreur de validation: ${errorMessage}`)
+        }
+        
+        throw new Error(fetchError.value.message || 'Erreur lors de la création de l\'événement')
       }
       
-      if (data.value?.success && data.value.data.event) {
-        const newEvent = data.value.data.event
-        events.value.unshift(newEvent)
-        console.log('✅ Événement créé avec succès:', newEvent)
-        return newEvent
+      if (data.value?.success && data.value.data?.event) {
+        // Ajouter le nouvel événement à la liste
+        events.value.push(data.value.data.event)
+        return data.value.data.event
       } else {
-        throw new Error('Format de réponse invalide')
+        throw new Error('Format de réponse invalide lors de la création')
       }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Une erreur est survenue'
-      console.error('Erreur lors de la création de l\'événement:', err)
-      throw err
+    } catch (err: any) {
+      // Gestion détaillée des erreurs
+      if (err.message) {
+        if (err.message.includes('422')) {
+          error.value = 'Erreur de validation: Veuillez vérifier les informations saisies'
+        } else if (err.message.includes('401')) {
+          error.value = 'Session expirée. Veuillez vous reconnecter'
+        } else if (err.message.includes('403')) {
+          error.value = 'Accès refusé. Vous n\'avez pas les permissions nécessaires'
+        } else if (err.message.includes('validation')) {
+          error.value = err.message
+        } else {
+          error.value = err.message
+        }
+      } else {
+        error.value = 'Erreur inattendue lors de la création de l\'événement'
+      }
+      
+      return null
     } finally {
       loading.value = false
     }
@@ -126,7 +171,7 @@ export function useOrganizerEvents() {
       loading.value = true
       error.value = null
       
-      const { data, error: fetchError } = await useAPI(`/events/${eventId}/tickets`, {
+      const { data, error: fetchError } = await useAPI<ApiResponse<{ ticket: any }>>(`/events/${eventId}/tickets`, {
         method: 'POST',
         body: ticketData
       })
@@ -135,7 +180,7 @@ export function useOrganizerEvents() {
         throw new Error('Erreur lors de l\'ajout du ticket')
       }
       
-      if (data.value?.success) {
+      if (data.value?.success && data.value.data?.ticket) {
         // Rafraîchir l'événement pour avoir les tickets à jour
         await fetchEvent(eventId)
         console.log('✅ Ticket ajouté avec succès')
@@ -158,13 +203,13 @@ export function useOrganizerEvents() {
       loading.value = true
       error.value = null
       
-      const { data, error: fetchError } = await useAPI(`/events/${eventId}/tickets`)
+      const { data, error: fetchError } = await useAPI<ApiResponse<{ tickets: any[] }>>(`/events/${eventId}/tickets`)
       
       if (fetchError.value) {
         throw new Error('Erreur lors de la récupération des tickets')
       }
       
-      if (data.value?.success && data.value.data.tickets) {
+      if (data.value?.success && data.value.data?.tickets) {
         return data.value.data.tickets
       } else {
         throw new Error('Format de réponse invalide')
@@ -184,7 +229,7 @@ export function useOrganizerEvents() {
       loading.value = true
       error.value = null
       
-      const { data, error: fetchError } = await useAPI(`/events/${eventId}/guests`, {
+      const { data, error: fetchError } = await useAPI<ApiResponse<{ guest: any }>>(`/events/${eventId}/guests`, {
         method: 'POST',
         body: guestData
       })
@@ -193,7 +238,7 @@ export function useOrganizerEvents() {
         throw new Error('Erreur lors de l\'ajout de l\'invité')
       }
       
-      if (data.value?.success) {
+      if (data.value?.success && data.value.data?.guest) {
         console.log('✅ Invité ajouté avec succès')
         return data.value.data.guest
       } else {
@@ -214,7 +259,7 @@ export function useOrganizerEvents() {
       loading.value = true
       error.value = null
       
-      const { data, error: fetchError } = await useAPI(`/events/${eventId}/guests/bulk`, {
+      const { data, error: fetchError } = await useAPI<ApiResponse<{ total_added: number; guests: any[] }>>(`/events/${eventId}/guests/bulk`, {
         method: 'POST',
         body: { guests }
       })
@@ -223,7 +268,7 @@ export function useOrganizerEvents() {
         throw new Error('Erreur lors de l\'ajout des invités')
       }
       
-      if (data.value?.success) {
+      if (data.value?.success && data.value.data) {
         console.log('✅ Invités ajoutés avec succès:', data.value.data.total_added)
         return data.value.data.guests
       } else {
@@ -244,13 +289,13 @@ export function useOrganizerEvents() {
       loading.value = true
       error.value = null
       
-      const { data, error: fetchError } = await useAPI(`/events/${eventId}/guests`)
+      const { data, error: fetchError } = await useAPI<ApiResponse<{ guests: any[] }>>(`/events/${eventId}/guests`)
       
       if (fetchError.value) {
         throw new Error('Erreur lors de la récupération des invités')
       }
       
-      if (data.value?.success && data.value.data.guests) {
+      if (data.value?.success && data.value.data?.guests) {
         return data.value.data.guests
       } else {
         throw new Error('Format de réponse invalide')
@@ -265,26 +310,57 @@ export function useOrganizerEvents() {
   }
 
   // Récupérer les statistiques d'un événement
-  const fetchEventStats = async (eventId: number) => {
+  const fetchEventStats = async (eventId: number): Promise<any> => {
     try {
       loading.value = true
       error.value = null
       
-      const { data, error: fetchError } = await useAPI(`/tickets/audit/events/${eventId}`)
+      const { data, error: fetchError } = await useAPI<ApiResponse<any>>(`/events/${eventId}/stats`)
       
       if (fetchError.value) {
         throw new Error('Erreur lors de la récupération des statistiques')
       }
       
-      if (data.value?.success) {
+      if (data.value?.success && data.value.data) {
         return data.value.data
       } else {
-        throw new Error('Format de réponse invalide')
+        throw new Error('Format de réponse invalide pour les statistiques')
       }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Une erreur est survenue'
-      console.error('Erreur lors de la récupération des statistiques:', err)
-      throw err
+    } catch (err: any) {
+      console.error('❌ Erreur lors de la récupération des statistiques:', err)
+      error.value = err.message || 'Erreur lors de la récupération des statistiques'
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Supprimer un événement
+  const deleteEvent = async (eventId: number): Promise<boolean> => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      const { data, error: fetchError } = await useAPI<ApiResponse<{ event_id: number }>>(`/events/${eventId}`, {
+        method: 'DELETE'
+      })
+      
+      if (fetchError.value) {
+        throw new Error('Erreur lors de la suppression de l\'événement')
+      }
+      
+      if (data.value?.success) {
+        // Supprimer l'événement de la liste locale
+        events.value = events.value.filter(event => event.id !== eventId)
+        console.log('✅ Événement supprimé avec succès')
+        return true
+      } else {
+        throw new Error('Format de réponse invalide lors de la suppression')
+      }
+    } catch (err: any) {
+      console.error('❌ Erreur lors de la suppression:', err)
+      error.value = err.message || 'Erreur lors de la suppression de l\'événement'
+      return false
     } finally {
       loading.value = false
     }

@@ -86,88 +86,133 @@
         </NuxtLink>
       </div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-        <div
-          v-for="event in filteredEvents"
-          :key="event.id"
-          class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
-        >
-          <!-- Image de l'événement -->
-          <div class="h-40 lg:h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
-            <img
-              v-if="event.image"
-              :src="event.image"
-              :alt="event.name"
-              class="w-full h-full object-cover rounded-t-lg"
-            />
-            <svg
-              v-else
-              class="h-12 w-12 lg:h-16 lg:w-16 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-          </div>
+      
 
-          <!-- Contenu de la carte -->
-          <div class="p-4 lg:p-6">
-            <div class="flex items-center justify-between mb-2">
-              <span
-                :class="[
-                  'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
-                  getStatusClass(event)
-                ]"
+      <!-- Tableau des événements -->
+      <div v-else class="bg-white shadow-md rounded-lg overflow-hidden">
+        
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <!-- En-tête du tableau -->
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Événement
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date & Lieu
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Catégorie
+                </th>
+               
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            
+            <!-- Corps du tableau -->
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr
+                v-for="event in filteredEvents"
+                :key="event.id"
+                class="hover:bg-gray-50 transition-colors"
               >
-                {{ getStatusText(event) }}
-              </span>
-              <span class="text-xs lg:text-sm text-gray-500">{{ event.category }}</span>
-            </div>
-
-            <h3 class="text-base lg:text-lg font-medium text-gray-900 mb-2">{{ event.name }}</h3>
-            <p class="text-gray-600 text-xs lg:text-sm mb-3 lg:mb-4 line-clamp-2">{{ event.description }}</p>
-
-            <div class="space-y-2 mb-3 lg:mb-4">
-              <div class="flex items-center text-xs lg:text-sm text-gray-500">
-                <svg class="w-3 h-3 lg:w-4 lg:h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                {{ formatDate(event.date_time) }}
-              </div>
-              <div class="flex items-center text-xs lg:text-sm text-gray-500">
-                <svg class="w-3 h-3 lg:w-4 lg:h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {{ event.location }}
-              </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex space-x-2">
-              <NuxtLink
-                :to="`/organisateur/events/${event.id}`"
-                class="flex-1 bg-primary-600 text-white text-center px-2 lg:px-3 py-2 rounded-md hover:bg-primary-700 transition-colors text-xs lg:text-sm"
-              >
-                Gérer
-              </NuxtLink>
-              <button
-                @click="copyEventLink(event.id)"
-                class="px-2 lg:px-3 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-xs lg:text-sm"
-                :title="copiedEventId === event.id ? 'Lien copié !' : 'Copier le lien'"
-              >
-                <svg class="w-3 h-3 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </button>
-            </div>
-          </div>
+                
+                <!-- Colonne Événement (Image + Nom + Description) -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-16 w-16">
+                      <img
+                        v-if="event.image"
+                        :src="event.image_url"
+                        :alt="event.name"
+                        class="h-16 w-16 rounded-lg object-cover"
+                      />
+                      <div
+                        v-else
+                        class="h-16 w-16 rounded-lg bg-gray-200 flex items-center justify-center"
+                      >
+                        <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">{{ event.name }}</div>
+                      <div class="text-sm text-gray-500 line-clamp-2 max-w-xs">{{ event.description }}</div>
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Colonne Date & Lieu -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ formatDate(event.date_time) }}</div>
+                  <div class="text-sm text-gray-500">{{ event.location }}</div>
+                </td>
+                
+                <!-- Colonne Catégorie -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {{ event.category }}
+                  </span>
+                </td>
+                
+              
+                
+                <!-- Colonne Actions -->
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <div class="flex items-center space-x-2">
+                    <!-- Bouton Voir -->
+                    <NuxtLink
+                      :to="`/evenements/${event.id}`"
+                      class="inline-flex items-center p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-100 rounded-md transition-colors"
+                      title="Voir l'événement"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </NuxtLink>
+                    
+                    <!-- Bouton Éditer -->
+                    <NuxtLink
+                      :to="`/organisateur/events/${event.id}`"
+                      class="inline-flex items-center p-2 text-green-600 hover:text-green-900 hover:bg-green-100 rounded-md transition-colors"
+                      title="Gérer l'événement"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </NuxtLink>
+                    
+                    <!-- Bouton Copier le lien -->
+                    <button
+                      @click="copyEventLink(event.id)"
+                      class="inline-flex items-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                      :title="copiedEventId === event.id ? 'Lien copié !' : 'Copier le lien'"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                    
+                    <!-- Bouton Supprimer -->
+                    <button
+                      @click="handleDeleteEvent(event.id)"
+                      class="inline-flex items-center p-2 text-red-600 hover:text-red-900 hover:bg-red-100 rounded-md transition-colors"
+                      title="Supprimer l'événement"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -208,6 +253,57 @@ const exportEvents = () => {
 const toggleFilters = () => {
   showFilters.value = !showFilters.value
   console.log('Filtres:', showFilters.value ? 'affichés' : 'masqués')
+}
+
+// Supprimer un événement
+const handleDeleteEvent = async (eventId: number) => {
+  // Validation de l'ID
+  if (!eventId || isNaN(eventId)) {
+    console.error('❌ ID d\'événement invalide:', eventId)
+    alert('Erreur: ID d\'événement invalide')
+    return
+  }
+  
+  if (confirm('Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible.')) {
+    try {
+      // Utiliser useAPI au lieu de $fetch
+      const { data, error: fetchError } = await useAPI<{ success: boolean; message?: string; data?: { event_id: number } }>(`/events/${eventId}`, {
+        method: 'DELETE'
+      })
+      
+      if (fetchError.value) {
+        throw new Error(fetchError.value.message || 'Erreur lors de la suppression')
+      }
+      
+      if (data.value?.success) {
+        // Recharger la liste des événements depuis l'API
+        await loadEvents()
+        
+        console.log('✅ Événement supprimé avec succès')
+      } else {
+        throw new Error('Format de réponse invalide lors de la suppression')
+      }
+    } catch (error: any) {
+      console.error('💥 Erreur lors de la suppression:', error)
+      
+      // Afficher un message d'erreur à l'utilisateur
+      let errorMessage = 'Erreur lors de la suppression de l\'événement'
+      
+      if (error.message) {
+        if (error.message.includes('404')) {
+          errorMessage = 'Événement non trouvé ou déjà supprimé'
+        } else if (error.message.includes('403')) {
+          errorMessage = 'Vous n\'avez pas les permissions pour supprimer cet événement'
+        } else if (error.message.includes('422')) {
+          errorMessage = 'Impossible de supprimer cet événement (réservations existantes)'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
+      alert(errorMessage)
+    }
+  }
 }
 
 // Événements filtrés

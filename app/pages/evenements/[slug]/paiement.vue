@@ -56,46 +56,66 @@
       </div>
     </div>
 
-    <!-- Section de paiement Mobile Money -->
-    <div class="bg-white rounded-lg border border-gray-200 p-6">
-      <h2 class="text-xl font-semibold text-gray-900 mb-4">Paiement par Mobile Money</h2>
+    <!-- Section de paiement (conditionnelle selon le type de ticket) -->
+    <div v-if="hasPaidTickets" class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Méthode de Paiement</h2>
       
-      <!-- Sélection de l'opérateur -->
+      <!-- Sélection de la méthode -->
       <div class="mb-6">
         <label class="block text-sm font-medium text-gray-700 mb-3">
-          Sélectionnez votre opérateur Mobile Money
+          Choisissez votre méthode de paiement
         </label>
-        <div class="flex flex-col md:flex-row gap-4">
-          <label
-            v-for="operator in mobileMoneyOperators"
-            :key="operator.id"
-            class="flex-1 flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors min-w-0"
-            :class="{ 'border-primary-500 bg-primary-50': selectedOperator === operator.id }"
-          >
+        <div class="flex gap-4">
+          <label class="flex items-center">
             <input
-              v-model="selectedOperator"
+              v-model="paymentMethod"
               type="radio"
-              name="mobileMoneyOperator"
-              :value="operator.id"
-              class="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+              value="mobile_money"
+              class="mr-2"
             />
-            <div class="ml-3 flex items-center">
-              <div 
-                class="w-8 h-8 rounded-full flex items-center justify-center mr-3"
-                :class="operator.bgColor"
-              >
-                <span class="text-white font-bold text-sm">{{ operator.initial }}</span>
-              </div>
-              <div>
-                <span class="font-medium text-gray-900">{{ operator.name }}</span>
-              </div>
-            </div>
+            Mobile Money
+          </label>
+          <label class="flex items-center">
+            <input
+              v-model="paymentMethod"
+              type="radio"
+              value="card"
+              class="mr-2"
+            />
+            Carte bancaire
           </label>
         </div>
       </div>
 
-      <!-- Numéro de téléphone -->
-      <div class="mb-6">
+      <!-- Sélection de la devise -->
+      <div v-if="paymentMethod" class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-3">
+          Devise de paiement
+        </label>
+        <div class="flex gap-4">
+          <label class="flex items-center">
+            <input
+              v-model="paymentCurrency"
+              type="radio"
+              value="USD"
+              class="mr-2"
+            />
+            USD
+          </label>
+          <label v-if="paymentMethod === 'mobile_money'" class="flex items-center">
+            <input
+              v-model="paymentCurrency"
+              type="radio"
+              value="CDF"
+              class="mr-2"
+            />
+            CDF
+          </label>
+        </div>
+      </div>
+
+      <!-- Sélection de l'opérateur Mobile Money -->
+      <div v-if="paymentMethod === 'mobile_money'" class="mb-6">
         <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-2">
           Numéro de téléphone
         </label>
@@ -129,29 +149,75 @@
       >
         Paiement en cours...
       </button>
+    </div>
 
-      <!-- Message de succès -->
-      <div v-if="isWaitingForSMS" class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-        <div class="text-center">
-          <h3 class="text-lg font-semibold text-green-900 mb-2">
-            ✅ Réservation effectuée avec succès !
-          </h3>
-          <p class="text-green-700 text-sm">
-            Votre réservation a été enregistrée. Un SMS de confirmation a été envoyé au numéro <strong>{{ phoneNumber }}</strong>.
-            <br>Veuillez confirmer le paiement en répondant au SMS.
-          </p>
-        </div>
+    <!-- Section pour tickets gratuits -->
+    <div v-else-if="reservationSummary" class="bg-white rounded-lg border border-gray-200 p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Réservation Gratuite</h2>
+      <p class="text-gray-600 mb-4">Vos tickets sont gratuits. Aucun paiement n'est requis.</p>
+      
+      <button
+        @click="processFreeReservation"
+        :disabled="isProcessing"
+        class="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        <span v-if="isProcessing">Traitement en cours...</span>
+        <span v-else>Confirmer la réservation gratuite</span>
+      </button>
+    </div>
+
+    <!-- Message de succès -->
+    <div v-if="isWaitingForSMS" class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="text-center">
+        <h3 class="text-lg font-semibold text-green-900 mb-2">
+          ✅ Réservation effectuée avec succès !
+        </h3>
+        <p class="text-green-700 text-sm">
+          Votre réservation a été enregistrée. Un SMS de confirmation a été envoyé au numéro <strong>{{ phoneNumber }}</strong>.
+          <br>Veuillez confirmer le paiement en répondant au SMS.
+        </p>
       </div>
+    </div>
 
-      <!-- Message d'erreur -->
-      <div v-if="paymentError" class="mt-3 text-center">
-        <p class="text-sm text-red-600 mb-3">{{ paymentError }}</p>
-        <button
-          @click="retryPayment"
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-        >
-          Réessayer le paiement
-        </button>
+    <!-- Message d'erreur -->
+    <div v-if="paymentError" class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="text-center">
+        <div class="flex items-center justify-center mb-2">
+          <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 class="text-lg font-semibold text-red-900">Erreur lors du paiement</h3>
+        </div>
+        <p class="text-red-700 text-sm mb-3">{{ paymentError }}</p>
+        
+        <!-- Détails techniques pour le débogage -->
+        <details class="text-left bg-red-100 p-3 rounded border border-red-300 mb-3">
+          <summary class="cursor-pointer text-red-800 font-medium text-sm">
+            🔍 Voir les détails techniques
+          </summary>
+          <div class="mt-2 text-xs text-red-700 font-mono bg-red-50 p-2 rounded border">
+            <p><strong>URL API:</strong> /tickets/simple/reserve</p>
+            <p><strong>Méthode:</strong> POST</p>
+            <p><strong>Timestamp:</strong> {{ new Date().toISOString() }}</p>
+            <p><strong>Erreur:</strong> {{ paymentError }}</p>
+          </div>
+        </details>
+        
+        <div class="flex gap-2 justify-center">
+          <button
+            @click="retryPayment"
+            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+          >
+            🔄 Réessayer le paiement
+          </button>
+          
+          <button
+            @click="runAPIDiagnostic"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            🔧 Diagnostiquer l'API
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -227,31 +293,17 @@ import type { Event } from '~/types/events'
 import { useTickets } from '~/composables/useTickets'
 import { useUserPreferences } from '~/composables/useUserPreferences'
 import { useAuth } from '~/composables/useAuth'
-import { useApiConfig } from '~/composables/useApiConfig'
 import Modal from '~/components/Modal.vue'
+
 definePageMeta({
   middleware: ['authenticated'],
 })
-
-// Interface pour la réponse de l'API de réservation
-interface ReservationAPIResponse {
-  success: boolean
-  message: string
-  data: {
-    participant: {
-      id: number
-      token: string
-    }
-    redirect_to_my_tickets: boolean
-  }
-}
 
 // Récupération du slug depuis l'URL
 const route = useRoute()
 const slug = route.params.slug as string
 
 // État local
-const selectedOperator = ref('')
 const phoneNumber = ref('')
 const phoneError = ref('')
 const paymentError = ref('')
@@ -261,34 +313,19 @@ const isWaitingForSMS = ref(false)
 const countdownInterval = ref<NodeJS.Timeout | null>(null)
 const pollingInterval = ref<NodeJS.Timeout | null>(null)
 
-// Tableau des opérateurs Mobile Money (IDs selon l'API)
-const mobileMoneyOperators = ref([
-  {
-    id: '1',
-    name: 'Airtel Money',
-    initial: 'A',
-    bgColor: 'bg-red-600'
-  },
-  {
-    id: '2',
-    name: 'M-Pesa',
-    initial: 'M',
-    bgColor: 'bg-green-600'
-  },
-  {
-    id: '3',
-    name: 'Orange Money',
-    initial: 'O',
-    bgColor: 'bg-orange-500'
-  }
-])
+// Nouveaux refs pour la méthode de paiement
+const paymentMethod = ref<'mobile_money' | 'card' | ''>('')
+const paymentCurrency = ref<'USD' | 'CDF' | ''>('')
 
 // Utilisation des composables
-const { reservationSummary, currentEvent } = useTickets()
 const { 
-  preferredMobileMoneyOperator, 
+  reservationSummary, 
+  currentEvent, 
+  hasPaidTickets,
+  confirmReservation 
+} = useTickets()
+const { 
   phoneNumber: savedPhoneNumber,
-  setPreferredMobileMoneyOperator,
   setPhoneNumber
 } = useUserPreferences()
 const { isAuthenticated, user, token } = useAuth()
@@ -298,22 +335,27 @@ const event = computed(() => currentEvent.value)
 
 // Initialiser les valeurs depuis les préférences utilisateur
 onMounted(() => {
-  if (preferredMobileMoneyOperator.value) {
-    selectedOperator.value = preferredMobileMoneyOperator.value
-  }
   if (savedPhoneNumber.value) {
     phoneNumber.value = savedPhoneNumber.value
+  }
+  
+  // Initialiser la devise par défaut
+  if (hasPaidTickets.value) {
+    paymentCurrency.value = 'USD'
   }
 })
 
 // Validation du formulaire
 const canProcessPayment = computed(() => {
-  return selectedOperator.value && 
-         phoneNumber.value && 
-         !phoneError.value && 
-         reservationSummary.value &&
-         !isProcessing.value &&
-         !isWaitingForSMS.value
+  if (!hasPaidTickets.value) return false
+  
+  if (!paymentMethod.value || !paymentCurrency.value) return false
+  
+  if (paymentMethod.value === 'mobile_money') {
+    if (!phoneNumber.value || phoneError.value) return false
+  }
+  
+  return !isProcessing.value && !isWaitingForSMS.value
 })
 
 // Démarrer le compteur (décompte de 60 à 0)
@@ -331,30 +373,9 @@ const startCountdown = () => {
       paymentError.value = 'Temps d\'attente écoulé. Veuillez réessayer votre paiement.'
     }
   }, 1000)
-  
-  // Démarrer la vérification périodique du statut (toutes les 10 secondes)
-  startStatusPolling()
 }
 
-// Démarrer la vérification périodique du statut
-const startStatusPolling = () => {
-  // DÉSACTIVER le polling automatique pour l'instant
-  // Il sera activé plus tard quand on aura l'endpoint réel
-  console.log('Polling automatique désactivé - en attente de l\'endpoint réel')
-  
-  /*
-  pollingInterval.value = setInterval(async () => {
-    try {
-      // Vérifier le statut du paiement
-      await checkPaymentStatus()
-    } catch (error) {
-      console.error('Erreur lors de la vérification périodique:', error)
-    }
-  }, 10000) // Vérifier toutes les 10 secondes
-  */
-}
-
-// Arrêter le compteur et le polling
+// Arrêter le compteur
 const stopCountdown = () => {
   // Arrêter le compteur
   if (countdownInterval.value) {
@@ -372,51 +393,6 @@ const stopCountdown = () => {
   countdown.value = 60
   isWaitingForSMS.value = false
 }
-
-// Vérifier le statut du paiement
-const checkPaymentStatus = async () => {
-  try {
-    console.log('Vérification du statut du paiement...')
-    
-    // DÉSACTIVÉ - Cette fonction ne fait plus de redirection automatique
-    // Elle sera utilisée plus tard quand on aura l'endpoint réel de vérification
-    console.log('Vérification du statut désactivée - en attente de l\'endpoint réel')
-    
-    /*
-    // Pour l'instant, on simule une vérification
-    // En production, utilisez l'API réelle
-    if (Math.random() > 0.5) {
-      // Paiement confirmé - ARRÊTER le compteur et rediriger vers mes billets
-      stopCountdown()
-      navigateTo('/tickets/my-tickets')
-    } else {
-      // Paiement toujours en attente - CONTINUER le compteur
-      console.log('Paiement toujours en attente, continuation du countdown...')
-    }
-    */
-    
-  } catch (error: any) {
-    console.error('Erreur lors de la vérification du statut:', error)
-    
-    // Gestion des erreurs avec messages clairs
-    if (error.status === 401) {
-      paymentError.value = 'Votre session a expiré. Veuillez vous reconnecter.'
-      stopCountdown()
-      navigateTo('/connexion')
-    } else if (error.status === 404) {
-      paymentError.value = 'Réservation non trouvée. Veuillez vérifier votre réservation.'
-    } else if (error.message) {
-      paymentError.value = `Erreur de vérification: ${error.message}`
-    } else {
-      paymentError.value = 'Erreur lors de la vérification du statut. Le compteur continue.'
-    }
-    
-    // En cas d'erreur, continuer le compteur
-    // L'utilisateur peut réessayer
-  }
-}
-
-
 
 // Validation du numéro de téléphone
 const validatePhoneNumber = (phone: string) => {
@@ -445,15 +421,15 @@ watch(phoneNumber, (newPhone) => {
   }
 })
 
-// Écouter les changements de l'opérateur sélectionné
-watch(selectedOperator, (newOperator) => {
-  if (newOperator) {
-    // Sauvegarder dans les préférences
-    setPreferredMobileMoneyOperator(newOperator as '1' | '2' | '3')
+// Écouter les changements de la méthode de paiement
+watch(paymentMethod, (newMethod) => {
+  if (newMethod === 'card') {
+    // Forcer USD pour les cartes
+    paymentCurrency.value = 'USD'
   }
 })
 
-// Traitement du paiement
+// Traitement du paiement pour tickets payants
 const processPayment = async () => {
   if (!canProcessPayment.value) return
 
@@ -465,17 +441,128 @@ const processPayment = async () => {
   }
 
   // Validation finale
-  if (!validatePhoneNumber(phoneNumber.value)) return
+  if (paymentMethod.value === 'mobile_money' && !validatePhoneNumber(phoneNumber.value)) return
 
-  // DÉMARRER IMMÉDIATEMENT le modal et le countdown
-  startCountdown()
-  
-  // Sauvegarder les préférences utilisateur
-  setPreferredMobileMoneyOperator(selectedOperator.value as '1' | '2' | '3')
-  setPhoneNumber(phoneNumber.value)
+  try {
+    isProcessing.value = true
+    paymentError.value = ''
 
-  // Envoyer la requête API en arrière-plan
-  sendReservationRequest()
+    // Préparer les données de paiement
+    const paymentData = {
+      payment_method: paymentMethod.value as 'mobile_money' | 'card',
+      payment_currency: paymentCurrency.value as 'USD' | 'CDF',
+      telephone: paymentMethod.value === 'mobile_money' ? phoneNumber.value : undefined
+    }
+
+    console.log('Traitement du paiement:', paymentData)
+
+    // Utiliser le composable useTickets avec la nouvelle API
+    const result = await confirmReservation(paymentData)
+
+    if (result.success && result.data) {
+      console.log('✅ Réservation réussie:', result.data)
+      
+      // Sauvegarder les préférences utilisateur
+      if (paymentMethod.value === 'mobile_money') {
+        setPhoneNumber(phoneNumber.value)
+        
+        // Démarrer le countdown pour mobile money
+        startCountdown()
+      } else if (paymentMethod.value === 'card') {
+        // Redirection vers l'URL de paiement par carte
+        if (result.data.data?.payment_url) {
+          window.open(result.data.data.payment_url, '_blank')
+        }
+        // Redirection vers mes billets
+        navigateTo('/tickets/my-tickets')
+      }
+    } else {
+      paymentError.value = result.error || 'Erreur lors de la réservation'
+    }
+  } catch (error: any) {
+    console.error('❌ Erreur lors du traitement du paiement:', error)
+    
+    // Gestion détaillée des erreurs
+    if (error.message) {
+      // Erreur avec message spécifique
+      if (error.message.includes('404')) {
+        paymentError.value = 'Erreur 404: Endpoint API non trouvé. Veuillez contacter le support.'
+      } else if (error.message.includes('500')) {
+        paymentError.value = 'Erreur 500: Problème serveur. Veuillez réessayer plus tard.'
+      } else if (error.message.includes('422')) {
+        paymentError.value = 'Erreur 422: Données invalides. Veuillez vérifier vos informations.'
+      } else if (error.message.includes('401')) {
+        paymentError.value = 'Erreur 401: Session expirée. Veuillez vous reconnecter.'
+        navigateTo('/connexion')
+        return
+      } else if (error.message.includes('Validation échouée')) {
+        paymentError.value = `Erreur de validation: ${error.message}`
+      } else {
+        // Afficher le message d'erreur technique
+        paymentError.value = `Erreur technique: ${error.message}`
+      }
+    } else if (error.status) {
+      // Erreur HTTP avec statut
+      paymentError.value = `Erreur HTTP ${error.status}: ${error.statusText || 'Erreur inconnue'}`
+    } else {
+      // Erreur générique
+      paymentError.value = 'Erreur inattendue lors du traitement du paiement. Veuillez réessayer.'
+    }
+  } finally {
+    isProcessing.value = false
+  }
+}
+
+// Traitement de la réservation gratuite
+const processFreeReservation = async () => {
+  try {
+    isProcessing.value = true
+    paymentError.value = ''
+
+    console.log('Traitement de la réservation gratuite')
+
+    // Utiliser le composable useTickets avec la nouvelle API (sans données de paiement)
+    const result = await confirmReservation({
+      payment_method: 'mobile_money', // Valeur par défaut pour tickets gratuits
+      payment_currency: 'USD' // Valeur par défaut pour tickets gratuits
+    })
+
+    if (result.success && result.data) {
+      console.log('✅ Réservation gratuite réussie:', result.data)
+      
+      // Redirection immédiate pour tickets gratuits
+      navigateTo('/tickets/my-tickets')
+    } else {
+      paymentError.value = result.error || 'Erreur lors de la réservation gratuite'
+    }
+  } catch (error: any) {
+    console.error('❌ Erreur lors de la réservation gratuite:', error)
+    
+    // Gestion détaillée des erreurs
+    if (error.message) {
+      if (error.message.includes('404')) {
+        paymentError.value = 'Erreur 404: Endpoint API non trouvé. Veuillez contacter le support.'
+      } else if (error.message.includes('500')) {
+        paymentError.value = 'Erreur 500: Problème serveur. Veuillez réessayer plus tard.'
+      } else if (error.message.includes('422')) {
+        paymentError.value = 'Erreur 422: Données invalides. Veuillez vérifier vos informations.'
+      } else if (error.message.includes('401')) {
+        paymentError.value = 'Erreur 401: Session expirée. Veuillez vous reconnecter.'
+        navigateTo('/connexion')
+        return
+      } else if (error.message.includes('Validation échouée')) {
+        paymentError.value = `Erreur de validation: ${error.message}`
+      } else {
+        paymentError.value = `Erreur technique: ${error.message}`
+      }
+    } else if (error.status) {
+      paymentError.value = `Erreur HTTP ${error.status}: ${error.statusText || 'Erreur inconnue'}`
+    } else {
+      paymentError.value = 'Erreur inattendue lors de la réservation gratuite. Veuillez réessayer.'
+    }
+  } finally {
+    isProcessing.value = false
+  }
 }
 
 // Fonction pour réessayer le paiement
@@ -484,87 +571,49 @@ const retryPayment = () => {
   paymentError.value = ''
   
   // Relancer le processus de paiement
-  processPayment()
+  if (hasPaidTickets.value) {
+    processPayment()
+  } else {
+    processFreeReservation()
+  }
 }
 
-// Fonction séparée pour envoyer la requête API
-const sendReservationRequest = async () => {
+// Fonction pour diagnostiquer l'API
+const runAPIDiagnostic = async () => {
   try {
-    if (!reservationSummary.value) {
-      throw new Error('Aucun ticket sélectionné')
-    }
-
-    // Créer la requête de réservation
-    const reservationRequest = {
-      tickets: reservationSummary.value.selectedTickets.map(ticket => ({
-        ticket_id: ticket.ticketId,
-        quantity: ticket.quantity
-      })),
-      pay_type: parseInt(selectedOperator.value),
-      telephone: phoneNumber.value.replace(/\s/g, ''), // Supprimer les espaces
-      pay_with_card: false
-    }
-
-    console.log('Réservation en cours:', reservationRequest)
-
-    // Effectuer la réservation via l'API avec $fetch
-    const { baseUrl, createAuthHeaders } = useApiConfig()
+    console.log('🔧 Démarrage du diagnostic API...')
     
-    if (!token.value) {
-      throw new Error('Token d\'authentification manquant')
-    }
+    // Importer les fonctions de diagnostic
+    const { diagnoseAPI } = await import('~/utils/apiTest')
     
-    const response = await $fetch<ReservationAPIResponse>('/tickets/reserve', {
-      method: 'POST',
-      baseURL: baseUrl,
-      body: reservationRequest,
-      headers: createAuthHeaders(token.value)
-    })
-
-    console.log('Réponse API reçue:', response)
+    // Exécuter le diagnostic
+    const diagnosis = await diagnoseAPI()
     
-    // Vérifier que l'API a vraiment répondu avec succès
-    if (response && response.success === true && response.data) {
-      console.log('✅ Réservation réussie confirmée par l\'API avec données:', response.data)
-      stopCountdown()
-      navigateTo('/tickets/my-tickets')
-    } else {
-      // L'API n'a pas confirmé le succès ou données manquantes
-      console.log('❌ API n\'a pas confirmé le succès ou données manquantes:', response)
-      throw new Error(response?.message || 'L\'API n\'a pas confirmé le succès de la réservation ou données manquantes')
-    }
-
-  } catch (error: any) {
-    console.error('Erreur lors de la réservation:', error)
-    
-    // ÉCHEC : Arrêter le countdown et afficher l'erreur
-    stopCountdown()
-    
-    // Gestion des erreurs avec messages clairs pour l'utilisateur
-    if (error.status === 401) {
-      paymentError.value = 'Votre session a expiré. Veuillez vous reconnecter et réessayer.'
-      navigateTo('/connexion')
-    } else if (error.status === 422) {
-      paymentError.value = 'Les données de réservation sont invalides. Veuillez vérifier vos informations.'
-    } else if (error.status === 429) {
-      paymentError.value = 'Trop de tentatives. Veuillez attendre quelques minutes avant de réessayer.'
-    } else if (error.status === 500) {
-      // Erreur 500 - probablement paiement annulé ou échoué
-      // Vérifier si c'est un paiement annulé (vous avez reçu la notification)
-      if (phoneNumber.value) {
-        paymentError.value = `Votre paiement a été annulé ou a échoué sur le numéro ${phoneNumber.value}. Veuillez réessayer.`
-      } else {
-        paymentError.value = 'Votre paiement a été annulé ou a échoué. Veuillez réessayer.'
+    // Afficher les résultats
+    if (diagnosis.summary.hasErrors) {
+      console.error('❌ Problèmes détectés:', diagnosis)
+      
+      let errorMessage = '❌ Diagnostic API - Problèmes détectés:\n\n'
+      
+      if (!diagnosis.connectivity.success) {
+        errorMessage += `🔌 Connectivité API: ${diagnosis.connectivity.error}\n`
       }
-    } else if (error.status === 503) {
-      paymentError.value = 'Service temporairement indisponible. Veuillez réessayer plus tard.'
-    } else if (error.message) {
-      // Si l'API retourne un message d'erreur spécifique
-      paymentError.value = `Votre paiement a échoué: ${error.message}`
+      
+      if (!diagnosis.reservation.success) {
+        errorMessage += `🎫 Endpoint réservation: ${diagnosis.reservation.error}\n`
+      }
+      
+      errorMessage += `\n📊 Résumé: ${JSON.stringify(diagnosis.summary, null, 2)}`
+      
+      alert(errorMessage)
     } else {
-      // Message générique
-      paymentError.value = 'Votre paiement a échoué. Veuillez vérifier vos informations et réessayer.'
+      console.log('✅ Diagnostic API réussi:', diagnosis)
+      alert('✅ Diagnostic API réussi !\n\nTous les endpoints sont accessibles.')
     }
+    
+  } catch (error: any) {
+    console.error('💥 Erreur lors du diagnostic API:', error)
+    alert('❌ Erreur lors du diagnostic API:\n' + error.message)
   }
 }
 
