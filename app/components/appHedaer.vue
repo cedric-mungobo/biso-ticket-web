@@ -55,7 +55,7 @@
               <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-sm font-semibold text-white">
                 {{ userInitials }}
               </div>
-              <span class="text-sm font-medium text-neutral-800">{{ (user as any)?.name || 'Utilisateur' }}</span>
+              <span class="text-sm font-medium text-neutral-800">{{ (user as any)?.name }}</span>
               <svg class="w-4 h-4 transition-transform duration-200 text-neutral-800" :class="{ 'rotate-180': isUserMenuOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
@@ -132,7 +132,7 @@
               <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-sm font-semibold text-white">
                 {{ userInitials }}
               </div>
-              <span class="text-neutral-800 text-sm font-medium">{{ (user as any)?.name || 'Utilisateur' }}</span>
+              <span class="text-neutral-800 text-sm font-medium">{{ (user as any)?.name }}</span>
             </div>
             <NuxtLink class="block text-black hover:text-neutral-800 px-3 py-2 text-sm font-medium transition-colors duration-200" to="/profile" @click="closeMobileMenu">
               Mon profil
@@ -156,11 +156,43 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
 
-// Composables
-const { isAuthenticated, user, logout } = useAuth()
+// Auth repository + cookie réactif
+const { getProfile, logout } = useAuth()
+const authToken = useCookie('auth_token')
+const isAuthenticated = computed(() => !!authToken.value)
+
+// Charger le profil uniquement si connecté
+const { data: user, refresh: refreshUser } = await useAsyncData('nav:profile', () => getProfile(), {
+  server: false,
+  immediate: false
+})
+
+console.log('[Header] init token:', authToken.value)
+console.log('[Header] init user:', user.value)
+
+watch(authToken, async (val) => {
+  console.log('[Header] token changed:', val)
+  if (val) {
+    console.log('[Header] refreshing user profile...')
+    await refreshUser()
+    console.log('[Header] user after refresh:', user.value)
+  } else {
+    user.value = null as any
+    console.log('[Header] user cleared on logout')
+  }
+})
+
+// Rafraîchir immédiatement si un token existe au montage (ex: retour de /connexion)
+onMounted(async () => {
+  if (authToken.value) {
+    console.log('[Header] mounted with token, refreshing user...')
+    await refreshUser()
+    console.log('[Header] user after mount refresh:', user.value)
+  }
+})
 
 // État local
 const isMobileMenuOpen = ref(false)
@@ -193,6 +225,7 @@ const toggleUserMenu = () => {
 
 const handleLogout = async () => {
   try {
+    console.log('[Header] logout clicked')
     await logout()
     isUserMenuOpen.value = false
     // Redirection vers la page d'accueil après déconnexion

@@ -1,10 +1,7 @@
-import { useAuth } from '../composables/useAuth'
+export default defineNuxtRouteMiddleware(() => {
+  const token = useCookie('auth_token')
 
-export default defineNuxtRouteMiddleware((to) => {
-  const { isAuthenticated } = useAuth()
-  
-  // Si l'utilisateur est déjà connecté, redirection vers la page d'accueil
-  if (isAuthenticated.value) {
+  if (token.value) {
     return navigateTo('/')
   }
 })

@@ -179,16 +179,24 @@
       </div>
     </div>
 
-    <!-- Message d'erreur -->
-    <div v-if="paymentError" class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+    <!-- Message d'erreur, de succès ou d'attente -->
+    <div v-if="paymentError" class="mt-6 p-4 rounded-lg" :class="getMessageClass()">
       <div class="text-center">
         <div class="flex items-center justify-center mb-2">
-          <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-if="paymentError.includes('🎉')" class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <svg v-else-if="paymentError.includes('📱')" class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+          <svg v-else class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <h3 class="text-lg font-semibold text-red-900">Erreur lors du paiement</h3>
+          <h3 class="text-lg font-semibold" :class="getTitleClass()">
+            {{ getMessageTitle() }}
+          </h3>
         </div>
-        <p class="text-red-700 text-sm mb-3">{{ paymentError }}</p>
+        <p class="text-sm mb-3 whitespace-pre-line" :class="getMessageTextClass()">{{ paymentError }}</p>
         
         <!-- Détails techniques pour le débogage -->
         <details class="text-left bg-red-100 p-3 rounded border border-red-300 mb-3">
@@ -203,19 +211,12 @@
           </div>
         </details>
         
-        <div class="flex gap-2 justify-center">
+        <div v-if="!paymentError.includes('🎉')" class="flex gap-2 justify-center">
           <button
             @click="retryPayment"
             class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
           >
             🔄 Réessayer le paiement
-          </button>
-          
-          <button
-            @click="runAPIDiagnostic"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-          >
-            🔧 Diagnostiquer l'API
           </button>
         </div>
       </div>
@@ -293,6 +294,7 @@ import type { Event } from '~/types/events'
 import { useTickets } from '~/composables/useTickets'
 import { useUserPreferences } from '~/composables/useUserPreferences'
 import { useAuth } from '~/composables/useAuth'
+import { useCustomFetch } from '~/composables/useCustomFetch'
 import Modal from '~/components/Modal.vue'
 
 definePageMeta({
@@ -312,6 +314,7 @@ const countdown = ref(60)
 const isWaitingForSMS = ref(false)
 const countdownInterval = ref<NodeJS.Timeout | null>(null)
 const pollingInterval = ref<NodeJS.Timeout | null>(null)
+const currentReservationReference = ref<string | null>(null)
 
 // Nouveaux refs pour la méthode de paiement
 const paymentMethod = ref<'mobile_money' | 'card' | ''>('')
@@ -322,7 +325,8 @@ const {
   reservationSummary, 
   currentEvent, 
   hasPaidTickets,
-  confirmReservation 
+  confirmReservation,
+  currentReservationId
 } = useTickets()
 const { 
   phoneNumber: savedPhoneNumber,
@@ -373,6 +377,164 @@ const startCountdown = () => {
       paymentError.value = 'Temps d\'attente écoulé. Veuillez réessayer votre paiement.'
     }
   }, 1000)
+  
+  // Démarrer le polling pour vérifier le statut du paiement
+  startPaymentStatusPolling()
+}
+
+// Démarrer le polling pour vérifier le statut du paiement
+const startPaymentStatusPolling = () => {
+  console.log('🔄 Démarrage du polling de vérification du statut de paiement...')
+  
+  // Vérifier le statut toutes les 5 secondes
+  pollingInterval.value = setInterval(async () => {
+    try {
+      console.log('🔍 Vérification du statut de paiement...')
+      
+      // Utiliser la référence de réservation pour vérifier le statut
+      const statusResult = await checkPaymentStatusByReference()
+      
+      if (statusResult) {
+        console.log('📊 Résultat de la vérification:', statusResult)
+        
+        // Vérifier le statut selon la logique de l'API
+        if ('status' in statusResult) {
+          const status = statusResult.status
+          console.log('📊 Statut du paiement:', status)
+          
+          if (status === 'success' || status === 'completed') {
+            // ✅ Paiement réussi
+            console.log('✅ Paiement réussi !')
+            console.log('📝 Détails:', {
+              reference: statusResult.reference,
+              status: statusResult.status,
+              method: statusResult.method,
+              amount: statusResult.amount,
+              currency: statusResult.currency,
+              participant: statusResult.participant_name,
+              message: statusResult.message,
+              action: statusResult.action,
+              push_notification: statusResult.push_notification,
+              last_flexpay_check: statusResult.last_flexpay_check,
+              status_updated: statusResult.status_updated
+            })
+            
+            // Afficher un message de succès
+            paymentError.value = '' // Effacer les erreurs
+            
+            // Afficher un message de succès temporaire
+            const successMessage = `🎉 Paiement réussi !\n\n${statusResult.message}\n\n${statusResult.action}\n\nRedirection dans 2 secondes...`
+            paymentError.value = successMessage
+            
+            // Arrêter le polling et rediriger
+            stopCountdown()
+            
+            // Afficher un message de succès avant la redirection
+            setTimeout(() => {
+              navigateTo('/tickets/my-tickets')
+            }, 2000)
+            
+            return
+            
+          } else if (status === 'pending') {
+            // ⏳ Paiement en cours de traitement
+            console.log('⏳ Paiement en cours de traitement...')
+            console.log('📝 Message:', statusResult.message)
+            console.log('💡 Action:', statusResult.action)
+            console.log('🔔 Push notification:', statusResult.push_notification)
+            console.log('📊 Status updated:', statusResult.status_updated)
+            console.log('⏰ Dernière vérification FlexPay:', statusResult.last_flexpay_check)
+            
+            // Afficher un message d'attente avec push notification si applicable
+            if (statusResult.push_notification) {
+              const pendingMessage = `📱 ${statusResult.message}\n\n${statusResult.action}\n\n⏳ En attente de confirmation sur votre téléphone...`
+              paymentError.value = pendingMessage
+            }
+            
+            // Continuer le polling
+            // Pas besoin d'arrêter, c'est normal
+            
+          } else if (status === 'failed') {
+            // ❌ Paiement échoué
+            console.log('❌ Paiement échoué')
+            console.log('📝 Message d\'erreur:', statusResult.message)
+            console.log('💡 Action suggérée:', statusResult.action)
+            console.log('🔔 Push notification:', statusResult.push_notification)
+            
+            // Arrêter le polling et afficher l'erreur
+            stopCountdown()
+            paymentError.value = `Paiement échoué: ${statusResult.message}\n\nAction: ${statusResult.action}`
+            return
+            
+          } else {
+            // 🔍 Statut inconnu
+            console.log('❓ Statut inconnu:', status)
+            console.log('📝 Message:', statusResult.message)
+            console.log('🔔 Push notification:', statusResult.push_notification)
+            
+            // Continuer le polling pour voir l'évolution
+          }
+          
+        } else {
+          // Erreur de type PaymentStatusError
+          console.log('❌ Erreur de vérification:', statusResult.message)
+          if ('error' in statusResult) {
+            console.log('📝 Code d\'erreur:', statusResult.error)
+          }
+          
+          // Arrêter le polling et afficher l'erreur
+          stopCountdown()
+          paymentError.value = `Erreur de vérification: ${statusResult.message}`
+          return
+        }
+      }
+    } catch (error: any) {
+      console.error('❌ Erreur lors de la vérification du statut:', error)
+      
+      // Afficher clairement l'erreur
+      if (error.message) {
+        console.log('📝 Message d\'erreur du backend:', error.message)
+        
+        // Si c'est une erreur 404 (paiement non trouvé), continuer le polling
+        if (error.message.includes('404') || error.message.includes('non trouvé')) {
+          console.log('⏳ Paiement pas encore traité, continuation du polling...')
+        } else {
+          // Autre erreur, afficher et arrêter
+          console.log('🚨 Erreur critique, arrêt du polling')
+          stopCountdown()
+          paymentError.value = `Erreur de vérification: ${error.message}`
+          return
+        }
+      }
+      
+      // Continuer le polling même en cas d'erreur non critique
+    }
+  }, 5000) // Vérifier toutes les 5 secondes
+}
+
+// Fonction pour vérifier le statut du paiement par référence
+const checkPaymentStatusByReference = async () => {
+  try {
+    // Utiliser la référence de réservation depuis le résultat de l'API
+    // La référence est dans data.data.reference selon votre message
+    const reference = currentReservationReference.value
+    
+    if (!reference) {
+      console.log('⚠️ Aucune référence de réservation disponible')
+      return null
+    }
+    
+    console.log('🔍 Vérification du statut pour la référence:', reference)
+    
+    // Utiliser customFetch pour vérifier le statut
+    const { get } = useCustomFetch()
+    const response = await get<any>(`/tickets/payments/check?reference=${reference}`)
+    
+    return response
+  } catch (error) {
+    console.error('❌ Erreur lors de la vérification du statut:', error)
+    return null
+  }
 }
 
 // Arrêter le compteur
@@ -461,6 +623,14 @@ const processPayment = async () => {
 
     if (result.success && result.data) {
       console.log('✅ Réservation réussie:', result.data)
+      
+      // Stocker la référence de réservation pour le polling
+      // La référence est dans data.data.reference selon votre message
+      const reference = (result.data as any)?.data?.reference || (result.data as any)?.reference
+      if (reference) {
+        currentReservationReference.value = reference
+        console.log('📝 Référence de réservation stockée:', currentReservationReference.value)
+      }
       
       // Sauvegarder les préférences utilisateur
       if (paymentMethod.value === 'mobile_money') {
@@ -578,42 +748,50 @@ const retryPayment = () => {
   }
 }
 
-// Fonction pour diagnostiquer l'API
-const runAPIDiagnostic = async () => {
-  try {
-    console.log('🔧 Démarrage du diagnostic API...')
-    
-    // Importer les fonctions de diagnostic
-    const { diagnoseAPI } = await import('~/utils/apiTest')
-    
-    // Exécuter le diagnostic
-    const diagnosis = await diagnoseAPI()
-    
-    // Afficher les résultats
-    if (diagnosis.summary.hasErrors) {
-      console.error('❌ Problèmes détectés:', diagnosis)
-      
-      let errorMessage = '❌ Diagnostic API - Problèmes détectés:\n\n'
-      
-      if (!diagnosis.connectivity.success) {
-        errorMessage += `🔌 Connectivité API: ${diagnosis.connectivity.error}\n`
-      }
-      
-      if (!diagnosis.reservation.success) {
-        errorMessage += `🎫 Endpoint réservation: ${diagnosis.reservation.error}\n`
-      }
-      
-      errorMessage += `\n📊 Résumé: ${JSON.stringify(diagnosis.summary, null, 2)}`
-      
-      alert(errorMessage)
-    } else {
-      console.log('✅ Diagnostic API réussi:', diagnosis)
-      alert('✅ Diagnostic API réussi !\n\nTous les endpoints sont accessibles.')
-    }
-    
-  } catch (error: any) {
-    console.error('💥 Erreur lors du diagnostic API:', error)
-    alert('❌ Erreur lors du diagnostic API:\n' + error.message)
+
+
+
+
+
+
+// Fonctions utilitaires pour les messages
+const getMessageClass = () => {
+  if (paymentError.value.includes('🎉')) {
+    return 'bg-green-50 border border-green-200'
+  } else if (paymentError.value.includes('📱')) {
+    return 'bg-blue-50 border border-blue-200'
+  } else {
+    return 'bg-red-50 border border-red-200'
+  }
+}
+
+const getTitleClass = () => {
+  if (paymentError.value.includes('🎉')) {
+    return 'text-green-900'
+  } else if (paymentError.value.includes('📱')) {
+    return 'text-blue-900'
+  } else {
+    return 'text-red-900'
+  }
+}
+
+const getMessageTitle = () => {
+  if (paymentError.value.includes('🎉')) {
+    return 'Paiement réussi !'
+  } else if (paymentError.value.includes('📱')) {
+    return 'En attente de confirmation'
+  } else {
+    return 'Erreur lors du paiement'
+  }
+}
+
+const getMessageTextClass = () => {
+  if (paymentError.value.includes('🎉')) {
+    return 'text-green-700'
+  } else if (paymentError.value.includes('📱')) {
+    return 'text-blue-700'
+  } else {
+    return 'text-red-700'
   }
 }
 

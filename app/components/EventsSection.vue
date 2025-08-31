@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 
 // Props du composant - utilisation du type readonly retourné par useEvents
 interface Props {
@@ -93,7 +93,11 @@ interface Emits {
 }
 
 // Définition des props et emits
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  events: () => [],
+  loading: false,
+  error: null
+})
 const emit = defineEmits<Emits>()
 
 // Références pour les animations GSAP

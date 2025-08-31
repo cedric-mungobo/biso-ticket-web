@@ -1,248 +1,65 @@
-import { ref, computed } from 'vue'
+import type { User, AuthResponse, LoginRequest, RegisterRequest, ProfileUpdateRequest } from '~/types/api'
 
-// Types pour les réponses API
-interface AuthResponse {
-  success: boolean
-  message: string
-  data: {
-    user: any
-    token: string
-    token_type: string
-  }
-}
+// Composable de type repository (pas de state/loading/error internes)
+export const useAuth = () => {
+  const { $myFetch } = useNuxtApp()
 
-interface ProfileResponse {
-  success: boolean
-  message: string
-  data: any
-}
-
-// État de l'authentification
-const isLoading = ref(false)
-const isAuthenticated = ref(false)
-const user = ref<any>(null)
-const token = ref<string | null>(null)
-
-// Initialiser l'état depuis localStorage
-const initializeAuth = () => {
-  if (process.client) {
-    const storedToken = localStorage.getItem('auth_token')
-    const storedUser = localStorage.getItem('auth_user')
-    
-    if (storedToken && storedUser) {
-      try {
-        token.value = storedToken
-        user.value = JSON.parse(storedUser)
-        isAuthenticated.value = true
-      } catch (error) {
-        console.error('Erreur lors du parsing des données utilisateur:', error)
-        clearAuthState()
-      }
-    }
-  }
-}
-
-// Sauvegarder l'état dans localStorage
-const saveAuthState = (userData: any, userToken: string) => {
-  if (process.client) {
-    localStorage.setItem('auth_token', userToken)
-    localStorage.setItem('auth_user', JSON.stringify(userData))
-  }
-  token.value = userToken
-  user.value = userData
-  isAuthenticated.value = true
-}
-
-// Nettoyer l'état d'authentification
-const clearAuthState = () => {
-  if (process.client) {
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
-  }
-  token.value = null
-  user.value = null
-  isAuthenticated.value = false
-}
-
-// Getters
-const userRole = computed(() => {
-  return user.value?.role || null
-})
-
-// Connexion
-const login = async (identifier: string, password: string) => {
-  try {
-    isLoading.value = true
-    
-    const { data: response, error } = await useAPI<AuthResponse>('/auth/login', {
-      method: 'POST',
-      body: { identifier, password }
-    })
-
-    if (error.value) {
-      throw error.value
-    }
-
-    if (response.value?.success && response.value.data) {
-      // Sauvegarder l'état d'authentification
-      saveAuthState(response.value.data.user, response.value.data.token)
-      
-      return { success: true, user: response.value.data.user }
-    } else {
-      throw new Error(response.value?.message || 'Erreur de connexion')
-    }
-  } catch (error: any) {
-    console.error('Erreur de connexion:', error)
-    
-    if (error.status === 401) {
-      throw new Error('Email/téléphone ou mot de passe incorrect')
-    } else if (error.status === 422) {
-      throw new Error('Données invalides')
-    } else if (error.status >= 500) {
-      throw new Error('Erreur serveur. Veuillez réessayer plus tard')
-    } else {
-      throw new Error('Erreur de connexion. Veuillez réessayer')
-    }
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Inscription
-const register = async (userData: {
-  name: string
-  email: string
-  phone: string
-  password: string
-  password_confirmation: string
-}) => {
-  try {
-    isLoading.value = true
-    
-    const { data: response, error } = await useAPI<AuthResponse>('/api/register', {
+  const register = async (userData: RegisterRequest): Promise<AuthResponse> => {
+    const response = await $myFetch<any>('/register', {
       method: 'POST',
       body: userData
     })
-
-    if (error.value) {
-      throw error.value
-    }
-
-    if (response.value?.success && response.value.data) {
-      // Sauvegarder l'état d'authentification
-      saveAuthState(response.value.data.user, response.value.data.token)
-      
-      return { success: true, user: response.value.data.user }
-    } else {
-      throw new Error(response.value?.message || 'Erreur d\'inscription')
-    }
-  } catch (error: any) {
-    console.error('Erreur d\'inscription:', error)
-    
-    if (error.status === 422) {
-      throw new Error('Données invalides')
-    } else if (error.status === 409) {
-      throw new Error('Un compte avec cet email ou téléphone existe déjà')
-    } else if (error.status >= 500) {
-      throw new Error('Erreur serveur. Veuillez réessayer plus tard')
-    } else {
-      throw new Error('Erreur d\'inscription. Veuillez réessayer')
-    }
-  } finally {
-    isLoading.value = false
+    const token = useCookie('auth_token', { path: '/' })
+    token.value = (response as any)?.token ?? (response as any)?.data?.token ?? null
+    return response as AuthResponse
   }
-}
 
-// Déconnexion
-const logout = async () => {
-  try {
-    // Appel à l'API de déconnexion
-    const { error } = await useAPI('/api/logout', { method: 'POST' })
-    
-    if (error.value) {
-      throw error.value
-    }
-  } catch (error) {
-    console.error('Erreur lors de la déconnexion:', error)
-  } finally {
-    // Nettoyer l'état d'authentification
-    clearAuthState()
+  const login = async (credentials: LoginRequest): Promise<AuthResponse> => {
+    const response = await $myFetch<any>('/login', {
+      method: 'POST',
+      body: credentials
+    })
+    const token = useCookie('auth_token', { path: '/' })
+    token.value = (response as any)?.token ?? (response as any)?.data?.token ?? null
+    return response as AuthResponse
   }
-}
 
-// Récupération du profil utilisateur
-const fetchUserProfile = async () => {
-  try {
-    isLoading.value = true
-    
-    const { data: response, error } = await useAPI<ProfileResponse>('/auth/profile')
-
-    if (error.value) {
-      throw error.value
+  const logout = async (): Promise<void> => {
+    try {
+      await $myFetch('/logout', { method: 'POST' })
+    } finally {
+      const token = useCookie('auth_token')
+      token.value = null
     }
-
-    if (response.value?.success && response.value.data) {
-      // Mettre à jour les données utilisateur
-      user.value = response.value.data.user
-      if (process.client) {
-        localStorage.setItem('auth_user', JSON.stringify(response.value.data.user))
-      }
-      return response.value.data.user
-    }
-  } catch (error: any) {
-    console.error('Erreur de récupération du profil:', error)
-    
-    if (error.status === 401) {
-      // Déconnexion automatique en cas d'erreur d'authentification
-      clearAuthState()
-      throw new Error('Session expirée. Veuillez vous reconnecter')
-    } else {
-      throw new Error('Erreur de récupération du profil')
-    }
-  } finally {
-    isLoading.value = false
   }
-}
 
-// Forcer le rafraîchissement de la session
-const refreshSession = async () => {
-  try {
-    // Vérifier si le token existe et est valide
-    if (token.value) {
-      // Optionnel : vérifier la validité du token avec l'API
-      // Pour l'instant, on considère que le token est valide
-      isAuthenticated.value = true
-    } else {
-      isAuthenticated.value = false
-    }
-  } catch (error) {
-    console.error('Erreur lors du rafraîchissement de la session:', error)
-    clearAuthState()
+  const getProfile = async (): Promise<User> => {
+    const response = await $myFetch<any>('/profile')
+    // L'API renvoie { status, message, data: User }
+    return (response?.data ?? response) as User
   }
-}
 
-// Initialiser l'authentification au chargement
-if (process.client) {
-  initializeAuth()
-}
+  const updateProfile = async (profileData: ProfileUpdateRequest): Promise<User> => {
+    const response = await $myFetch<{ user: User }>('/profile', {
+      method: 'PUT',
+      body: profileData
+    })
+    return response.user
+  }
 
-export const useAuth = () => {
+  const changePassword = async (passwordData: { password: string }): Promise<{ message: string }> => {
+    return $myFetch<{ message: string }>('/profile/password', {
+      method: 'PUT',
+      body: passwordData
+    })
+  }
+
   return {
-    // État
-    user: readonly(user),
-    isLoading: readonly(isLoading),
-    token: readonly(token),
-    
-    // Getters
-    isAuthenticated: readonly(isAuthenticated),
-    userRole,
-    
-    // Actions
-    login,
     register,
+    login,
     logout,
-    fetchUserProfile,
-    refreshSession,
-    initializeAuth
+    getProfile,
+    updateProfile,
+    changePassword
   }
 }

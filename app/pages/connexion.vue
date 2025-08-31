@@ -54,9 +54,9 @@
             {{ isLoading ? 'Connexion...' : 'Se connecter' }}
           </button>
 
-          <!-- Message d'erreur -->
-          <div v-if="error" class="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-            {{ error }}
+          <!-- Message d'erreur (sanitisé) -->
+          <div v-if="uiError" class="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+            {{ uiError }}
           </div>
         </form>
 
@@ -82,7 +82,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive } from 'vue'
+import { reactive } from 'vue'
 
 // Meta de la page
 definePageMeta({
@@ -97,38 +97,36 @@ const form = reactive({
   password: ''
 })
 
-// État de l'interface
-const error = ref('')
-const isLoading = ref(false)
-
 // Composables
-const { login, refreshSession } = useAuth()
+const { login } = useAuth()
 const router = useRouter()
+const route = useRoute()
+
+// useAsyncData pour l'appel login (exécution manuelle)
+const { pending: isLoading, error, data, execute } = await useAsyncData('auth:login', () =>
+  login({ identifier: form.identifier, password: form.password })
+, { immediate: false, server: false })
+
+// Message d'erreur UI (ne jamais afficher l'erreur brute)
+const uiError = computed(() => {
+  const e = error.value as any
+  if (!e) return ''
+  // ofetch place souvent la réponse dans e.data
+  return e?.data?.message || 'Email ou mot de passe invalide.'
+})
 
 // Gestion de la connexion
 const handleLogin = async () => {
-  try {
-    error.value = ''
-    isLoading.value = true
-    
-    const result = await login(form.identifier, form.password)
-    
-    if (result.success) {
-      // Récupérer l'URL de redirection depuis les paramètres de l'URL
-      const route = useRoute()
-      const redirectUrl = route.query.redirect as string
-      
-      // Rediriger vers la page d'origine ou vers l'accueil par défaut
-      if (redirectUrl && redirectUrl !== '/connexion') {
-        await router.push(decodeURIComponent(redirectUrl))
-      } else {
-        await router.push('/')
-      }
+  await execute()
+  console.log('[Login] response data:', data.value)
+  console.log('[Login] error:', error.value)
+  if (!error.value) {
+    const redirectUrl = route.query.redirect as string
+    if (redirectUrl && redirectUrl !== '/connexion') {
+      await router.push(decodeURIComponent(redirectUrl))
+    } else {
+      await router.push('/')
     }
-  } catch (err: any) {
-    error.value = err.message || 'Une erreur est survenue lors de la connexion'
-  } finally {
-    isLoading.value = false
   }
 }
 </script>

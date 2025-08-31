@@ -24,7 +24,7 @@
                 <!-- Nom de l'utilisateur -->
                 <h3 class="text-xl font-semibold text-neutral-900 text-center mb-2">
                   <span v-if="loading" class="inline-block w-32 h-6 bg-gray-200 rounded animate-pulse"></span>
-                  <span v-else>{{ userData?.name || 'Utilisateur' }}</span>
+                  <span v-else-if="userData?.name">{{ userData.name }}</span>
                 </h3>
                 
                 <!-- Statut -->
@@ -55,43 +55,43 @@
                 
                 <!-- Informations chargées -->
                 <div v-else class="space-y-4">
-                  <div class="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
+                  <div v-if="userData?.name" class="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
                     <svg class="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     <div>
                       <span class="font-medium text-neutral-700">Nom complet:</span>
-                      <span class="text-neutral-600 ml-2">{{ userData?.name || 'Non renseigné' }}</span>
+                      <span class="text-neutral-600 ml-2">{{ userData.name }}</span>
                     </div>
                   </div>
                   
-                  <div class="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
+                  <div v-if="userData?.email" class="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
                     <svg class="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     <div>
                       <span class="font-medium text-neutral-700">Email:</span>
-                      <span class="text-neutral-600 ml-2">{{ userData?.email || 'Non renseigné' }}</span>
+                      <span class="text-neutral-600 ml-2">{{ userData.email }}</span>
                     </div>
                   </div>
                   
-                  <div class="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
+                  <div v-if="userData?.phone_number" class="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
                     <svg class="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
                     <div>
                       <span class="font-medium text-neutral-700">Téléphone:</span>
-                      <span class="text-neutral-600 ml-2">{{ userData?.phone_number || 'Non renseigné' }}</span>
+                      <span class="text-neutral-600 ml-2">{{ userData.phone_number }}</span>
                     </div>
                   </div>
                   
-                  <div class="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
+                  <div v-if="userData?.role" class="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg">
                     <svg class="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
                       <span class="font-medium text-neutral-700">Rôle:</span>
-                      <span class="text-neutral-600 ml-2">{{ userData?.role || 'Utilisateur' }}</span>
+                      <span class="text-neutral-600 ml-2">{{ userData?.role }}</span>
                     </div>
                   </div>
                 </div>
@@ -114,7 +114,7 @@
   </template>
   
   <script setup lang="ts">
-  import { ref, onMounted } from 'vue'
+  import { ref } from 'vue'
 
   definePageMeta({
     middleware: 'authenticated'
@@ -122,22 +122,13 @@
   })
   
   // Composables
-  const { user, token, isAuthenticated, fetchUserProfile } = useAuth()
+  const { getProfile } = useAuth()
   
-  // État local
-  const userData = ref<any>(null)
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+  // Chargement du profil via useAsyncData (repository pattern)
+  const { data: userData, pending: loading, error, refresh } = await useAsyncData<User>('auth:profile', () => getProfile(), { server: false })
   
   // Debug de l'état d'authentification
-  const debugAuth = () => {
-    console.log('🔍 DEBUG AUTHENTIFICATION:')
-    console.log('user.value:', user.value)
-    console.log('token.value:', token.value)
-    console.log('isAuthenticated.value:', isAuthenticated.value)
-    console.log('localStorage auth_token:', process.client ? localStorage.getItem('auth_token') : 'N/A')
-    console.log('localStorage auth_user:', process.client ? localStorage.getItem('auth_user') : 'N/A')
-  }
+  const debugAuth = () => {}
   
   // Interface pour l'utilisateur selon l'API
   interface User {
@@ -150,39 +141,5 @@
     updated_at: string
   }
   
-  // Fonction pour charger le profil utilisateur
-  const loadUserProfile = async () => {
-    try {
-      loading.value = true
-      error.value = null
-      
-      // Debug de l'état d'authentification
-      debugAuth()
-      
-      // Vérifier si l'utilisateur est connecté
-      if (!isAuthenticated.value || !token.value) {
-        console.warn('⚠️ Utilisateur non connecté ou token manquant')
-        error.value = 'Utilisateur non connecté. Veuillez vous connecter.'
-        return
-      }
-      
-      console.log('🔑 Tentative de chargement du profil avec fetchUserProfile')
-      
-      // Utiliser la fonction existante de useAuth
-      const profileData = await fetchUserProfile()
-      userData.value = profileData
-      
-      console.log('✅ Profil utilisateur chargé:', userData.value)
-    } catch (err: any) {
-      console.error('❌ Erreur lors du chargement du profil:', err)
-      error.value = err.message || 'Erreur lors du chargement du profil'
-    } finally {
-      loading.value = false
-    }
-  }
-  
-  // Charger les données au montage
-  onMounted(async () => {
-    await loadUserProfile()
-  })
+  // possibilité de refresh si nécessaire dans des actions ultérieures
 </script>

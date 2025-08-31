@@ -53,7 +53,7 @@ export default defineNuxtConfig({
     
     // Variables publiques (côté client et serveur)
     public: {
-      apiBaseUrl: 'https://api.bisoticket.com/api/v1'
+      apiBaseUrl: 'https://api.bisoticket.com/api'
     }
   }
 })

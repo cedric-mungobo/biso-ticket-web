@@ -112,9 +112,9 @@
             {{ isLoading ? 'Création du compte...' : 'Créer mon compte' }}
           </button>
 
-          <!-- Message d'erreur -->
-          <div v-if="error" class="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-            {{ error }}
+          <!-- Message d'erreur (sanitisé) -->
+          <div v-if="uiError" class="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+            {{ uiError }}
           </div>
 
           <!-- Message de succès -->
@@ -164,13 +164,24 @@ const form = reactive({
 })
 
 // État de l'interface
-const error = ref('')
 const success = ref('')
-const isLoading = ref(false)
 
 // Composables
 const { register } = useAuth()
 const router = useRouter()
+
+// useAsyncData pour l'appel register (exécution manuelle)
+const { pending: isLoading, error: errorAsync, execute } = await useAsyncData('auth:register', () =>
+  register({
+    name: form.name,
+    phone: form.phone,
+    email: form.email,
+    password: form.password,
+    password_confirmation: form.password_confirmation
+  })
+, { immediate: false, server: false })
+
+const uiError = computed(() => (errorAsync.value as any)?.data?.message || '')
 
 // Computed properties pour la validation
 const passwordsMatch = computed(() => {
@@ -183,34 +194,15 @@ const isFormValid = computed(() => {
 
 // Gestion de l'inscription
 const handleRegister = async () => {
-  try {
-    error.value = ''
-    success.value = ''
-    isLoading.value = true
-    
-    if (!passwordsMatch.value) {
-      error.value = 'Les mots de passe ne correspondent pas'
-      return
-    }
-
-    const result = await register({
-      name: form.name,
-      phone: form.phone,
-      email: form.email,
-      password: form.password,
-      password_confirmation: form.password_confirmation
-    })
-    
-    if (result.success) {
-      success.value = 'Compte créé avec succès ! Redirection...'
-      
-      // Redirection immédiate vers la page d'accueil après inscription
-      await router.push('/')
-    }
-  } catch (err: any) {
-    error.value = err.message || 'Une erreur est survenue lors de l\'inscription'
-  } finally {
-    isLoading.value = false
+  success.value = ''
+  if (!passwordsMatch.value) {
+    // on s'appuie sur l'UI pour indiquer l'erreur
+    return
+  }
+  await execute()
+  if (!errorAsync.value) {
+    success.value = 'Compte créé avec succès ! Redirection...'
+    await router.push('/')
   }
 }
 </script>

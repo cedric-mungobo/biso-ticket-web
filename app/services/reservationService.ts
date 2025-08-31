@@ -3,7 +3,11 @@ import type {
   ReservationRequest, 
   ReservationAPIResponse, 
   AvailabilityCheckResponse, 
-  TicketInfoResponse 
+  TicketInfoResponse,
+  ReservationResponse,
+  APIError,
+  PaymentStatusResponse,
+  PaymentStatusError
 } from '~/types/reservation'
 
 export class ReservationService {
@@ -160,24 +164,118 @@ export class ReservationService {
       throw new Error(`Validation échouée: ${validation.errors.join(', ')}`)
     }
 
+    console.log('📤 Données de réservation envoyées:', {
+      request,
+      selectedTickets,
+      event: {
+        id: event.id,
+        name: event.name,
+        tickets: event.tickets?.map(t => ({ id: t.id, type: t.type, price: t.price }))
+      },
+      paymentData
+    })
+
     // Appel API avec la nouvelle structure
     const { useAPI } = await import('~/composables/useAPI')
     
-    const { data, error } = await useAPI<ReservationAPIResponse>('/tickets/simple/reserve', {
+    const { data, error } = await useAPI<ReservationResponse>('/tickets/simple/reserve', {
       method: 'POST',
       body: request
     })
 
+    // Logging détaillé de la réponse API (même en cas d'erreur)
+    console.log('📥 Réponse API brute:', {
+      data: data.value,
+      error: error.value,
+      status: error.value?.statusCode || 'N/A',
+      message: error.value?.message || 'N/A'
+    })
+
     if (error.value) {
-      console.error('❌ Erreur API lors de la réservation:', error.value)
-      throw new Error(error.value.message || 'Erreur lors de la réservation')
+      console.error('❌ Erreur API lors de la réservation:', {
+        error: error.value,
+        statusCode: error.value.statusCode,
+        message: error.value.message,
+        details: error.value.data || error.value.response || 'Aucun détail'
+      })
+      
+      // Essayer d'extraire le message d'erreur de la réponse
+      let errorMessage = error.value.message || 'Erreur lors de la réservation'
+      
+      if (error.value.data) {
+        try {
+          const errorData = typeof error.value.data === 'string' ? JSON.parse(error.value.data) : error.value.data
+          if (errorData.message) {
+            errorMessage = errorData.message
+          }
+          if (errorData.error_code) {
+            errorMessage += ` (Code: ${errorData.error_code})`
+          }
+          if (errorData.details) {
+            errorMessage += ` - Détails: ${JSON.stringify(errorData.details)}`
+          }
+        } catch (parseError) {
+          console.log('⚠️ Impossible de parser les détails d\'erreur:', error.value.data)
+        }
+      }
+      
+      throw new Error(errorMessage)
     }
 
     if (!data.value?.success) {
-      console.error('❌ Réponse API échouée:', data.value)
-      throw new Error(data.value?.message || 'Réservation échouée')
+      console.error('❌ Réponse API échouée (success: false):', {
+        success: data.value?.success,
+        message: data.value?.message,
+        error_code: data.value && 'error_code' in data.value ? data.value.error_code : 'N/A',
+        details: data.value && 'details' in data.value ? data.value.details : 'N/A',
+        fullResponse: data.value
+      })
+      
+      // Construire un message d'erreur complet avec tous les détails du backend
+      let errorMessage = data.value?.message || 'Réservation échouée'
+      
+      // Ajouter le code d'erreur si disponible
+      if (data.value && 'error_code' in data.value && data.value.error_code) {
+        errorMessage += ` (Code: ${data.value.error_code})`
+      }
+      
+      // Ajouter les détails si disponibles
+      if (data.value && 'details' in data.value && data.value.details) {
+        if (typeof data.value.details === 'string') {
+          errorMessage += ` - ${data.value.details}`
+        } else if (typeof data.value.details === 'object') {
+          // Traiter les détails structurés
+          const details = data.value.details
+          if (details.missing_field) {
+            errorMessage += ` - Champ manquant: ${details.missing_field}`
+          }
+          if (details.required_for) {
+            errorMessage += ` - Requis pour: ${details.required_for}`
+          }
+          if (details.supported_currencies) {
+            errorMessage += ` - Devises supportées: ${details.supported_currencies.join(', ')}`
+          }
+          // Ajouter d'autres détails non traités
+          const otherDetails = Object.entries(details)
+            .filter(([key]) => !['missing_field', 'required_for', 'supported_currencies'].includes(key))
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(', ')
+          if (otherDetails) {
+            errorMessage += ` - Autres détails: ${otherDetails}`
+          }
+        }
+      }
+      
+      // Créer une erreur avec le message complet du backend
+      const backendError = new Error(errorMessage)
+      // Ajouter les données du backend pour un accès ultérieur
+      ;(backendError as any).backendData = data.value
+      ;(backendError as any).isBackendError = true
+      
+      throw backendError
     }
 
+    console.log('✅ Réservation réussie:', data.value)
     return data.value
   }
 
@@ -221,6 +319,78 @@ export class ReservationService {
       }
       return total
     }, 0)
+  }
+
+  // Vérifier le statut de paiement d'une réservation
+  async checkPaymentStatus(reference: string, token: string): Promise<PaymentStatusResponse | PaymentStatusError> {
+    if (!reference) {
+      throw new Error('Référence de réservation requise')
+    }
+    
+    if (!token) {
+      throw new Error('Token d\'authentification requis')
+    }
+
+    try {
+      const { useAPI } = await import('~/composables/useAPI')
+      
+      const { data, error } = await useAPI(`/tickets/payments/check?reference=${reference}`, {
+        method: 'GET'
+      })
+
+      if (error.value) {
+        console.error('❌ Erreur API lors de la vérification du statut de paiement:', error.value)
+        
+        // Capturer la réponse complète de l'API
+        let errorDetails = ''
+        if (error.value.data) {
+          try {
+            const errorData = typeof error.value.data === 'string' ? error.value.data : JSON.stringify(error.value.data)
+            errorDetails = `\nDétails de la réponse: ${errorData}`
+          } catch (parseError) {
+            errorDetails = `\nDétails de la réponse: ${error.value.data}`
+          }
+        }
+        
+        // Gérer spécifiquement les erreurs 404
+        if (error.value.statusCode === 404) {
+          throw new Error(`Endpoint non trouvé (404) pour la référence: ${reference}.${errorDetails}\n\nL'endpoint /tickets/payments/check n'existe pas sur le serveur.`)
+        }
+        
+        // Gérer les autres erreurs avec détails
+        const errorMessage = error.value.message || 'Erreur lors de la vérification du statut de paiement'
+        throw new Error(`${errorMessage}${errorDetails}`)
+      }
+
+      // Vérifier et retourner la réponse de l'API
+      if (!data.value || typeof data.value !== 'object') {
+        throw new Error('Réponse API invalide')
+      }
+      
+      // Vérifier si c'est une réponse de succès ou d'erreur
+      const response = data.value as any
+      
+      // Nouvelle structure de réponse (sans data wrapper)
+      if (response.reference && response.status && response.success !== undefined) {
+        return response as PaymentStatusResponse
+      } 
+      // Structure ancienne avec data wrapper
+      else if (response.success === true && response.data) {
+        return response as PaymentStatusResponse
+      } 
+      // Réponse d'erreur
+      else if (response.success === false) {
+        return response as PaymentStatusError
+      } 
+      // Structure inconnue
+      else {
+        console.warn('⚠️ Structure de réponse inattendue:', response)
+        throw new Error('Format de réponse API invalide')
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification du statut de paiement:', error)
+      throw error
+    }
   }
 }
 

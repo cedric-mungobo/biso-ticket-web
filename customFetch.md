@@ -1,0 +1,79 @@
+1. Custom $fetch Instance (Plugin):
+A custom $fetch instance allows for centralizing configurations like base URLs, headers (e.g., authorization tokens), and error handling. This is typically achieved by creating a Nuxt plugin.
+TypeScript
+
+// plugins/myFetch.ts
+import { $fetch } from 'ofetch';
+
+export default defineNuxtPlugin((nuxtApp) => {
+  const config = useRuntimeConfig(); // Access runtime configuration for baseURL
+
+  const customFetch = $fetch.create({
+    baseURL: config.public.apiBaseUrl, // Example: from nuxt.config.ts
+    onRequest({ request, options }) {
+      // Add authorization header if a token exists
+      const token = useCookie('auth_token').value;
+      if (token) {
+        options.headers = {
+          ...options.headers,
+          Authorization: `Bearer ${token}`,
+        };
+      }
+    },
+    onResponseError({ request, response, options }) {
+      // Handle API errors (e.g., logout on 401)
+      if (response.status === 401) {
+        // Handle unauthorized access
+      }
+    },
+  });
+
+  // Provide the custom fetch instance globally
+  nuxtApp.provide('myFetch', customFetch);
+});
+
+2. Repository Pattern (Composables):
+The repository pattern abstracts data access, separating the data layer from the UI. Composables can then utilize this custom $fetch instance to interact with the API.
+TypeScript
+
+// composables/useUserRepository.ts
+export const useUserRepository = () => {
+  const { $myFetch } = useNuxtApp(); // Access the custom fetch instance
+
+  const getUsers = async () => {
+    return await $myFetch('/users');
+  };
+
+  const getUserById = async (id: string) => {
+    return await $myFetch(`/users/${id}`);
+  };
+
+  const createUser = async (userData: any) => {
+    return await $myFetch('/users', { method: 'POST', body: userData });
+  };
+
+  return {
+    getUsers,
+    getUserById,
+    createUser,
+  };
+};
+3. Usage in Components/Pages:
+Components or pages can then import and use the repository composable to fetch data.
+Code
+
+<template>
+  <div>
+    <div v-if="users">
+      <div v-for="user in users" :key="user.id">{{ user.name }}</div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useUserRepository } from '~/composables/useUserRepository';
+
+const { getUsers } = useUserRepository();
+const { data: users, pending, error } = await useAsyncData('users', () => getUsers());
+</script>
+This approach promotes code reusability, maintainability, and a clear separation of concerns in Nuxt.js applications.
