@@ -294,7 +294,6 @@ import type { Event } from '~/types/events'
 import { useTickets } from '~/composables/useTickets'
 import { useUserPreferences } from '~/composables/useUserPreferences'
 import { useAuth } from '~/composables/useAuth'
-import { useCustomFetch } from '~/composables/useCustomFetch'
 import Modal from '~/components/Modal.vue'
 
 definePageMeta({
@@ -526,9 +525,10 @@ const checkPaymentStatusByReference = async () => {
     
     console.log('🔍 Vérification du statut pour la référence:', reference)
     
-    // Utiliser customFetch pour vérifier le statut
-    const { get } = useCustomFetch()
-    const response = await get<any>(`/tickets/payments/check?reference=${reference}`)
+    // Utiliser l'instance HTTP injectée via plugins (customFetch / myFetch / api)
+    const { $customFetch, $myFetch, $api } = useNuxtApp() as any
+    const http = $customFetch || $myFetch || $api
+    const response = await http<any>(`/tickets/payments/check?reference=${reference}`, { method: 'GET' })
     
     return response
   } catch (error) {

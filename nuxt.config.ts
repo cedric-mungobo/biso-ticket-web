@@ -17,6 +17,7 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/image',
     '@nuxt/scripts',
+    '@nuxt/ui',
     'nuxt-auth-utils',
     'nuxt-qrcode'
   ],

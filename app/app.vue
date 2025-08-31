@@ -8,9 +8,11 @@
     
     <!-- Content -->
     <div class="relative z-10">
-      <NuxtLayout>
-        <NuxtPage />
-      </NuxtLayout>
+      <UApp>
+        <NuxtLayout>
+          <NuxtPage />
+        </NuxtLayout>
+      </UApp>
     </div>
     
   </div>
