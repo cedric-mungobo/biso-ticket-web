@@ -73,6 +73,7 @@ export interface Event {
 export interface EventCreateRequest {
   title: string
   location?: string
+  description?: string
   starts_at: string
   ends_at?: string
   status?: 'draft' | 'active' | 'ended' | 'cancelled' | 'suspended'
@@ -171,15 +172,38 @@ export interface Payment {
 }
 
 // Types de crédits
-export interface CreditPurchase {
+export interface CreditPurchaseRequest {
   credits: number
   currency?: 'USD' | 'CDF'
   phone: string
 }
 
+export interface CreditPurchase {
+  id: number
+  credits: number
+  unitPriceUsd: number
+  amountUsd: number
+  currency: string
+  amountCurrency: number
+  status: 'pending' | 'paid' | 'failed'
+  reference: string
+  paidAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface CreditBalance {
   balance: number
   unitPriceUsd: number
+}
+
+export interface CreditLedgerEntry {
+  id: number
+  delta: number
+  balanceAfter: number
+  reason: string
+  meta: Record<string, any>
+  createdAt: string
 }
 
 // Types de scan et POS
@@ -228,6 +252,46 @@ export interface PaginationMeta {
 export interface PaginatedResponse<T> {
   items: T[]
   meta: PaginationMeta
+}
+
+// Types de commissions
+export interface Commission {
+  id: number
+  eventId: number
+  ticketId: number
+  amount: number
+  currency: string
+  rate: number
+  createdAt: string
+  updatedAt: string
+}
+
+// Types de retraits (payouts)
+export interface Payout {
+  id: number
+  organizerId: number
+  amount: number
+  currency: string
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  reference: string
+  processedAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PayoutBalance {
+  available: number
+  limits: {
+    min: number
+    max: number
+    dailyRequests: number
+    dailyAmount: number
+  }
+}
+
+// Types de presets
+export interface EventCategoriesPreset {
+  categories: string[]
 }
 
 // Types d'erreurs

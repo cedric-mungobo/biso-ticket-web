@@ -5,10 +5,30 @@ export default defineNuxtPlugin((nuxtApp) => {
   
   // Utiliser la base URL depuis la configuration runtime
   const baseURL = config.public.apiBaseUrl || 'http://api.bisoticket.com/api'
+  
+  // État global pour les erreurs de validation
+  const validationErrors = ref<Record<string, string[]>>({})
+  const hasValidationErrors = computed(() => Object.keys(validationErrors.value).length > 0)
+  
+  // Fonction pour nettoyer les erreurs
+  const clearValidationErrors = () => {
+    validationErrors.value = {}
+  }
+  
+  // Fournir les erreurs de validation globalement
+  nuxtApp.provide('validationErrors', validationErrors)
+  nuxtApp.provide('hasValidationErrors', hasValidationErrors)
+  nuxtApp.provide('clearValidationErrors', clearValidationErrors)
 
   const customFetch = $fetch.create({
     baseURL,
     onRequest({ request, options }) {
+      // Nettoyer les erreurs de validation précédentes pour les requêtes POST/PUT/PATCH
+      const method = options.method?.toUpperCase()
+      if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+        clearValidationErrors()
+      }
+      
       // Ajouter l'en-tête d'autorisation si un token existe
       const token = useCookie('auth_token').value
       if (token) {
@@ -45,26 +65,74 @@ export default defineNuxtPlugin((nuxtApp) => {
       }
     },
     onResponseError({ request, response, options }) {
+      // Extraire le message d'erreur de la réponse
+      let errorMessage = 'Une erreur est survenue'
+      let errorDetails = {}
+      
+      try {
+        // @ts-ignore - certaines implémentations exposent _data
+        const responseData = (response as any)._data
+        console.log('Response error data:', responseData) // Debug
+        
+        if (responseData) {
+          // Format API Biso Ticket: { status: false, message: "...", errors: { } }
+          // Mais pour les erreurs 422, l'API envoie directement { message: "...", errors: { } }
+          if (responseData.status === false) {
+            errorMessage = responseData.message || errorMessage
+            errorDetails = responseData.errors || {}
+            console.log('API Error details (status false):', errorDetails) // Debug
+          } else if (responseData.message) {
+            errorMessage = responseData.message
+            errorDetails = responseData.errors || {}
+            console.log('API Error details (direct message):', errorDetails) // Debug
+          }
+        }
+      } catch (_e) {
+        console.error('Error parsing response:', _e) // Debug
+        // Si on ne peut pas parser la réponse, utiliser les messages par défaut
+      }
+
       // Gérer les erreurs API selon la nouvelle structure
       if (response.status === 401) {
         console.error('Erreur 401: Accès non autorisé - Token expiré ou invalide')
         // Nettoyer le token invalide
         const token = useCookie('auth_token')
         token.value = null
+        errorMessage = 'Session expirée. Veuillez vous reconnecter.'
       } else if (response.status === 422) {
         console.error('Erreur 422: Données de validation invalides')
+        console.log('Error message for 422:', errorMessage) // Debug
+        if (Object.keys(errorDetails).length > 0) {
+          // Stocker les erreurs de validation globalement
+          console.log('Storing validation errors:', errorDetails) // Debug
+          validationErrors.value = errorDetails
+          console.log('Validation errors stored:', validationErrors.value) // Debug
+          // Utiliser le message exact de l'API au lieu d'un message générique
+          console.log('Final error message for toast:', errorMessage) // Debug
+        } else {
+          errorMessage = 'Données de validation invalides'
+        }
       } else if (response.status === 404) {
         console.error('Erreur 404: Ressource non trouvée')
+        errorMessage = 'Ressource non trouvée'
       } else if (response.status >= 500) {
-        // Essayer d'extraire un body JSON lisible pour debug
-        try {
-          // @ts-ignore - certaines implémentations exposent _data
-          const body = (response as any)._data || null
-          console.error('Erreur serveur:', response.status, body || '')
-        } catch (_e) {
-          console.error('Erreur serveur:', response.status)
-        }
+        console.error('Erreur serveur:', response.status)
+        errorMessage = 'Erreur serveur. Veuillez réessayer plus tard.'
       }
+
+      // Afficher le toast d'erreur
+      try {
+        const toast = useToast()
+        toast.add({
+          title: 'Erreur',
+          description: errorMessage,
+          color: 'error'
+        })
+      } catch (_e) {
+        // Si useToast n'est pas disponible (par exemple côté serveur), ignorer
+        console.warn('Impossible d\'afficher le toast d\'erreur:', _e)
+      }
+
       // Logging dev (erreurs)
       if (process.dev) {
         try {

@@ -219,6 +219,42 @@ Event (resource)
 }
 ```
 
+Payload (création évènement)
+```json
+{
+  "title": "Concert Biso",
+  "location": "Kinshasa",
+  "starts_at": "2025-02-01T18:00:00Z",
+  "ends_at": null,
+  "status": "active",
+  "is_public": true,
+  "settings": {
+    "scan_enabled": true,
+    "categories": ["music", "live"],
+    "tags": ["biso", "launch"]
+  }
+}
+```
+
+Payload (mise à jour évènement)
+```json
+{
+  "title": "Concert Biso (updated)",
+  "settings": {
+    "tags": ["music", "2025"]
+  }
+}
+```
+
+Vider les tags (mettre un tableau vide)
+```json
+{
+  "settings": {
+    "tags": []
+  }
+}
+```
+
 Définir le template d’invitation par défaut d’un événement
 - Lors de la création (POST /api/events), vous pouvez inclure `settings.default_invitation_template_id`.
 - Pour modifier un événement existant (PUT/PATCH), envoyez uniquement ce champ dans `settings`.
@@ -317,6 +353,7 @@ curl -X PATCH http://api.bisoticket.com/api	/events/{id} \
 
 Notes
 - Les clés de `settings` sont en snake_case dans la requête et renvoyées en camelCase dans la réponse (`scan_enabled` → `scanEnabled`, etc.).
+- `settings` est toujours présent dans la réponse. Les tableaux (`categories`, `priorities`, `tags`) sont normalisés en `[]` si absents.
 - Pour lister publiquement un événement: `is_public=true` et `status=active`.
 
 ### Billets

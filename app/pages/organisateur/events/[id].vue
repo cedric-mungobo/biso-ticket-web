@@ -275,12 +275,15 @@ const openDeleteTicket = (t: any) => {
 
 const openEditEvent = () => {
   eventForm.value = {
-    title: event.value?.name,
+    title: event.value?.name || event.value?.title,
     location: event.value?.location,
-    starts_at: event.value?.date_time ? new Date(event.value.date_time).toISOString().slice(0,16) : '',
+    starts_at: event.value?.date_time ? new Date(event.value.date_time).toISOString().slice(0,16) : (event.value?.startsAt ? new Date(event.value.startsAt).toISOString().slice(0,16) : ''),
+    ends_at: event.value?.ends_at ? new Date(event.value.ends_at).toISOString().slice(0,16) : (event.value?.endsAt ? new Date(event.value.endsAt).toISOString().slice(0,16) : ''),
+    description: event.value?.description || '',
     status: event.value?.status,
-    is_public: event.value?.is_public,
-    settings: { tags: event.value?.settings?.tags || [] }
+    is_public: typeof event.value?.is_public === 'boolean' ? event.value.is_public : (typeof event.value?.isPublic === 'boolean' ? event.value.isPublic : true),
+    settings: { tags: event.value?.settings?.tags || [], categories: event.value?.settings?.categories || [] },
+    image_url: event.value?.image_url || event.value?.imageUrl
   }
   showEventEdit.value = true
 }
@@ -340,10 +343,12 @@ const handleUpdateEvent = async (payload: any) => {
       title: payload.title,
       location: payload.location,
       starts_at: payload.starts_at,
+      ends_at: payload.ends_at,
+      description: payload.description,
       status: payload.status,
       is_public: payload.is_public,
-      settings: { tags: payload.settings?.tags || [] }
-    })
+      settings: { tags: payload.settings?.tags || [], categories: payload.settings?.categories || [] }
+    }, payload.image)
     showEventEdit.value = false
     await fetchEventWithState(eventId)
     toast.add({ title: 'Événement mis à jour', description: 'Les informations de l’événement ont été enregistrées.', color: 'success' })

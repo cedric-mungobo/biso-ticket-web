@@ -1,4 +1,4 @@
-import type { Event, EventCreateRequest, Ticket, TicketCreateRequest, PaginatedResponse } from '~/types/api'
+import type { Event, EventCreateRequest, Ticket, TicketCreateRequest, PaginatedResponse, CreditPurchaseRequest } from '~/types/api'
 
 // Repository sans state/loading/error
 export interface CreateTicketData {
@@ -26,6 +26,8 @@ export const useOrganizerEvents = () => {
   const error = ref<string | null>(null)
   const lastFetchedAt = useState<number>('organizer/events/lastFetchedAt', () => 0)
   const FETCH_TTL_MS = 3000
+  const eventCategories = useState<string[]>('organizer/presets/eventCategories', () => [])
+  const lastCategoriesFetchedAt = useState<number>('organizer/presets/eventCategories/lastFetchedAt', () => 0)
 
   const unwrap = <T>(res: any): T => (res?.data ?? res) as T
 
@@ -36,12 +38,17 @@ export const useOrganizerEvents = () => {
       name: apiEvent.title,
       description: apiEvent.description,
       date_time: apiEvent.startsAt,
+      ends_at: (apiEvent as any).endsAt,
       location: apiEvent.location,
       category: apiEvent.settings?.categories?.[0] || '—',
       image: apiEvent.imageUrl,
       image_url: apiEvent.imageUrl,
       status: apiEvent.status,
-      is_public: apiEvent.isPublic
+      is_public: apiEvent.isPublic,
+      settings: {
+        tags: apiEvent.settings?.tags || [],
+        categories: apiEvent.settings?.categories || []
+      }
     }
   }
 
@@ -69,54 +76,115 @@ export const useOrganizerEvents = () => {
     return unwrap<PaginatedResponse<Event>>(res)
   }
 
-  const createEvent = async (eventData: EventCreateRequest, image?: File): Promise<Event> => {
-    let res: any
-    if (image) {
-      const formData = new FormData()
-      formData.append('title', eventData.title)
-      if (eventData.location) formData.append('location', eventData.location)
-      formData.append('starts_at', eventData.starts_at)
-      if (eventData.ends_at) formData.append('ends_at', eventData.ends_at)
-      if (eventData.status) formData.append('status', eventData.status)
-      if (eventData.is_public !== undefined) formData.append('is_public', eventData.is_public.toString())
-      if (eventData.settings) {
-        if (eventData.settings.scan_enabled !== undefined) formData.append('settings[scan_enabled]', eventData.settings.scan_enabled.toString())
-        if (eventData.settings.categories) eventData.settings.categories.forEach(cat => formData.append('settings[categories][]', cat))
-        if (eventData.settings.tags) eventData.settings.tags.forEach(tag => formData.append('settings[tags][]', tag))
-        if (eventData.settings.default_invitation_template_id) formData.append('settings[default_invitation_template_id]', eventData.settings.default_invitation_template_id.toString())
-      }
-      formData.append('image', image)
-      res = await $myFetch<any>('/events', { method: 'POST', body: formData })
-    } else {
-      res = await $myFetch<any>('/events', { method: 'POST', body: eventData })
+  const fetchEventCategories = async (opts: { force?: boolean } = {}): Promise<string[]> => {
+    const now = Date.now()
+    if (!opts.force && eventCategories.value.length > 0 && now - lastCategoriesFetchedAt.value < FETCH_TTL_MS) {
+      return eventCategories.value
     }
-    return unwrap<Event>(res)
+    const res = await $myFetch<any>('/presets/event-categories', { method: 'GET' })
+    const categories = res?.data?.categories || res?.categories || []
+    eventCategories.value = Array.isArray(categories) ? categories : []
+    lastCategoriesFetchedAt.value = Date.now()
+    return eventCategories.value
+  }
+
+  const createEvent = async (eventData: EventCreateRequest, image?: File): Promise<Event> => {
+    try {
+      let res: any
+      if (image) {
+        const formData = new FormData()
+        
+        // Champs obligatoires
+        formData.append('title', eventData.title)
+        formData.append('starts_at', eventData.starts_at)
+        
+        // Champs optionnels
+        if (eventData.location) formData.append('location', eventData.location)
+        if (eventData.ends_at) formData.append('ends_at', eventData.ends_at)
+        if (eventData.description) formData.append('description', eventData.description)
+        if (eventData.status) formData.append('status', eventData.status)
+        if (eventData.is_public !== undefined) formData.append('is_public', eventData.is_public.toString())
+        
+        // Settings
+        if (eventData.settings) {
+          if (eventData.settings.scan_enabled !== undefined) formData.append('settings[scan_enabled]', eventData.settings.scan_enabled.toString())
+          if (eventData.settings.categories && eventData.settings.categories.length > 0) {
+            eventData.settings.categories.forEach(cat => formData.append('settings[categories][]', cat))
+          }
+          if (eventData.settings.tags && eventData.settings.tags.length > 0) {
+            eventData.settings.tags.forEach(tag => formData.append('settings[tags][]', tag))
+          }
+          if (eventData.settings.default_invitation_template_id) {
+            formData.append('settings[default_invitation_template_id]', eventData.settings.default_invitation_template_id.toString())
+          }
+        }
+        
+        // Image (toujours en dernier)
+        formData.append('image', image)
+        
+        console.log('FormData créé pour création événement avec image')
+        res = await $myFetch<any>('/events', { method: 'POST', body: formData })
+      } else {
+        console.log('Création événement sans image')
+        res = await $myFetch<any>('/events', { method: 'POST', body: eventData })
+      }
+      
+      return unwrap<Event>(res)
+    } catch (error: any) {
+      console.error('Erreur dans createEvent:', error)
+      // Re-throw l'erreur pour qu'elle soit gérée par le composant parent
+      throw error
+    }
   }
 
   const fetchEvent = async (eventId: number): Promise<Event> => {
     const res = await $myFetch<any>(`/events/${eventId}`, { method: 'GET' })
-    return unwrap<Event>(res)
+    if (process.dev) {
+      console.log('[Repo] fetchEvent → raw response:', res)
+      try { console.log('[Repo] fetchEvent → raw.data:', (res as any)?.data) } catch {}
+    }
+    const unwrapped = unwrap<Event>(res)
+    if (process.dev) {
+      console.log('[Repo] fetchEvent → unwrapped:', unwrapped)
+    }
+    return unwrapped
   }
 
   const updateEvent = async (eventId: number, eventData: Partial<EventCreateRequest>, image?: File): Promise<Event> => {
     let res: any
     if (image) {
       const formData = new FormData()
+      
+      // Champs à mettre à jour
       if (eventData.title) formData.append('title', eventData.title)
       if (eventData.location) formData.append('location', eventData.location)
       if (eventData.starts_at) formData.append('starts_at', eventData.starts_at)
       if (eventData.ends_at) formData.append('ends_at', eventData.ends_at)
+      if (eventData.description) formData.append('description', eventData.description)
       if (eventData.status) formData.append('status', eventData.status)
       if (eventData.is_public !== undefined) formData.append('is_public', eventData.is_public.toString())
+      
+      // Settings
       if (eventData.settings) {
         if (eventData.settings.scan_enabled !== undefined) formData.append('settings[scan_enabled]', eventData.settings.scan_enabled.toString())
-        if (eventData.settings.categories) eventData.settings.categories.forEach(cat => formData.append('settings[categories][]', cat))
-        if (eventData.settings.tags) eventData.settings.tags.forEach(tag => formData.append('settings[tags][]', tag))
-        if (eventData.settings.default_invitation_template_id) formData.append('settings[default_invitation_template_id]', eventData.settings.default_invitation_template_id.toString())
+        if (eventData.settings.categories && eventData.settings.categories.length > 0) {
+          eventData.settings.categories.forEach(cat => formData.append('settings[categories][]', cat))
+        }
+        if (eventData.settings.tags && eventData.settings.tags.length > 0) {
+          eventData.settings.tags.forEach(tag => formData.append('settings[tags][]', tag))
+        }
+        if (eventData.settings.default_invitation_template_id) {
+          formData.append('settings[default_invitation_template_id]', eventData.settings.default_invitation_template_id.toString())
+        }
       }
+      
+      // Image (toujours en dernier)
       formData.append('image', image)
+      
+      console.log('FormData créé pour mise à jour événement avec image')
       res = await $myFetch<any>(`/events/${eventId}`, { method: 'PUT', body: formData })
     } else {
+      console.log('Mise à jour événement sans image')
       res = await $myFetch<any>(`/events/${eventId}`, { method: 'PUT', body: eventData })
     }
     return unwrap<Event>(res)
@@ -213,6 +281,48 @@ export const useOrganizerEvents = () => {
     }))
   }
 
+  // Fonctions pour les crédits d'invitation
+  const purchaseCredits = async (creditData: CreditPurchaseRequest) => {
+    const res = await $myFetch<any>('/credits/purchase-and-pay', { method: 'POST', body: creditData })
+    return unwrap<any>(res)
+  }
+
+  const getCreditBalance = async () => {
+    const res = await $myFetch<any>('/credits/balance', { method: 'GET' })
+    return unwrap<any>(res)
+  }
+
+  const getCreditPrice = async () => {
+    const res = await $myFetch<any>('/credits/price', { method: 'GET' })
+    return unwrap<any>(res)
+  }
+
+  const getCreditLedger = async (params: { per_page?: number; page?: number } = {}) => {
+    const res = await $myFetch<any>('/credits/ledger', { method: 'GET', params })
+    return unwrap<PaginatedResponse<any>>(res)
+  }
+
+  const getCreditPurchases = async (params: { per_page?: number; page?: number } = {}) => {
+    const res = await $myFetch<any>('/credits/purchases', { method: 'GET', params })
+    return unwrap<PaginatedResponse<any>>(res)
+  }
+
+  // Fonctions pour les retraits (payouts)
+  const getPayoutBalance = async () => {
+    const res = await $myFetch<any>('/payouts/balance', { method: 'GET' })
+    return unwrap<any>(res)
+  }
+
+  const createPayout = async (amount: number, currency?: string) => {
+    const res = await $myFetch<any>('/payouts', { method: 'POST', body: { amount, currency } })
+    return unwrap<any>(res)
+  }
+
+  const getPayouts = async (params: { per_page?: number; page?: number } = {}) => {
+    const res = await $myFetch<any>('/payouts', { method: 'GET', params })
+    return unwrap<PaginatedResponse<any>>(res)
+  }
+
   return {
     // low-level
     fetchEvents,
@@ -232,6 +342,17 @@ export const useOrganizerEvents = () => {
     fetchEventGuests,
     updateTicket,
     deleteTicket,
+    fetchEventCategories,
+    // crédits
+    purchaseCredits,
+    getCreditBalance,
+    getCreditPrice,
+    getCreditLedger,
+    getCreditPurchases,
+    // payouts
+    getPayoutBalance,
+    createPayout,
+    getPayouts,
     async fetchMyEvents(params: { per_page?: number; page?: number; status?: string } = {}, opts: { force?: boolean } = {}) {
       try {
         const now = Date.now()
