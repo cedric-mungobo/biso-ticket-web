@@ -109,12 +109,18 @@ onUnmounted(() => {
 /* Optimisations pour mobile */
 @media (max-width: 768px) {
   .fixed {
-    padding: 0.5rem;
+    padding: 0.25rem;
+    align-items: flex-start;
+    padding-top: 2rem;
   }
   
   .max-w-md {
-    max-width: calc(100vw - 1rem);
-    margin: 0.5rem;
+    max-width: calc(100vw - 0.5rem);
+    margin: 0;
+    width: calc(100vw - 0.5rem);
+    max-height: calc(100vh - 2rem);
+    height: auto;
+    min-height: auto;
   }
   
   /* Améliorer la scrollabilité sur mobile */
@@ -127,6 +133,31 @@ onUnmounted(() => {
     min-height: 44px;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Assurer que le contenu ne dépasse pas */
+  .relative {
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Optimisations pour très petits écrans */
+@media (max-width: 480px) {
+  .fixed {
+    padding: 0.125rem;
+    padding-top: 1rem;
+  }
+  
+  .max-w-md {
+    max-width: calc(100vw - 0.25rem);
+    width: calc(100vw - 0.25rem);
+    max-height: calc(100vh - 1rem);
+  }
+  
+  .relative {
+    max-height: calc(100vh - 6rem);
   }
 }
 

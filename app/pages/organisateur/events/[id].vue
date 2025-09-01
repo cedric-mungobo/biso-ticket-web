@@ -226,15 +226,15 @@
                 </div>
 
       <!-- Modals -->
-      <Modal v-model="showTicketsList" title="Liste des tickets">
-        <div class="space-y-3 max-h-[60vh] overflow-auto">
+      <Modal v-model="showTicketsList" title="Liste des tickets" class="modal-mobile-optimized">
+        <div class="modal-content-mobile">
           <div v-if="ticketsLoading" class="space-y-3">
             <USkeleton class="h-16 w-full" />
             <USkeleton class="h-16 w-full" />
             <USkeleton class="h-16 w-2/3" />
           </div>
-          <div v-else-if="!tickets || tickets.length === 0" class="text-center py-8">
-            <UIcon name="i-heroicons-ticket" class="w-12 h-12 text-gray-400 mx-auto mb-3" />
+          <div v-else-if="!tickets || tickets.length === 0" class="text-center py-6">
+            <UIcon name="i-heroicons-ticket" class="w-10 h-10 text-gray-400 mx-auto mb-3" />
             <p class="text-sm text-gray-500">Aucun ticket configuré.</p>
           </div>
           <div v-else class="space-y-3">
@@ -286,21 +286,27 @@
         </div>
       </Modal>
       
-      <Modal v-model="showTicketCreate" title="Ajouter un ticket">
-        <TicketForm v-model="ticketForm" :submitting="ticketSubmitting" submit-label="Ajouter" @cancel="showTicketCreate=false" @submit="handleCreateTicket" />
+      <Modal v-model="showTicketCreate" title="Ajouter un ticket" class="modal-mobile-optimized">
+        <div class="modal-content-mobile">
+          <TicketForm v-model="ticketForm" :submitting="ticketSubmitting" submit-label="Ajouter" @cancel="showTicketCreate=false" @submit="handleCreateTicket" />
+        </div>
       </Modal>
-      <Modal v-model="showTicketEdit" title="Éditer le ticket">
-        <TicketForm v-model="ticketForm" :submitting="ticketSubmitting" submit-label="Enregistrer" @cancel="showTicketEdit=false" @submit="handleUpdateTicket" />
+      <Modal v-model="showTicketEdit" title="Éditer le ticket" class="modal-mobile-optimized">
+        <div class="modal-content-mobile">
+          <TicketForm v-model="ticketForm" :submitting="ticketSubmitting" submit-label="Enregistrer" @cancel="showTicketEdit=false" @submit="handleUpdateTicket" />
+        </div>
       </Modal>
-      <Modal v-model="showTicketDelete" title="Supprimer le ticket">
-        <p class="text-sm text-gray-600">Confirmer la suppression du ticket "{{ currentTicket?.type }}" ?</p>
+      <Modal v-model="showTicketDelete" title="Supprimer le ticket" class="modal-mobile-optimized">
+        <div class="modal-content-mobile">
+          <p class="text-sm text-gray-600">Confirmer la suppression du ticket "{{ currentTicket?.type }}" ?</p>
+        </div>
         <template #footer>
           <UButton variant="ghost" @click="showTicketDelete=false">Annuler</UButton>
           <UButton color="error" :loading="ticketSubmitting" @click="handleDeleteTicket">Supprimer</UButton>
         </template>
       </Modal>
-      <Modal v-model="showEventEdit" title="Éditer l'événement">
-        <div class="relative">
+      <Modal v-model="showEventEdit" title="Éditer l'événement" class="modal-mobile-optimized">
+        <div class="modal-content-mobile relative">
           <!-- Overlay de loading -->
           <LoadingOverlay
             :show="submitting"
@@ -632,10 +638,64 @@ const onDelete = async () => {
 
 /* Optimiser les modals sur mobile */
 @media (max-width: 640px) {
-  :deep(.ui-modal) {
-    margin: 0.5rem;
-    max-width: calc(100vw - 1rem);
-    max-height: calc(100vh - 1rem);
+  /* Styles pour les modals optimisés mobile */
+  .modal-mobile-optimized :deep(.ui-modal) {
+    margin: 0.25rem;
+    max-width: calc(100vw - 0.5rem);
+    max-height: calc(100vh - 0.5rem);
+    width: calc(100vw - 0.5rem);
+    height: calc(100vh - 0.5rem);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .modal-mobile-optimized :deep(.ui-modal .ui-modal-content) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .modal-mobile-optimized :deep(.ui-modal .ui-modal-header) {
+    flex-shrink: 0;
+    padding: 1rem 1rem 0.5rem 1rem;
+  }
+  
+  .modal-mobile-optimized :deep(.ui-modal .ui-modal-body) {
+    flex: 1;
+    overflow: hidden;
+    padding: 0.5rem 1rem;
+  }
+  
+  .modal-mobile-optimized :deep(.ui-modal .ui-modal-footer) {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem 1rem 1rem;
+  }
+  
+  /* Contenu scrollable dans les modals */
+  .modal-content-mobile {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 0.25rem;
+  }
+  
+  /* Scrollbar personnalisée pour mobile */
+  .modal-content-mobile::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .modal-content-mobile::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .modal-content-mobile::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+  }
+  
+  .modal-content-mobile::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
   }
 }
 
