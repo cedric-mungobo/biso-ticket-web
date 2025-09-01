@@ -22,6 +22,27 @@ export default defineNuxtPlugin((nuxtApp) => {
       if (!isFormData) {
         options.headers.set('Content-Type', 'application/json')
       }
+
+      // Logging (dev seulement)
+      if (process.dev) {
+        // @ts-ignore
+        options._meta = { startedAt: performance.now(), url: String(request), method: options.method || 'GET' }
+      }
+    },
+    onResponse({ request, response, options }) {
+      if (process.dev) {
+        try {
+          // @ts-ignore
+          const meta = options._meta || {}
+          const durationMs = meta.startedAt ? Math.round(performance.now() - meta.startedAt) : undefined
+          // @ts-ignore
+          const data = (response as any)?._data
+          const preview = typeof data === 'string' ? data.slice(0, 200) : JSON.stringify(data)?.slice(0, 200)
+          console.log('[API]', meta.method || options.method || 'GET', String(request), '→', response.status, durationMs ? `${durationMs}ms` : '', preview)
+        } catch (_e) {
+          // noop
+        }
+      }
     },
     onResponseError({ request, response, options }) {
       // Gérer les erreurs API selon la nouvelle structure
@@ -42,6 +63,20 @@ export default defineNuxtPlugin((nuxtApp) => {
           console.error('Erreur serveur:', response.status, body || '')
         } catch (_e) {
           console.error('Erreur serveur:', response.status)
+        }
+      }
+      // Logging dev (erreurs)
+      if (process.dev) {
+        try {
+          // @ts-ignore
+          const meta = options._meta || {}
+          const durationMs = meta.startedAt ? Math.round(performance.now() - meta.startedAt) : undefined
+          // @ts-ignore
+          const data = (response as any)?._data
+          const preview = typeof data === 'string' ? data.slice(0, 200) : JSON.stringify(data)?.slice(0, 200)
+          console.warn('[API]', meta.method || options.method || 'GET', String(request), '→', response.status, durationMs ? `${durationMs}ms` : '', preview)
+        } catch (_e) {
+          // noop
         }
       }
     },

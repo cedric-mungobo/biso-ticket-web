@@ -1,22 +1,76 @@
 import type { Event, EventCreateRequest, Ticket, TicketCreateRequest, PaginatedResponse } from '~/types/api'
 
 // Repository sans state/loading/error
+export interface CreateTicketData {
+  type: string
+  price: number | string
+  quantity: number
+  devise?: string
+  end_date?: string
+}
+
+export interface GuestData {
+  name: string
+  table_name?: string
+  email?: string
+  phone?: string
+}
+
 export const useOrganizerEvents = () => {
   const { $myFetch } = useNuxtApp()
+  
+  // Etat minimal pour les écrans organisateur
+  const events = ref<any[]>([])
+  const currentEvent = ref<any | null>(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+  const lastFetchedAt = useState<number>('organizer/events/lastFetchedAt', () => 0)
+  const FETCH_TTL_MS = 3000
+
+  const unwrap = <T>(res: any): T => (res?.data ?? res) as T
+
+  const toUiEvent = (apiEvent: Event) => {
+    return {
+      id: apiEvent.id,
+      slug: apiEvent.slug,
+      name: apiEvent.title,
+      description: apiEvent.description,
+      date_time: apiEvent.startsAt,
+      location: apiEvent.location,
+      category: apiEvent.settings?.categories?.[0] || '—',
+      image: apiEvent.imageUrl,
+      image_url: apiEvent.imageUrl,
+      status: apiEvent.status,
+      is_public: apiEvent.isPublic
+    }
+  }
+
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } catch {
+      return 'Date à définir'
+    }
+  }
 
   const fetchEvents = async (params: {
     per_page?: number
     page?: number
     status?: string
   } = {}): Promise<PaginatedResponse<Event>> => {
-    return $myFetch<PaginatedResponse<Event>>('/events', {
-      method: 'GET',
-      params
-    })
+    const res = await $myFetch<any>('/events', { method: 'GET', params })
+    return unwrap<PaginatedResponse<Event>>(res)
   }
 
   const createEvent = async (eventData: EventCreateRequest, image?: File): Promise<Event> => {
-    let response: any
+    let res: any
     if (image) {
       const formData = new FormData()
       formData.append('title', eventData.title)
@@ -32,20 +86,20 @@ export const useOrganizerEvents = () => {
         if (eventData.settings.default_invitation_template_id) formData.append('settings[default_invitation_template_id]', eventData.settings.default_invitation_template_id.toString())
       }
       formData.append('image', image)
-      response = await $myFetch<{ event: Event }>('/events', { method: 'POST', body: formData })
+      res = await $myFetch<any>('/events', { method: 'POST', body: formData })
     } else {
-      response = await $myFetch<{ event: Event }>('/events', { method: 'POST', body: eventData })
+      res = await $myFetch<any>('/events', { method: 'POST', body: eventData })
     }
-    return response.event
+    return unwrap<Event>(res)
   }
 
   const fetchEvent = async (eventId: number): Promise<Event> => {
-    const response = await $myFetch<{ event: Event }>(`/events/${eventId}`, { method: 'GET' })
-    return response.event
+    const res = await $myFetch<any>(`/events/${eventId}`, { method: 'GET' })
+    return unwrap<Event>(res)
   }
 
   const updateEvent = async (eventId: number, eventData: Partial<EventCreateRequest>, image?: File): Promise<Event> => {
-    let response: any
+    let res: any
     if (image) {
       const formData = new FormData()
       if (eventData.title) formData.append('title', eventData.title)
@@ -61,11 +115,11 @@ export const useOrganizerEvents = () => {
         if (eventData.settings.default_invitation_template_id) formData.append('settings[default_invitation_template_id]', eventData.settings.default_invitation_template_id.toString())
       }
       formData.append('image', image)
-      response = await $myFetch<{ event: Event }>(`/events/${eventId}`, { method: 'PUT', body: formData })
+      res = await $myFetch<any>(`/events/${eventId}`, { method: 'PUT', body: formData })
     } else {
-      response = await $myFetch<{ event: Event }>(`/events/${eventId}`, { method: 'PUT', body: eventData })
+      res = await $myFetch<any>(`/events/${eventId}`, { method: 'PUT', body: eventData })
     }
-    return response.event
+    return unwrap<Event>(res)
   }
 
   const deleteEvent = async (eventId: number): Promise<boolean> => {
@@ -73,17 +127,122 @@ export const useOrganizerEvents = () => {
     return true
   }
 
-  const addTicket = async (eventId: number, ticketData: TicketCreateRequest): Promise<Ticket> => {
-    const response = await $myFetch<{ ticket: Ticket }>(`/events/${eventId}/tickets`, { method: 'POST', body: ticketData })
+  const addTicket = async (eventId: number, ticketData: TicketCreateRequest | CreateTicketData): Promise<Ticket> => {
+    // Accepter à la fois le format API et l'UI existante
+    const normalized: TicketCreateRequest = {
+      name: (ticketData as any).name || (ticketData as any).type,
+      price: Number((ticketData as any).price || 0),
+      currency: (ticketData as any).currency || (ticketData as any).devise || 'USD',
+      quantity: Number((ticketData as any).quantity || 0),
+      commissionRate: (ticketData as any).commissionRate
+    }
+    const response = await $myFetch<{ ticket: Ticket }>(`/events/${eventId}/tickets`, { method: 'POST', body: normalized })
     return response.ticket
   }
 
+  const fetchEventTickets = async (eventId: number): Promise<any[]> => {
+    const res = await $myFetch<any>(`/events/${eventId}/tickets`, { method: 'GET', params: { per_page: 100 } })
+    const payload = unwrap<PaginatedResponse<Ticket> | Ticket[]>(res)
+    const items = Array.isArray(payload) ? payload : (payload.items || [])
+    return items.map((t) => ({
+      id: t.id,
+      type: (t as any).name,
+      price: t.price,
+      devise: (t as any).currency || 'USD',
+      quantity: t.quantity
+    }))
+  }
+
+  const updateTicket = async (eventId: number, ticketId: number, ticketData: Partial<TicketCreateRequest | CreateTicketData>): Promise<Ticket> => {
+    const body: any = {
+      name: (ticketData as any).name ?? (ticketData as any).type,
+      price: (ticketData as any).price,
+      currency: (ticketData as any).currency ?? (ticketData as any).devise,
+      quantity: (ticketData as any).quantity,
+      commissionRate: (ticketData as any).commissionRate
+    }
+    const res = await $myFetch<{ ticket: Ticket }>(`/events/${eventId}/tickets/${ticketId}`, { method: 'PUT', body })
+    return res.ticket
+  }
+
+  const deleteTicket = async (eventId: number, ticketId: number): Promise<boolean> => {
+    await $myFetch(`/events/${eventId}/tickets/${ticketId}`, { method: 'DELETE' })
+    return true
+  }
+
+  // Invités (basé sur Invitations API)
+  const addGuest = async (eventId: number, guest: GuestData): Promise<any> => {
+    const body = {
+      guest_name: guest.name,
+      guest_email: guest.email,
+      guest_phone: guest.phone,
+      guest_table_name: guest.table_name
+    }
+    const res = await $myFetch<any>(`/events/${eventId}/invitations`, { method: 'POST', body })
+    return unwrap<any>(res)
+  }
+
+  const fetchEventGuests = async (eventId: number): Promise<any[]> => {
+    const res = await $myFetch<any>(`/events/${eventId}/invitations`, { method: 'GET', params: { per_page: 100 } })
+    const payload = unwrap<PaginatedResponse<any> | any[]>(res)
+    const items = Array.isArray(payload) ? payload : (payload.items || [])
+    return items.map((g: any) => ({
+      id: g.id,
+      name: g.guestName || g.guest_name,
+      table_name: g.guestTableName || g.guest_table_name,
+      email: g.guestEmail || g.guest_email,
+      phone: g.guestPhone || g.guest_phone,
+      status: g.status || 'pending'
+    }))
+  }
+
   return {
+    // low-level
     fetchEvents,
     createEvent,
     fetchEvent,
     updateEvent,
     deleteEvent,
-    addTicket
+    addTicket,
+    // helpers/stateful for UI
+    events,
+    currentEvent,
+    loading,
+    error,
+    formatDate,
+    fetchEventTickets,
+    addGuest,
+    fetchEventGuests,
+    updateTicket,
+    deleteTicket,
+    async fetchMyEvents(params: { per_page?: number; page?: number; status?: string } = {}, opts: { force?: boolean } = {}) {
+      try {
+        const now = Date.now()
+        if (!opts.force && lastFetchedAt.value && now - lastFetchedAt.value < FETCH_TTL_MS && events.value.length > 0) {
+          return
+        }
+        loading.value = true
+        error.value = null
+        const pagination = await fetchEvents(params)
+        events.value = (pagination.items || []).map(toUiEvent)
+        lastFetchedAt.value = Date.now()
+      } catch (e: any) {
+        error.value = e?.message || 'Erreur lors du chargement des événements'
+      } finally {
+        loading.value = false
+      }
+    },
+    async fetchEventWithState(eventId: number) {
+      try {
+        loading.value = true
+        error.value = null
+        const ev = await fetchEvent(eventId)
+        currentEvent.value = toUiEvent(ev)
+      } catch (e: any) {
+        error.value = e?.message || 'Erreur lors du chargement de l\'événement'
+      } finally {
+        loading.value = false
+      }
+    }
   }
 }

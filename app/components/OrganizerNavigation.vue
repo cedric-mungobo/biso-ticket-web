@@ -12,7 +12,7 @@
       :class="[
         'flex-col transition-transform duration-300 ease-in-out',
         'lg:relative lg:translate-x-0 lg:bg-transparent lg:shadow-none lg:border-none',
-        'fixed top-24 left-0 h-[calc(100vh-6rem)] z-[50]',
+        'fixed top-4 left-0 h-[calc(100vh-6rem)] z-[50]',
         'w-64 bg-white shadow-lg border-r rounded-xl border-gray-200',
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       ]"
@@ -52,7 +52,7 @@
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Content Area -->
       <main class="flex-1 md:p-6 overflow-auto">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-7xl mx-auto">
           <slot></slot>
         </div>
       </main>
@@ -72,17 +72,7 @@ import {
   X
 } from 'lucide-vue-next'
 
-// Props pour personnaliser la top bar
-const props = defineProps({
-  pageTitle: {
-    type: String,
-    default: ''
-  },
-  customActions: {
-    type: Array,
-    default: () => []
-  }
-})
+
 
 // Get route from Nuxt
 const route = useRoute()

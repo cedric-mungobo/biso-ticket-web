@@ -343,19 +343,23 @@ const handleSubmit = async () => {
   try {
     console.log('📝 Données du formulaire avant envoi:', formData.value)
     
-    // Préparer les données pour l'API avec le format correct
-    const eventData: CreateEventData = {
-      name: formData.value.name.trim(),
-      description: formData.value.description.trim(),
-      date_time: formData.value.date_time,
+    // Mapper les champs UI -> API (doc: title, starts_at, ends_at?, status, is_public, settings, image)
+    const startsAtIso = new Date(formData.value.date_time).toISOString()
+    const apiBody: any = {
+      title: formData.value.name.trim(),
       location: formData.value.location.trim(),
-      category: formData.value.category.trim(),
-      image: formData.value.image ? formData.value.image.name : undefined
+      starts_at: startsAtIso,
+      status: 'draft',
+      is_public: true,
+      settings: {
+        tags: formData.value.category ? [formData.value.category.trim()] : []
+      }
     }
+    const imageFile = formData.value.image || undefined
     
-    console.log('🚀 Données préparées pour l\'API:', eventData)
+    console.log('🚀 Données préparées pour l\'API:', { apiBody, hasImage: Boolean(imageFile) })
     
-    const event = await createEvent(eventData)
+    const event = await createEvent(apiBody, imageFile || undefined)
     if (event) {
       console.log('✅ Événement créé avec succès, redirection...')
       // Rediriger vers la page de l'événement créé

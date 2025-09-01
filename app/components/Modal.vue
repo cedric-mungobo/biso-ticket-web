@@ -18,7 +18,7 @@
         
         <!-- Modal Content -->
         <div
-          class="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-xl"
+          class="relative w-full max-w-md transform overflow-visible rounded-2xl bg-white shadow-xl"
           @click.stop
         >
           <!-- Header -->
