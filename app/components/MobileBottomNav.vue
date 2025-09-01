@@ -1,68 +1,28 @@
 <template>
-  <div v-if="!isEventDetailPage" class="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-    <nav class="mx-2 mb-2">
-      <div class="max-w-5xl mx-auto bg-neutral-100/50 backdrop-blur-md rounded-[26px] p-1 border border-neutral-200/50 shadow-lg">
-        <div class="flex items-center justify-around">
-        
-          <!-- Événements -->
-          <NuxtLink 
-            to="/evenements" 
+  <div v-if="!isHiddenNav" class="fixed bottom-0 left-0 right-0 z-50 md:hidden pb-[env(safe-area-inset-bottom)]">
+    <nav class="mx-2 mb-2" role="navigation" aria-label="Navigation principale mobile">
+      <div class="max-w-5xl mx-auto bg-neutral-100/50 dark:bg-neutral-900/60 backdrop-blur-md rounded-[26px] p-1 border border-neutral-200/50 dark:border-neutral-800/50 shadow-lg">
+        <div class="flex items-center justify-around" data-testid="mobile-bottom-nav">
+          <NuxtLink
+            v-for="item in navItems"
+            :key="item.key"
+            :to="item.to"
+            :prefetch="true"
+            :aria-label="item.label"
             class="flex flex-col items-center justify-center flex-1 py-2 transition-all duration-200 group"
-            :class="isActive('/evenements') ? 'text-primary-500' : 'text-neutral-700 hover:text-primary-500'"
+            :class="isActive(item.to) ? 'text-primary-500' : 'text-neutral-700 dark:text-neutral-300 hover:text-primary-500'"
+            :aria-current="isActive(item.to) ? 'page' : undefined"
           >
             <div class="w-5 h-5 flex items-center justify-center mb-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-              </svg>
+              <UIcon :name="getIconName(item.key, isActive(item.to))" class="w-5 h-5" aria-hidden="true" />
             </div>
-            <span class="text-xs font-medium group-hover:text-primary-500 transition-colors">Événements</span>
-          </NuxtLink>
-
-          <!-- Organisateur -->
-          <NuxtLink 
-            to="/organisateur" 
-            class="flex flex-col items-center justify-center flex-1 py-2 transition-all duration-200 group"
-            :class="isActive('/organisateur') ? 'text-primary-500' : 'text-neutral-700 hover:text-primary-500'"
-          >
-            <div class="w-5 h-5 flex items-center justify-center mb-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-              </svg>
-            </div>
-            <span class="text-xs font-medium group-hover:text-primary-500 transition-colors">Organisateur</span>
-          </NuxtLink>
-
-          <!-- Mes Billets -->
-          <NuxtLink 
-            to="/tickets/my-tickets" 
-            class="flex flex-col items-center justify-center flex-1 py-2 transition-all duration-200 group"
-            :class="isActive('/tickets/my-tickets') ? 'text-primary-500' : 'text-neutral-700 hover:text-primary-500'"
-          >
-            <div class="w-5 h-5 flex items-center justify-center mb-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <span class="text-xs font-medium group-hover:text-primary-500 transition-colors">Mes Billets</span>
-          </NuxtLink>
-
-          <!-- Check-in -->
-          <NuxtLink 
-            to="/check-in" 
-            class="flex flex-col items-center justify-center flex-1 py-2 transition-all duration-200 group"
-            :class="isActive('/check-in') ? 'text-primary-500' : 'text-neutral-700 hover:text-primary-500'"
-          >
-            <div class="w-5 h-5 flex items-center justify-center mb-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-            </div>
-            <span class="text-xs font-medium group-hover:text-primary-500 transition-colors">Check-in</span>
+            <span class="text-xs font-medium group-hover:text-primary-500 transition-colors">{{ item.label }}</span>
           </NuxtLink>
         </div>
       </div>
     </nav>
   </div>
+<!--  -->
 </template>
 
 <script lang="ts" setup>
@@ -71,18 +31,48 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
-// Vérifier si le lien est actif
+interface NavItem {
+  key: 'events' | 'organizer' | 'tickets' | 'checkin'
+  to: string
+  label: string
+}
+
+const navItems: NavItem[] = [
+  { key: 'events', to: '/evenements', label: 'Événements' },
+  { key: 'organizer', to: '/organisateur', label: 'Organisateur' },
+  { key: 'tickets', to: '/tickets/my-tickets', label: 'Mes Billets' },
+  { key: 'checkin', to: '/check-in', label: 'Check-in' }
+]
+
+// Lien actif
 const isActive = (path: string) => {
-  if (path === '/') {
-    return route.path === '/'
-  }
+  if (path === '/') return route.path === '/'
   return route.path.startsWith(path)
 }
 
-// Vérifier si on est sur une page de détail d'événement
-const isEventDetailPage = computed(() => {
-  return route.path.match(/^\/evenements\/[^\/]+$/)
+// Cacher la nav sur certaines pages (détail/paiement/confirmation)
+const isHiddenNav = computed(() => {
+  if (/^\/evenements\/[^/]+(\/.*)?$/.test(route.path)) return true
+  if (route.path.startsWith('/confirmation/')) return true
+  return false
 })
+
+// Icônes Nuxt UI (Heroicons outline/solid)
+const getIconName = (key: NavItem['key'], active: boolean) => {
+  const solid = active
+  switch (key) {
+    case 'events':
+      return solid ? 'i-heroicons-calendar-days-20-solid' : 'i-heroicons-calendar-days'
+    case 'organizer':
+      return solid ? 'i-heroicons-user-circle-20-solid' : 'i-heroicons-user-circle'
+    case 'tickets':
+      return solid ? 'i-heroicons-ticket-20-solid' : 'i-heroicons-ticket'
+    case 'checkin':
+      return solid ? 'i-heroicons-qr-code-20-solid' : 'i-heroicons-qr-code'
+    default:
+      return 'i-heroicons-ellipsis-horizontal'
+  }
+}
 </script>
 
 <style scoped>

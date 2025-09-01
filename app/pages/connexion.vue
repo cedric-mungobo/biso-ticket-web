@@ -1,84 +1,100 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-br from-secondary-50 via-white to-primary-50">
+  <div class=" h-full md:py-36  flex items-center justify-center p-4">
     <div class="w-full max-w-md">
-      <UCard class="shadow-xl border border-neutral-200/60 bg-white/90 backdrop-blur rounded-2xl">
-        <template #header>
-          <div class="text-center">
-            <NuxtLink to="/" class="inline-block">
-              <h1 class="text-2xl font-bold text-primary-700">Biso Ticket</h1>
-            </NuxtLink>
-            <p class="text-neutral-600 text-sm mt-1">Connectez-vous à votre compte</p>
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+        <!-- User Icon -->
+        <div class="flex justify-center mb-6">
+          <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+           <NuxtImg src="/logo.png" alt="Biso Ticket" class="w-10 h-10 object-contain" />
           </div>
-        </template>
-        <form @submit.prevent="handleLogin" class="flex flex-col gap-4">
-          <UFormGroup label="Email ou Téléphone" name="identifier">
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+          <h1 class="text-2xl font-semibold text-gray-900 mb-2">Connexion</h1>
+          <p class="text-gray-600">Entrez vos identifiants pour accéder à votre compte.</p>
+        </div>
+
+        
+
+        <!-- Form -->
+        <form @submit.prevent="handleSubmit" class="space-y-4">
+          <!-- Email ou Téléphone -->
+          <div>
+            <label for="identifier" class="block text-sm font-medium text-gray-700 mb-1">
+              Email ou Téléphone <span class="text-red-500">*</span>
+            </label>
             <UInput
-              v-model="form.identifier"
-              :disabled="isLoading"
-              placeholder="Entrez votre email ou téléphone"
-              autocomplete="username"
-              icon="i-heroicons-at-symbol-20-solid"
-              size="lg"
-              autofocus
-              class="w-full"
+              id="identifier"
+              v-model="identifier"
+              type="text"
+              required
+              placeholder="Email ou téléphone"
+              class="w-full  border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-          </UFormGroup>
-
-          <UFormGroup label="Mot de passe" name="password">
-            <UInput
-              v-model="form.password"
-              :disabled="isLoading"
-              :type="showPassword ? 'text' : 'password'"
-              placeholder="Entrez votre mot de passe"
-              autocomplete="current-password"
-              icon="i-heroicons-lock-closed-20-solid"
-              size="lg"
-              class="w-full"
-            >
-              <template #trailing>
-                <UButton
-                  variant="link"
-                  color="neutral"
-                  :icon="showPassword ? 'i-heroicons-eye-slash-20-solid' : 'i-heroicons-eye-20-solid'"
-                  aria-label="Afficher/Masquer le mot de passe"
-                  @click="showPassword = !showPassword"
-                />
-              </template>
-            </UInput>
-          </UFormGroup>
-
-          <div class="flex items-center justify-between">
-            <UCheckbox v-model="remember" label="Se souvenir de moi" size="sm" />
-            <NuxtLink to="/" class="text-sm text-primary-600 hover:underline">Mot de passe oublié ?</NuxtLink>
           </div>
 
-          <UButton type="submit" color="primary" size="lg" block :loading="isLoading" icon="i-heroicons-arrow-right-16-solid">
+          <!-- Mot de passe -->
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+              Mot de passe
+            </label>
+            <div class="relative">
+              <UInput
+                id="password"
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                required
+                placeholder="Entrez votre mot de passe"
+                class="w-full  pr-10  border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                aria-label="Afficher/Masquer le mot de passe"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path v-if="!showPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path v-if="!showPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path v-if="showPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember Me -->
+          <div class="flex items-center">
+            <input
+              id="remember"
+              v-model="rememberMe"
+              type="checkbox"
+              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label for="remember" class="ml-2 block text-sm text-gray-700">
+                  se souvenir de moi   
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <UButton
+            type="submit"
+            block
+            color="primary"
+            size="lg"
+            :disabled="!identifier || !password"
+            :loading="isLoading"
+            icon="i-heroicons-arrow-right-16-solid"
+          >
             Se connecter
           </UButton>
-
-          <UAlert v-if="uiError" color="secondary" title="Erreur" :description="uiError" />
         </form>
-        <template #footer>
-          <div class="text-center space-y-2">
-            <p class="text-neutral-500 text-sm">
-              Pas encore de compte ?
-              <NuxtLink to="/inscription" class="text-primary-600 hover:text-primary-700 font-medium">
-                Créer un compte
-              </NuxtLink>
-            </p>
-            <NuxtLink to="/" class="text-neutral-500 hover:text-neutral-400 text-sm block">
-              ← Retour à l'accueil
-            </NuxtLink>
-          </div>
-        </template>
-      </UCard>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { reactive } from 'vue'
-
 // Meta de la page
 definePageMeta({
   title: 'Connexion - Biso Ticket',
@@ -86,46 +102,64 @@ definePageMeta({
   middleware: ['guest']
 })
 
-// État du formulaire
-const form = reactive({
-  identifier: '',
-  password: ''
-})
-
-// UI state
-const remember = ref(false)
+// State
+const identifier = ref('')
+const password = ref('')
+const rememberMe = ref(false)
 const showPassword = ref(false)
+const isLoading = ref(false)
+const emailRegex = /[^\s@]+@[^\s@]+\.[^\s@]+/
+const phoneIntl = /^\+?[1-9][0-9]{6,14}$/
 
 // Composables
 const { login } = useAuth()
 const router = useRouter()
 const route = useRoute()
+const toast = useToast()
 
-// useAsyncData pour l'appel login (exécution manuelle)
-const { pending: isLoading, error, data, execute } = await useAsyncData('auth:login', () =>
-  login({ identifier: form.identifier, password: form.password })
-, { immediate: false, server: false })
+// Extrait un message lisible depuis les erreurs ofetch/backend (incl. 422)
+const extractErrorMessage = (e: any): string => {
+  // Formats possibles: e.data.message, e.response._data.message, e.message
+  const direct = e?.data?.message || e?.response?._data?.message || e?.message
+  if (direct) return String(direct)
+  // Si erreurs de validation: prendre la première
+  const errors = (e?.data?.errors || e?.response?._data?.errors) as Record<string, unknown> | undefined
+  if (errors && typeof errors === 'object') {
+    const keys = Object.keys(errors)
+    const firstKey = keys.length ? keys[0] : undefined
+    const firstVal = firstKey ? (errors as Record<string, unknown>)[firstKey] : undefined
+    if (Array.isArray(firstVal) && firstVal.length) return String(firstVal[0])
+    if (typeof firstVal === 'string') return firstVal
+  }
+  return 'Une erreur est survenue.'
+}
 
-// Message d'erreur UI (ne jamais afficher l'erreur brute)
-const uiError = computed(() => {
-  const e = error.value as any
-  if (!e) return ''
-  // ofetch place souvent la réponse dans e.data
-  return e?.data?.message || 'Email ou mot de passe invalide.'
-})
-
-// Gestion de la connexion
-const handleLogin = async () => {
-  await execute()
-  console.log('[Login] response data:', data.value)
-  console.log('[Login] error:', error.value)
-  if (!error.value) {
+const handleSubmit = async () => {
+  try {
+    if (!identifier.value || !password.value) {
+      toast.add({ title: 'Champs requis', description: 'Veuillez remplir tous les champs.', color: 'warning' })
+      return
+    }
+    const value = identifier.value.trim()
+    const isEmail = emailRegex.test(value)
+    const isPhone = phoneIntl.test(value.replace(/\s/g, ''))
+    if (!isEmail && !isPhone) {
+      toast.add({ title: 'Identifiant invalide', description: 'Saisissez un email ou un numéro de téléphone valide.', color: 'error' })
+      return
+    }
+    isLoading.value = true
+    await login({ identifier: value, password: password.value.trim() })
     const redirectUrl = route.query.redirect as string
     if (redirectUrl && redirectUrl !== '/connexion') {
       await router.push(decodeURIComponent(redirectUrl))
     } else {
       await router.push('/')
     }
+  } catch (err: any) {
+    const message = extractErrorMessage(err)
+    toast.add({ title: 'Connexion échouée', description: message, color: 'error' })
+  } finally {
+    isLoading.value = false
   }
 }
 </script>

@@ -1,9 +1,9 @@
 <template>
-  <main class="px-4 py-10">
+  <main class="px-4 py-2">
     <div class="mx-auto container">
-      <h1 class="text-3xl font-bold mb-6">Événements</h1>
+      <h1 class="text-3xl font-bold mb-2">Événements</h1>
 
-      <p class="text-sm text-neutral-600 mb-6">Retrouvez tous les  événements disponibles sur Biso Ticket.</p>
+      <p class="text-sm text-neutral-600 mb-2">Retrouvez  les  meilleurs événements  sur Biso Ticket.</p>
 
       <div class="mb-6 flex items-center gap-2">
         <UInput

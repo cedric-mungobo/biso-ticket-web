@@ -1,7 +1,7 @@
 <template>
   <div class="sticky top-0 z-50  container mx-auto rounded-2xl p-2">
   <UHeader
-    class="rounded-2xl"
+    class="rounded-2xl max-sm:py-4 md:py-2"
     mode="drawer"
     :toggle="{ color: 'primary', variant: 'subtle', class: 'rounded-full' }"
   >

@@ -136,7 +136,7 @@
           </div>
 
           <!-- Détails de l'événement -->
-          <UCard class="p-6">
+          <UCard class="p-2 md:p-6">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div class="lg:col-span-2">
                 <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{{ event.title }}</h1>

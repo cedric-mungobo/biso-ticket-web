@@ -1,143 +1,72 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-br from-secondary-50 via-white to-primary-50">
+  <div class=" h-full md:py-18  flex items-center justify-center p-4">
     <div class="w-full max-w-md">
-      <!-- Logo et titre -->
-      <div class="text-center mb-8">
-        <NuxtLink to="/" class="inline-block">
-          <h1 class="text-2xl font-bold text-primary-700 mb-2">Biso Ticket</h1>
-        </NuxtLink>
-        <p class="text-neutral-600">Créez votre compte</p>
-      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+        <!-- Icône utilisateur -->
+        <div class="flex justify-center mb-6">
+          <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+            <NuxtImg src="/logo.png" alt="Biso Ticket" class="w-10 h-10 object-contain" />
 
-      <!-- Formulaire d'inscription -->
-      <div class="rounded-2xl p-8 shadow-xl border border-neutral-200/60 bg-white/90 backdrop-blur">
-        <form @submit.prevent="handleRegister" class="flex flex-col gap-4">
+          </div>
+        </div>
+
+        <!-- En-tête -->
+        <div class="text-center mb-8">
+          <h1 class="text-2xl font-semibold text-gray-900 mb-2">Inscription</h1>
+          <p class="text-gray-600">Créez votre compte pour commencer.</p>
+        </div>
+
+        <!-- Formulaire -->
+        <form @submit.prevent="handleRegister" class="space-y-4">
           <!-- Nom complet -->
           <div>
-            <label for="name" class="block text-sm font-medium text-primary-950 mb-2">
-              Nom complet
-            </label>
-            <input
-              id="name"
-              v-model="form.name"
-              type="text"
-              required
-              class="w-full px-4 py-3 border border-secondary-600/50 rounded-lg text-primary-500 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-              placeholder="Entrez votre nom complet"
-              :disabled="isLoading"
-            />
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
+            <UInput id="name" v-model="form.name" type="text" required placeholder="Entrez votre nom complet" class="w-full    rounded-md focus:outline-none focus:ring-2 " />
           </div>
 
-          <!-- Numéro de téléphone -->
+          <!-- Téléphone -->
           <div>
-            <label for="telephone" class="block text-sm font-medium text-primary-950 mb-2">
-              Numéro de téléphone
-            </label>
-            <input
-              id="telephone"
-              v-model="form.telephone"
-              type="tel"
-              required
-              class="w-full px-4 py-3 border border-secondary-600/50 rounded-lg text-primary-500 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-              placeholder="Ex: +243 900 000 000"
-              :disabled="isLoading"
-            />
+            <label for="telephone" class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+            <UInput id="telephone" v-model="form.telephone" type="tel" required placeholder="Ex: +243 900 000 000" class="w-full    rounded-md " />
           </div>
 
           <!-- Email -->
           <div>
-            <label for="email" class="block text-sm font-medium text-primary-950 mb-2">
-              Adresse email
-            </label>
-            <input
-              id="email"
-              v-model="form.email"
-              type="email"
-              required
-              class="w-full px-4 py-3 border border-secondary-600/50 rounded-lg text-primary-500 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-              placeholder="Entrez votre adresse email"
-              :disabled="isLoading"
-            />
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <UInput id="email" v-model="form.email" type="email" required placeholder="Entrez votre email" class="w-full    rounded-md " />
           </div>
 
           <!-- Mot de passe -->
           <div>
-            <label for="password" class="block text-sm font-medium text-primary-950 mb-2">
-              Mot de passe
-            </label>
-            <input
-              id="password"
-              v-model="form.password"
-              type="password"
-              required
-              class="w-full px-4 py-3 border border-secondary-600/50 rounded-lg text-primary-500 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-              placeholder="Créez un mot de passe sécurisé"
-              :disabled="isLoading"
-            />
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+            <UInput id="password" v-model="form.password" type="password" required placeholder="Créez un mot de passe sécurisé" class="w-full    rounded-md " />
           </div>
 
-          <!-- Confirmation du mot de passe -->
-          <div>
-            <label for="password_confirmation" class="block text-sm font-medium text-primary-950 mb-2">
-              Confirmer le mot de passe
-            </label>
-            <input
-              id="password_confirmation"
-              v-model="form.password_confirmation"
-              type="password"
-              required
-              class="w-full px-4 py-3 border border-secondary-600/50 rounded-lg text-primary-500 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-              placeholder="Confirmez votre mot de passe"
-              :disabled="isLoading"
-            />
-          </div>
+          
 
-          <!-- Validation des mots de passe -->
-          <div v-if="form.password && form.password_confirmation" class="text-sm">
-            <div v-if="passwordsMatch" class="text-green-600">
-              ✓ Les mots de passe correspondent
-            </div>
-            <div v-else class="text-red-600">
-              ✗ Les mots de passe ne correspondent pas
-            </div>
-          </div>
-
-          <!-- Bouton d'inscription -->
-          <button
+          <!-- Bouton -->
+          <UButton
             type="submit"
-            :disabled="isLoading || !passwordsMatch || !isFormValid"
-            class="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-primary-500/50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center mt-6"
+            block
+            color="primary"
+            size="lg"
+            :disabled="isLoading || !isFormValid"
+            :loading="isLoading"
+            icon="i-heroicons-arrow-right-16-solid"
           >
-            <span v-if="isLoading" class="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-            {{ isLoading ? 'Création du compte...' : 'Créer mon compte' }}
-          </button>
+            Créer mon compte
+          </UButton>
 
-          <!-- Message d'erreur (sanitisé) -->
-          <div v-if="uiError" class="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-            {{ uiError }}
-          </div>
-
-          <!-- Message de succès -->
-          <div v-if="success" class="text-green-400 text-sm text-center bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-            {{ success }}
-          </div>
+          <!-- Erreur / Succès -->
+          <!-- Erreur alimentée par toast: on laisse ce bloc optionnel vide pour l'instant -->
+          <div v-if="success" class="text-green-600 text-sm text-center bg-green-50 border border-green-200 rounded-lg p-3">{{ success }}</div>
         </form>
 
-        <!-- Lien vers la connexion -->
+        <!-- Lien connexion -->
         <div class="mt-6 text-center">
-          <p class="text-neutral-400 text-sm">
-            Déjà un compte ?
-            <NuxtLink to="/connexion" class="text-primary-400 hover:text-primary-300 font-medium transition-colors duration-200">
-              Se connecter
-            </NuxtLink>
+          <p class="text-gray-500 text-sm">Déjà un compte ?
+            <NuxtLink to="/connexion" class="text-primary-600 hover:text-primary-500 font-medium">Se connecter</NuxtLink>
           </p>
-        </div>
-
-        <!-- Retour à l'accueil -->
-        <div class="mt-4 text-center">
-          <NuxtLink to="/" class="text-neutral-500 hover:text-neutral-400 text-sm transition-colors duration-200">
-            ← Retour à l'accueil
-          </NuxtLink>
         </div>
       </div>
     </div>
@@ -147,61 +76,71 @@
 <script lang="ts" setup>
 import { ref, reactive, computed } from 'vue'
 
-// Meta de la page
+// Meta
 definePageMeta({
   title: 'Inscription - Biso Ticket',
   description: 'Créez votre compte Biso Ticket',
   middleware: ['guest']
 })
 
-// État du formulaire
+// Form state
 const form = reactive({
   name: '',
   telephone: '',
   email: '',
-  password: '',
-  password_confirmation: ''
+  password: ''
 })
 
-// État de l'interface
 const success = ref('')
+const isLoading = ref(false)
 
 // Composables
 const { register } = useAuth()
 const router = useRouter()
+const toast = useToast()
 
-// useAsyncData pour l'appel register (exécution manuelle)
-const { pending: isLoading, error: errorAsync, execute } = await useAsyncData('auth:register', () =>
-  register({
-    name: form.name,
-    email: form.email,
-    telephone: form.telephone,
-    password: form.password
-  })
-, { immediate: false, server: false })
+const emailRegex = /[^\s@]+@[^\s@]+\.[^\s@]+/
+const phoneIntl = /^\+?[1-9][0-9]{6,14}$/
 
-const uiError = computed(() => (errorAsync.value as any)?.data?.message || '')
+const isFormValid = computed(() => !!(form.name && form.telephone && form.email && form.password))
 
-// Computed properties pour la validation
-const passwordsMatch = computed(() => {
-  return form.password && form.password_confirmation && form.password === form.password_confirmation
-})
-
-const isFormValid = computed(() => {
-  return form.name && form.telephone && form.email && form.password && form.password_confirmation
-})
-
-// Gestion de l'inscription
-const handleRegister = async () => {
-  success.value = ''
-  if (!passwordsMatch.value) {
-    // on s'appuie sur l'UI pour indiquer l'erreur
-    return
+const extractErrorMessage = (e: any): string => {
+  const direct = e?.data?.message || e?.response?._data?.message || e?.message
+  if (direct) return String(direct)
+  const errors = (e?.data?.errors || e?.response?._data?.errors) as Record<string, unknown> | undefined
+  if (errors && typeof errors === 'object') {
+    const keys = Object.keys(errors)
+    if (keys.length > 0) {
+      const firstKey = keys[0] as keyof typeof errors
+      const first = errors[firstKey]
+      if (Array.isArray(first) && first.length) return String(first[0])
+      if (typeof first === 'string') return first as string
+    }
   }
-  await execute()
-  if (!errorAsync.value) {
+  return 'Une erreur est survenue.'
+}
+
+const handleRegister = async () => {
+  try {
+    success.value = ''
+    if (!form.name.trim()) return toast.add({ title: 'Nom requis', description: 'Veuillez saisir votre nom.', color: 'warning' })
+    if (!emailRegex.test(form.email.trim())) return toast.add({ title: 'Email invalide', description: 'Saisissez une adresse email valide.', color: 'error' })
+    if (!phoneIntl.test(form.telephone.replace(/\s/g, ''))) return toast.add({ title: 'Téléphone invalide', description: 'Saisissez un numéro valide (international).', color: 'error' })
+    isLoading.value = true
+    await register({
+      name: form.name.trim(),
+      email: form.email.trim(),
+      telephone: form.telephone.trim(),
+      password: form.password
+    })
     success.value = 'Compte créé avec succès ! Redirection...'
+    toast.add({ title: 'Bienvenue', description: 'Votre compte a été créé.' })
     await router.push('/')
+  } catch (e: any) {
+    const message = extractErrorMessage(e)
+    toast.add({ title: 'Inscription échouée', description: message, color: 'error' })
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
