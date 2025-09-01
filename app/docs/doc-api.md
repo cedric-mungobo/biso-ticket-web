@@ -9,7 +9,7 @@ Créer une plateforme SaaS permettant aux organisateurs d'événements de :
 * Gérer les invitations électroniques.
 * Gérer la billetterie (gratuit et payant).
 * Contrôler l'accès aux événements sur site via application mobile offline et site client.
-* Vendre et gérer les billets en ligne  via FlexPay.
+* Vendre et gérer les billets en ligne  via FlexPay.
 * Suivre les ventes, statistiques et commissions.
 
 ---
@@ -73,39 +73,109 @@ Base URL: `http://api.bisoticket.com/api	`
   - GET `/api/public/events/{slug}/tickets?per_page=15` → billets disponibles
 
 - Auth (client)
-  - RECOMMANDÉ (une requête): `POST /api/client/events/{event}/orders/purchase-and-pay`
+  - POST `/api/client/events/{event}/orders` → créer commande (pending)
+    - body: `{ items: [{ ticket_id, quantity }, ...] }`
+  - GET `/api/client/events/{event}/orders/{order}` → voir commande (client propriétaire)
+  - POST `/api/client/events/{event}/orders/{order}/payments` → initier paiement (FlexPay/cash)
+    - body: `{ method, currency, phone_number?, channel? (webapi|mobile_app|pos), metadata? }`
+    - notes:
+      - `status`/`reference`/`amount` sont générés côté serveur.
+      - `phone_number` format E.164 local FlexPay: 243XXXXXXXXX.
+      - `channel` est la source (ex: `webapi`), `payment_provider` le prestataire (ex: `flexpay`).
+
+  - POST `/api/client/events/{event}/orders/purchase-and-pay` → créer et payer en une requête
     - body:
 ```json
 {
   "items": [ { "ticket_id": 123, "quantity": 1 } ],
   "payment": {
-    "method": "mobile_money",          
-    "currency": "CDF",                 
-    "phone_number": "243826785727",    
-    "channel": "webapi",               
-    "payment_provider": "flexpay",     
-    "metadata": { "note": "checkout" }
+    "method": "mobile_money",
+    "currency": "CDF",
+    "phone_number": "243826785727",
+    "channel": "webapi"
   }
 }
 ```
     - 201: `{ status, message, data: { order: {...}, payment: {...} } }`
-    - Notes:
-      - Le serveur calcule le montant total et génère `reference`/`amount`.
-      - Montant minimal FlexPay: `FLEXPAY_MIN_AMOUNT_CDF` / `FLEXPAY_MIN_AMOUNT_USD`.
-      - Le push STK/USSD peut prendre 30–90s. La réponse inclut souvent `data.payment.metadata.flexpay` (`{ code, message, orderNumber }`).
+    - en cas de succès FlexPay, `data.payment.metadata.flexpay` contient `{ code, message, orderNumber }`.
 
-  - ALTERNATIVE (deux étapes):
-    1) Créer la commande: `POST /api/client/events/{event}/orders`
-       - body: `{ items: [{ ticket_id, quantity }, ...] }`
-       - 201: `{ status, message, data: { ...order } }`
-    2) Initier paiement: `POST /api/client/events/{event}/orders/{order}/payments`
-       - body: `{ method, currency, phone_number?, channel?, metadata? }`
-       - 201: `{ status, message, data: { ...payment } }`
+Exemple cURL (une requête):
+```bash
+curl -X POST 'http://bisoticket-backend.test/api/client/events/{EVENT_ID}/orders/purchase-and-pay' \
+  -H 'Authorization: Bearer {TOKEN}' \
+  -H 'Accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "items":[{"ticket_id": {TICKET_ID}, "quantity": 1}],
+    "payment":{
+      "method":"mobile_money",
+      "currency":"CDF",
+      "phone_number":"243826785727",
+      "channel":"webapi",
+      "payment_provider":"flexpay"
+    }
+  }'
+```
 
 Notes FlexPay:
-- Format téléphone E.164 local: `243XXXXXXXXX` (sans `+`).
-- `channel` identifie la source (`webapi`, `mobile_app`, `pos`).
-- En cas de montant nul (tickets gratuits), aucun paiement n'est requis: seule la création d'order est effectuée.
+- Montant minimal configurable via env: `FLEXPAY_MIN_AMOUNT_CDF` (défaut 1000), `FLEXPAY_MIN_AMOUNT_USD` (défaut 1). L’API bloque en dessous.
+- Le serveur génère `reference`/`amount` et calcule le total depuis les items (conversion devise si nécessaire).
+- Le push STK/USSD peut prendre 30–90s selon l’opérateur. Les métadonnées incluent `metadata.flexpay.orderNumber`.
+
+### Vérifier le statut d’un paiement (client)
+- GET `/api/client/payments/check?reference=...` ou `/api/client/payments/check?order_number=...`
+  - 200: `{ status, message, data: { code, message, status: 'paid'|'failed'|null, orderNumber, reference } }`
+  - Notes: appelle FlexPay `check`, et si succès (`status=paid`), met à jour `payments.status=paid` et `orders.status=paid`.
+
+### Mes tickets (client)
+- GET `/api/client/tickets?per_page=15`
+  - Auth Sanctum requis
+  - Retourne tous les items des commandes payées de l’utilisateur courant
+  - 200:
+```json
+{
+  "status": true,
+  "message": "Tickets payés",
+  "data": {
+    "data": [
+      {
+        "id": 123,
+        "event": {
+          "id": 5,
+          "title": "Concert Biso",
+          "startsAt": "2025-02-01T18:00:00Z",
+          "endsAt": "2025-02-01T22:00:00Z",
+          "imageUrl": "https://.../storage/events/5.jpg"
+        },
+        "ticket": {
+          "id": 9,
+          "name": "VIP",
+          "price": 50,
+          "currency": "USD"
+        },
+        "quantity": 1,
+        "qrCode": "QRCODE_BASE64_OU_TEXTE",
+        "createdAt": "2025-02-01T18:05:00Z"
+      }
+    ],
+    "current_page": 1,
+    "last_page": 1,
+    "per_page": 15,
+    "total": 1
+  }
+}
+```
+
+Exemple cURL:
+```bash
+curl -s 'http://bisoticket-backend.test/api/client/tickets?per_page=20' \
+  -H 'Accept: application/json' \
+  -H 'Authorization: Bearer {TOKEN}'
+```
+
+Notes:
+- Les items listés sont uniquement ceux dont la commande est payée.
+- Le champ `qrCode` est présent côté item lorsque l’`order.status` est `paid`.
 
 ---
 
@@ -252,9 +322,9 @@ Notes
 ### Billets
 - GET `/api/events/{event}/tickets?per_page=15` → pagination `Ticket`
 - POST `/api/events/{event}/tickets` → 201 `Ticket`
-- GET `/api/events/{event}/tickets/{ticket}` → `Ticket`
-- PUT/PATCH `/api/events/{event}/tickets/{ticket}` → `Ticket`
-- DELETE `/api/events/{event}/tickets/{ticket}` → `{ status, message }`
+- GET `/api/tickets/{ticket}` → `Ticket` (shallow)
+- PUT/PATCH `/api/tickets/{ticket}` → `Ticket` (shallow)
+- DELETE `/api/tickets/{ticket}` → `{ status, message }` (shallow)
 
 Ticket (resource)
 ```json
@@ -271,6 +341,73 @@ Ticket (resource)
 }
 ```
 
+Payload (création)
+```json
+{
+  "name": "VIP",
+  "price": 50,
+  "currency": "USD",
+  "quantity": 200
+}
+```
+
+Exemple cURL (création)
+```bash
+curl -X POST 'http://api.bisoticket.com/api/\
+events/{event}/tickets' \
+  -H 'Authorization: Bearer {TOKEN}' \
+  -H 'Accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "VIP",
+    "price": 50,
+    "currency": "USD",
+    "quantity": 200
+  }'
+```
+
+Payload (mise à jour)
+```json
+{
+  "name": "VIP Updated",
+  "price": 60,
+  "currency": "CDF",
+  "quantity": 180
+}
+```
+
+Exemple cURL (mise à jour, shallow)
+```bash
+curl -X PUT 'http://api.bisoticket.com/api/tickets/{ticket}' \
+  -H 'Authorization: Bearer {TOKEN}' \
+  -H 'Accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "VIP Updated",
+    "price": 60,
+    "currency": "CDF",
+    "quantity": 180
+  }'
+```
+
+Règles métier (tickets)
+- `commissionRate` et `qrCode` ne sont pas modifiables via l'API (création/édition). Toute tentative est ignorée.
+- Tentative de changement de `currency` lorsqu'il existe déjà des réservations pour le billet (commandes ou ventes offline) → erreur 422 avec un message de validation.
+- Champs d’update autorisés: `name`, `price`, `currency` (`USD|CDF|null`), `quantity`.
+
+Exemple d’erreur 422 (changement de devise avec réservations)
+```json
+{
+  "status": false,
+  "message": "Erreur de validation",
+  "errors": {
+    "currency": [
+      "Impossible de changer la devise: des réservations existent déjà pour ce billet."
+    ]
+  }
+}
+```
+
 ### Invitations
 - GET `/api/events/{event}/invitations?per_page=15` → pagination `Invitation`
 - POST `/api/events/{event}/invitations` → 201 `Invitation`
@@ -280,11 +417,54 @@ Ticket (resource)
 
 Note: si `invitation_template_id` n’est pas fourni lors de la création, l’API applique automatiquement `settings.default_invitation_template_id` de l’événement.
 
+Invitation (resource)
+```json
+{
+  "id": 1,
+  "eventId": 1,
+  "invitationTemplateId": 2,
+  "guestName": "John",
+  "guestEmail": "john@example.com",
+  "guestPhone": "+243...",
+  "guestTableName": "Table A",
+  "token": "...",
+  "status": "pending|sent|confirmed|cancelled",
+  "sentAt": null,
+  "viewedAt": null,
+  "confirmedAt": null,
+  "metadata": {},
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
 ### Templates d’invitation (lecture seule côté API)
 - GET `/api/invitation-templates?per_page=15` → pagination `InvitationTemplate`
 - GET `/api/invitation-templates/{id}` → `InvitationTemplate`
 
 Note: la création, la mise à jour et la suppression des templates se font uniquement via le back-office (routes web `/admin/templates`). Aucune route API n’expose le CRUD.
+
+InvitationTemplate (resource)
+```json
+{
+  "id": 5,
+  "organizerId": 1,
+  "title": "Classique",
+  "designKey": "classic_v1",
+  "previewImageUrl": "https://.../storage/templates/classic.png",
+  "isDefault": false,
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
+Upload image de prévisualisation
+- Champ fichier: `preview_image` (multipart/form-data)
+- Champs texte: `title`, `design_key`, `is_default`
+- Le backend stocke le fichier dans le disque `public` et renvoie `previewImageUrl`.
+
+Notes
+- Les endpoints ci-dessus sont protégés (admin). Le back-office utilise des routes web `/admin/templates` pour gérer les templates, mais l’API reste disponible pour intégrations programmatiques.
 
 ### Crédits d'invitation (auth)
 - POST `/api/credits/purchase-and-pay` → 201 `{ reference, amount, currency, orderNumber, provider }`
@@ -304,9 +484,43 @@ Notes
 - GET `/api/events/{event}/orders/{order}` → `Order` (avec `items`)
 - DELETE `/api/events/{event}/orders/{order}` → `{ status, message }`
 
+Order (resource)
+```json
+{
+  "id": 10,
+  "eventId": 1,
+  "customerId": 5,
+  "totalAmount": 150,
+  "status": "pending|paid|cancelled",
+  "items": [ { "id": 1, "ticketId": 3, "quantity": 2, "unitPrice": 50 /*, "qrCode": "..." si paid */ } ],
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
+Note: quand la commande est `paid`, chaque item peut inclure `qrCode`.
+
 ### Paiements
 - GET `/api/events/{event}/orders/{order}/payments?per_page=15` → pagination `Payment`
 - POST `/api/events/{event}/orders/{order}/payments` → 201 `Payment`
+
+Payment (resource)
+```json
+{
+  "id": 1,
+  "orderId": 10,
+  "method": "flexpay|cash|...",
+  "status": "pending|confirmed|failed",
+  "reference": "REF-...",
+  "amount": 150,
+  "currency": "CDF",
+  "paidAt": null,
+  "metadata": {},
+  "transactions": [],
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
 
 ### Commissions
 - GET `/api/commissions?per_page=15` → pagination `Commission`

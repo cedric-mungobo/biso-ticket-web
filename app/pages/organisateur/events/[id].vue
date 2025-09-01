@@ -1,7 +1,7 @@
 <template>
   <OrganizerNavigation>
     <div class="">
-      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between mb-6">
           <div>
             <NuxtLink
@@ -18,7 +18,7 @@
             </h1>
           </div>
           <div class="flex flex-wrap items-center gap-2">
-            <UButton :to="`#tickets`" variant="solid" size="md" color="primary" class="shadow-sm">
+            <UButton @click="showTicketsList = true" variant="solid" size="md" color="primary" class="shadow-sm">
               <UIcon name="i-heroicons-ticket" class="w-4 h-4 mr-1" /> Voir les tickets
             </UButton>
             <UButton @click="openCreateTicket()" variant="solid" size="md" color="success" class="shadow-sm">
@@ -35,20 +35,20 @@
             </UButton>
           </div>
         </div>
-
+        
         <div v-if="isLoading" class="space-y-4">
           <USkeleton class="h-48 w-full" />
           <USkeleton class="h-6 w-1/2" />
           <USkeleton class="h-4 w-1/3" />
-        </div>
-
+            </div>
+            
         <div v-else-if="error" class="p-4 rounded-md bg-red-50 border border-red-200 text-red-800">
           {{ error }}
-        </div>
+      </div>
 
         <div v-else-if="!event" class="p-4 rounded-md bg-amber-50 border border-amber-200 text-amber-800">
           Événement introuvable ou indisponible.
-        </div>
+      </div>
 
         <div v-else class="space-y-6">
           <UCard class="overflow-hidden">
@@ -70,7 +70,7 @@
                   <UBadge v-if="event?.is_public" color="info" variant="soft">public</UBadge>
                 </div>
               </div>
-
+              
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
                   <p class="text-sm text-gray-500">Date</p>
@@ -81,7 +81,7 @@
                   <p class="text-gray-800 line-clamp-1">{{ event?.location || '—' }}</p>
                 </div>
               </div>
-
+              
               <div class="pt-4">
                 <p class="text-sm text-gray-500 mb-2">Aperçu</p>
                 <p class="text-gray-700 whitespace-pre-line">{{ event?.description || 'Aucune description fournie.' }}</p>
@@ -95,17 +95,17 @@
               <div class="flex items-center justify-between mb-3">
                 <h3 class="text-base font-semibold text-gray-900">Tickets</h3>
                 <span class="text-xs text-gray-500" v-if="tickets && tickets.length">{{ tickets.length }} types</span>
-              </div>
+        </div>
 
               <div v-if="ticketsLoading" class="space-y-2">
                 <USkeleton class="h-6 w-full" />
                 <USkeleton class="h-6 w-2/3" />
-              </div>
+          </div>
 
               <div v-else-if="!tickets || tickets.length === 0" class="text-sm text-gray-500">
                 Aucun ticket configuré.
-              </div>
-
+          </div>
+          
               <div v-else class="space-y-2">
                 <div
                   v-for="t in tickets"
@@ -115,12 +115,12 @@
                   <div class="flex items-center gap-2">
                     <span class="text-sm font-medium text-gray-900">{{ t.type }}</span>
                     <UBadge variant="soft">{{ t.quantity }} disponibles</UBadge>
-                  </div>
+          </div>
                   <div class="flex items-center gap-2">
                     <div class="text-sm font-semibold text-gray-900">
                       {{ t.price }} {{ t.devise || 'USD' }}
-                    </div>
-                    <UButton size="xs" variant="ghost" color="primary" @click="openViewTicket(t)">
+        </div>
+                    <UButton size="xs" variant="ghost" color="primary" @click="openEditTicket(t)">
                       <UIcon name="i-heroicons-eye" class="w-4 h-4" />
                     </UButton>
                     <UButton size="xs" variant="ghost" color="warning" @click="openEditTicket(t)">
@@ -134,22 +134,40 @@
               </div>
             </div>
           </UCard>
-        </div>
-      </div>
+                  </div>
+                </div>
 
       <!-- Modals -->
-      <Modal v-model="showTicketView" title="Détails du ticket">
-        <div class="space-y-2">
-          <div class="text-sm text-gray-600">
-            <div><span class="font-medium">Type:</span> {{ currentTicket?.type }}</div>
-            <div><span class="font-medium">Prix:</span> {{ currentTicket?.price }} {{ currentTicket?.devise }}</div>
-            <div><span class="font-medium">Quantité:</span> {{ currentTicket?.quantity }}</div>
+      <Modal v-model="showTicketsList" title="Liste des tickets">
+        <div class="space-y-2 max-h-[60vh] overflow-auto">
+          <div v-if="ticketsLoading" class="space-y-2">
+            <USkeleton class="h-6 w-full" />
+            <USkeleton class="h-6 w-2/3" />
+                </div>
+          <div v-else-if="!tickets || tickets.length === 0" class="text-sm text-gray-500">Aucun ticket configuré.</div>
+          <div v-else class="divide-y divide-gray-100">
+            <div v-for="t in tickets" :key="t.id" class="flex items-center justify-between py-2">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-900">{{ t.type }}</span>
+                <UBadge variant="soft">{{ t.quantity }} dispo</UBadge>
+                <span class="text-sm text-gray-700">{{ t.price }} {{ t.devise || 'USD' }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <UButton size="xs" variant="ghost" color="primary" @click="openViewTicket(t)">
+                  <UIcon name="i-heroicons-eye" class="w-4 h-4" />
+                </UButton>
+                <UButton size="xs" variant="ghost" color="warning" @click="openEditTicket(t)">
+                  <UIcon name="i-heroicons-pencil-square" class="w-4 h-4" />
+                </UButton>
+                <UButton size="xs" variant="ghost" color="error" @click="openDeleteTicket(t)">
+                  <UIcon name="i-heroicons-trash" class="w-4 h-4" />
+                </UButton>
+              </div>
+            </div>
           </div>
         </div>
-        <template #footer>
-          <UButton variant="ghost" @click="showTicketView=false">Fermer</UButton>
-        </template>
       </Modal>
+      
       <Modal v-model="showTicketCreate" title="Ajouter un ticket">
         <TicketForm v-model="ticketForm" :submitting="submitting" submit-label="Ajouter" @cancel="showTicketCreate=false" @submit="handleCreateTicket" />
       </Modal>
@@ -212,15 +230,29 @@ const showTicketCreate = ref(false)
 const showTicketEdit = ref(false)
 const showTicketDelete = ref(false)
 const showEventEdit = ref(false)
+const showTicketsList = ref(false)
 
 const currentTicket = ref<any>(null)
 const ticketForm = ref<any>({ type: '', price: 0, quantity: 1, devise: 'USD' })
 const eventForm = ref<any>({})
 const submitting = ref(false)
 
+const getApiErrorMessage = (err: any): string => {
+  const response = err?.response
+  const data = response?._data || response?.data
+  if (data?.message) return String(data.message)
+  if (data?.errors) {
+    if (Array.isArray(data.errors)) return data.errors.join(', ')
+    const values = Object.values(data.errors as Record<string, any>)
+    const flat = ([] as any[]).concat(...values as any)
+    if (flat.length) return String(flat[0])
+  }
+  return String(err?.message || 'Erreur inattendue')
+}
+
 const openViewTicket = (t: any) => {
-  currentTicket.value = t
-  showTicketView.value = true
+  // Vue individuelle supprimée, on ouvre directement l'édition
+  openEditTicket(t)
 }
 
 const openCreateTicket = () => {
@@ -231,11 +263,13 @@ const openCreateTicket = () => {
 const openEditTicket = (t: any) => {
   currentTicket.value = t
   ticketForm.value = { ...t }
+  showTicketsList.value = false
   showTicketEdit.value = true
 }
 
 const openDeleteTicket = (t: any) => {
   currentTicket.value = t
+  showTicketsList.value = false
   showTicketDelete.value = true
 }
 
@@ -256,10 +290,13 @@ const handleCreateTicket = async (payload: any) => {
     submitting.value = true
     // add via existing addTicket from repository
     const { addTicket } = useOrganizerEvents()
+    if (process.dev) console.log('[UI] handleCreateTicket → payload (UI):', JSON.stringify(payload))
     await addTicket(eventId, payload)
     showTicketCreate.value = false
     await refreshTickets()
     toast.add({ title: 'Ticket ajouté', description: 'Le ticket a été créé avec succès.', color: 'success' })
+  } catch (e: any) {
+    toast.add({ title: 'Erreur lors de la création du ticket', description: getApiErrorMessage(e), color: 'error' })
   } finally {
     submitting.value = false
   }
@@ -269,10 +306,13 @@ const handleUpdateTicket = async (payload: any) => {
   if (!currentTicket.value) return
   try {
     submitting.value = true
+    if (process.dev) console.log('[UI] handleUpdateTicket → ticketId:', currentTicket.value.id, 'payload (UI):', JSON.stringify(payload))
     await updateTicket(eventId, currentTicket.value.id, payload)
     showTicketEdit.value = false
     await refreshTickets()
     toast.add({ title: 'Ticket mis à jour', description: 'Le ticket a été modifié avec succès.', color: 'success' })
+  } catch (e: any) {
+    toast.add({ title: 'Erreur lors de la mise à jour', description: getApiErrorMessage(e), color: 'error' })
   } finally {
     submitting.value = false
   }
@@ -285,6 +325,9 @@ const handleDeleteTicket = async () => {
     await deleteTicket(eventId, currentTicket.value.id)
     showTicketDelete.value = false
     await refreshTickets()
+    toast.add({ title: 'Ticket supprimé', description: 'Le ticket a été supprimé avec succès.', color: 'success' })
+  } catch (e: any) {
+    toast.add({ title: 'Erreur lors de la suppression', description: getApiErrorMessage(e), color: 'error' })
   } finally {
     submitting.value = false
   }
@@ -304,6 +347,8 @@ const handleUpdateEvent = async (payload: any) => {
     showEventEdit.value = false
     await fetchEventWithState(eventId)
     toast.add({ title: 'Événement mis à jour', description: 'Les informations de l’événement ont été enregistrées.', color: 'success' })
+  } catch (e: any) {
+    toast.add({ title: 'Erreur lors de la mise à jour de l’événement', description: getApiErrorMessage(e), color: 'error' })
   } finally {
     submitting.value = false
   }
@@ -314,9 +359,10 @@ const onDelete = async () => {
   if (confirm('Supprimer cet événement ? Cette action est irréversible.')) {
     try {
       await deleteEvent(eventId)
+      toast.add({ title: 'Événement supprimé', description: 'L’événement a été supprimé.', color: 'success' })
       await router.push('/organisateur/my-events')
     } catch (e) {
-      alert('Erreur lors de la suppression')
+      toast.add({ title: 'Erreur lors de la suppression', description: getApiErrorMessage(e), color: 'error' })
     }
   }
 }

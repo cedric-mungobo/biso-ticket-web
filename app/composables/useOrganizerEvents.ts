@@ -136,6 +136,11 @@ export const useOrganizerEvents = () => {
       quantity: Number((ticketData as any).quantity || 0),
       commissionRate: (ticketData as any).commissionRate
     }
+    if (process.dev) {
+      // Log clair du payload envoyé (conformément à la doc API Tickets)
+      console.log('[Repo] addTicket → URL:', `/events/${eventId}/tickets`)
+      console.log('[Repo] addTicket → payload:', JSON.stringify(normalized))
+    }
     const response = await $myFetch<{ ticket: Ticket }>(`/events/${eventId}/tickets`, { method: 'POST', body: normalized })
     return response.ticket
   }
@@ -154,19 +159,31 @@ export const useOrganizerEvents = () => {
   }
 
   const updateTicket = async (eventId: number, ticketId: number, ticketData: Partial<TicketCreateRequest | CreateTicketData>): Promise<Ticket> => {
-    const body: any = {
-      name: (ticketData as any).name ?? (ticketData as any).type,
-      price: (ticketData as any).price,
-      currency: (ticketData as any).currency ?? (ticketData as any).devise,
-      quantity: (ticketData as any).quantity,
-      commissionRate: (ticketData as any).commissionRate
+    // Mapper UI -> API et n'envoyer que les champs définis (doc: name, price, currency, quantity, commissionRate)
+    const maybe = (v: any) => (v === undefined || v === null ? undefined : v)
+    const body: Record<string, any> = {}
+    const name = (ticketData as any).name ?? (ticketData as any).type
+    const price = (ticketData as any).price
+    const currency = (ticketData as any).currency ?? (ticketData as any).devise
+    const quantity = (ticketData as any).quantity
+    const commissionRate = (ticketData as any).commissionRate
+    if (maybe(name) !== undefined) body.name = String(name)
+    if (maybe(price) !== undefined) body.price = Number(price)
+    if (maybe(currency) !== undefined) body.currency = String(currency)
+    if (maybe(quantity) !== undefined) body.quantity = Number(quantity)
+    if (maybe(commissionRate) !== undefined) body.commissionRate = Number(commissionRate)
+
+    if (process.dev) {
+      console.log('[Repo] updateTicket → URL:', `/tickets/${ticketId}`)
+      console.log('[Repo] updateTicket → payload:', JSON.stringify(body))
     }
-    const res = await $myFetch<{ ticket: Ticket }>(`/events/${eventId}/tickets/${ticketId}`, { method: 'PUT', body })
-    return res.ticket
+    const res = await $myFetch<any>(`/tickets/${ticketId}`, { method: 'PUT', body })
+    const payload = unwrap<any>(res)
+    return payload?.ticket ?? payload
   }
 
   const deleteTicket = async (eventId: number, ticketId: number): Promise<boolean> => {
-    await $myFetch(`/events/${eventId}/tickets/${ticketId}`, { method: 'DELETE' })
+    await $myFetch(`/tickets/${ticketId}`, { method: 'DELETE' })
     return true
   }
 
