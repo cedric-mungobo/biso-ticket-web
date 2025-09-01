@@ -72,7 +72,7 @@
       </div>
 
       <!-- Section d'information -->
-      <div class="mt-8 lg:mt-12 bg-primary-50 rounded-lg p-4 lg:p-6">
+      <div class="mt-8 lg:mt-12 bg-white rounded-lg p-4 lg:p-6">
         <div class="text-center">
           <h3 class="text-base lg:text-lg font-medium text-primary-900 mb-2">
             Devenez organisateur d'événements
