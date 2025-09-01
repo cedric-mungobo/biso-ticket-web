@@ -1,4 +1,4 @@
-import type { Event, PaginatedResponse } from '~/types/api'
+import type { Event, PaginatedResponse, ApiResponse } from '~/types/api'
 
 // Repository sans state/loading/error
 export const useEvents = () => {
@@ -11,27 +11,36 @@ export const useEvents = () => {
     category?: string
     date_filter?: 'today' | 'tomorrow' | 'this_week' | 'all'
   } = {}) => {
-    return $myFetch<PaginatedResponse<Event>>('/public/events', {
+    const res = await $myFetch<ApiResponse<PaginatedResponse<Event>> | PaginatedResponse<Event>>('/public/events', {
       method: 'GET',
       params
     })
+    // Déballer l'enveloppe standard { status, message, data }
+    const payload = (res as any)?.data ?? res
+    if (process.client) {
+      console.log('[API] /public/events', { params, raw: res, payload, items: payload?.items?.length })
+    }
+    return payload as PaginatedResponse<Event>
   }
 
   const fetchEventBySlug = async (slug: string): Promise<Event> => {
-    const response = await $myFetch<{ event: Event }>(`/public/events/${slug}`, {
-      method: 'GET'
-    })
-    return response.event
+    const res = await $myFetch<ApiResponse<Event> | Event>(`/public/events/${slug}`, { method: 'GET' })
+    const event = (res as any)?.data ?? res
+    if (process.client) console.log('[API] /public/events/:slug', { slug, raw: res, event })
+    return event as Event
   }
 
   const fetchEventTickets = async (slug: string, params: {
     per_page?: number
     page?: number
   } = {}) => {
-    return $myFetch<PaginatedResponse<any>>(`/public/events/${slug}/tickets`, {
+    const res = await $myFetch<ApiResponse<PaginatedResponse<any>> | PaginatedResponse<any>>(`/public/events/${slug}/tickets`, {
       method: 'GET',
       params
     })
+    const payload = (res as any)?.data ?? res
+    if (process.client) console.log('[API] /public/events/:slug/tickets', { slug, params, raw: res, payload })
+    return payload as PaginatedResponse<any>
   }
 
   const formatDate = (dateString: string): string => {

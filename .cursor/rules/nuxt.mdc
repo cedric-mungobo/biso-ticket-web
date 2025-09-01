@@ -40,4 +40,10 @@ alwaysApply: true
       UI and Styling
       - Use Nuxt UI and Tailwind CSS for components and styling.
       - Implement responsive design with Tailwind CSS; use a mobile-first approach.
+
+      Nuxt UI v4 References
+      - Installation & setup: https://ui4.nuxt.com/docs/getting-started/installation/nuxt
+      - Components catalog (110+): https://ui4.nuxt.com/docs/components
+      - Wrap root with <UApp> for Toast/Tooltip/Overlays
+      - Import CSS: @import "@nuxt/ui" after tailwind in your main css
       

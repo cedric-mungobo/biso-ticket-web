@@ -1,4 +1,9 @@
 @import "tailwindcss";
+@import "@nuxt/ui";
+
+:root {
+  --ui-header-height: var(--spacing-16);
+}
 
 @theme {
   --font-display: "Inter", "system-ui", "sans-serif";

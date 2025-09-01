@@ -1,17 +1,17 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center px-4 py-8">
+  <div class="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-br from-secondary-50 via-white to-primary-50">
     <div class="w-full max-w-md">
       <!-- Logo et titre -->
       <div class="text-center mb-8">
         <NuxtLink to="/" class="inline-block">
-          <h1 class="text-3xl font-bold text-primary-500 mb-2">Biso Ticket</h1>
+          <h1 class="text-2xl font-bold text-primary-700 mb-2">Biso Ticket</h1>
         </NuxtLink>
-        <p class="text-primary-950">Créez votre compte</p>
+        <p class="text-neutral-600">Créez votre compte</p>
       </div>
 
       <!-- Formulaire d'inscription -->
-      <div class="rounded-2xl p-8 border-1 border-primary-100">
-        <form @submit.prevent="handleRegister" class="space-y-5">
+      <div class="rounded-2xl p-8 shadow-xl border border-neutral-200/60 bg-white/90 backdrop-blur">
+        <form @submit.prevent="handleRegister" class="flex flex-col gap-4">
           <!-- Nom complet -->
           <div>
             <label for="name" class="block text-sm font-medium text-primary-950 mb-2">
@@ -30,16 +30,16 @@
 
           <!-- Numéro de téléphone -->
           <div>
-            <label for="phone" class="block text-sm font-medium text-primary-950 mb-2">
+            <label for="telephone" class="block text-sm font-medium text-primary-950 mb-2">
               Numéro de téléphone
             </label>
             <input
-              id="phone"
-              v-model="form.phone"
+              id="telephone"
+              v-model="form.telephone"
               type="tel"
               required
               class="w-full px-4 py-3 border border-secondary-600/50 rounded-lg text-primary-500 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-              placeholder="Ex: +33 6 12 34 56 78"
+              placeholder="Ex: +243 900 000 000"
               :disabled="isLoading"
             />
           </div>
@@ -157,7 +157,7 @@ definePageMeta({
 // État du formulaire
 const form = reactive({
   name: '',
-  phone: '',
+  telephone: '',
   email: '',
   password: '',
   password_confirmation: ''
@@ -174,10 +174,9 @@ const router = useRouter()
 const { pending: isLoading, error: errorAsync, execute } = await useAsyncData('auth:register', () =>
   register({
     name: form.name,
-    phone: form.phone,
     email: form.email,
-    password: form.password,
-    password_confirmation: form.password_confirmation
+    telephone: form.telephone,
+    password: form.password
   })
 , { immediate: false, server: false })
 
@@ -189,7 +188,7 @@ const passwordsMatch = computed(() => {
 })
 
 const isFormValid = computed(() => {
-  return form.name && form.phone && form.email && form.password && form.password_confirmation
+  return form.name && form.telephone && form.email && form.password && form.password_confirmation
 })
 
 // Gestion de l'inscription

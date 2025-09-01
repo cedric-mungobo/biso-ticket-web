@@ -7,6 +7,7 @@ interface UiTicket {
   type: string
   price: string | number
   devise?: string
+  currency?: string
   quantity?: number
   available?: number
   [key: string]: any
@@ -42,6 +43,7 @@ export const useTickets = () => {
   const selectedTicketsState = useState<Record<number, number>>('tickets/selected', () => ({}))
   const currentEventState = useState<UiEvent | null>('tickets/event', () => null)
   const currentReservationId = useState<string | null>('tickets/currentReservationId', () => null)
+  const currentOrderNumberState = useState<string | null>('tickets/currentOrderNumber', () => null)
 
   // Cookies pour persistance basique (SSR/CSR safe via useCookie)
   const selectedTicketsCookie = useCookie<Record<number, number> | undefined>('biso-selected-tickets', {
@@ -49,6 +51,7 @@ export const useTickets = () => {
   })
   const currentEventCookie = useCookie<UiEvent | undefined>('biso-current-event', { sameSite: 'lax' })
   const reservationIdCookie = useCookie<string | undefined>('biso-reservation-id', { sameSite: 'lax' })
+  const orderNumberCookie = useCookie<string | undefined>('biso-order-number', { sameSite: 'lax' })
 
   // Restauration initiale depuis les cookies (côté client uniquement)
   if (process.client) {
@@ -60,6 +63,9 @@ export const useTickets = () => {
     }
     if (reservationIdCookie.value) {
       currentReservationId.value = reservationIdCookie.value
+    }
+    if (orderNumberCookie.value) {
+      currentOrderNumberState.value = orderNumberCookie.value
     }
   }
 
@@ -76,9 +82,14 @@ export const useTickets = () => {
     reservationIdCookie.value = value || undefined
   })
 
+  watch(currentOrderNumberState, (value) => {
+    orderNumberCookie.value = value || undefined
+  })
+
   // Getters calculés
   const selectedTickets = computed(() => selectedTicketsState.value)
   const currentEvent = computed(() => currentEventState.value)
+  const currentOrderNumber = computed(() => currentOrderNumberState.value)
 
   const totalQuantity = computed(() => {
     return Object.values(selectedTickets.value).reduce((acc, qty) => acc + (qty || 0), 0)
@@ -90,6 +101,7 @@ export const useTickets = () => {
     if (event?.tickets && Object.keys(selectedTickets.value).length > 0) {
       const firstSelectedId = Number(Object.keys(selectedTickets.value)[0])
       const t = event.tickets.find(tk => tk.id === firstSelectedId)
+      if (t?.currency) return t.currency
       if (t?.devise) return t.devise
     }
     return event?.currency || 'USD'
@@ -201,6 +213,14 @@ export const useTickets = () => {
     selectedTicketsState.value = {}
   }
 
+  const resetCheckoutState = () => {
+    // Nettoyer la sélection, l'événement courant et les identifiants de réservation/commande
+    selectedTicketsState.value = {}
+    currentEventState.value = null
+    currentReservationId.value = null
+    currentOrderNumberState.value = null
+  }
+
   const startReservation = (): boolean => {
     if (!currentEvent.value || !hasSelectedTickets.value) return false
     const id = `RES-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
@@ -216,7 +236,7 @@ export const useTickets = () => {
 
   // Confirmation de réservation (appelle le service API)
   const confirmReservation = async (paymentData?: {
-    payment_method?: 'mobile_money' | 'card'
+    payment_method?: 'mobile_money' | 'card' | 'cash' | 'flexpay'
     payment_currency?: 'USD' | 'CDF'
     telephone?: string
   }): Promise<{ success: boolean; data?: any; error?: string }> => {
@@ -225,34 +245,16 @@ export const useTickets = () => {
       if (!event || !event.tickets) {
         return { success: false, error: 'Aucun événement sélectionné' }
       }
+      if (!event.id) {
+        return { success: false, error: 'Identifiant de l\'événement manquant' }
+      }
 
       const selectedArray = Object.entries(selectedTickets.value)
         .filter(([, qty]) => (qty || 0) > 0)
-        .map(([ticketIdStr, qty]) => ({ ticketId: Number(ticketIdStr), quantity: qty || 0 }))
+        .map(([ticketIdStr, qty]) => ({ ticket_id: Number(ticketIdStr), quantity: qty || 0 }))
 
       if (selectedArray.length === 0) {
         return { success: false, error: 'Aucun ticket sélectionné' }
-      }
-
-      // Construire la requête API
-      const baseRequest = {
-        tickets: selectedArray.map(it => ({ ticket_id: it.ticketId, quantity: it.quantity }))
-      } as any
-
-      if (hasPaidTickets.value) {
-        // Valider les champs requis pour tickets payants
-        if (!paymentData?.payment_method || !paymentData?.payment_currency) {
-          return { success: false, error: 'Méthode et devise de paiement requises' }
-        }
-        if (paymentData.payment_method === 'mobile_money' && !paymentData.telephone) {
-          return { success: false, error: 'Téléphone requis pour mobile money' }
-        }
-
-        baseRequest.payment_method = paymentData.payment_method
-        baseRequest.payment_currency = paymentData.payment_currency
-        if (paymentData.payment_method === 'mobile_money' && paymentData.telephone) {
-          baseRequest.telephone = paymentData.telephone
-        }
       }
 
       const { $customFetch, $myFetch, $api } = useNuxtApp() as any
@@ -261,16 +263,52 @@ export const useTickets = () => {
         return { success: false, error: 'Client HTTP non disponible' }
       }
 
-      const response = await http<any>('/tickets/simple/reserve', {
-        method: 'POST',
-        body: baseRequest
-      })
+      // Construire le body one-shot (purchase-and-pay)
+      const body: any = { items: selectedArray }
 
-      if (!response?.success) {
-        const message = response?.message || 'Réservation échouée'
-        return { success: false, error: message }
+      if (hasPaidTickets.value && paymentData?.payment_currency) {
+        // Méthode: FlexPay pour mobile money; pour card, conserver 'card' sinon fallback flexpay
+        const isMobile = paymentData.payment_method === 'mobile_money' || paymentData.payment_method === 'flexpay'
+        const method = isMobile ? 'flexpay' : (paymentData.payment_method || 'flexpay')
+        // Nettoyage numéro: conserver les chiffres
+        const rawPhone = (paymentData.telephone || '').replace(/\D/g, '')
+        const phone_number = rawPhone.startsWith('243') ? rawPhone : (rawPhone ? `243${rawPhone.replace(/^0+/, '')}` : undefined)
+        body.payment = {
+          method,
+          currency: paymentData.payment_currency,
+          phone_number,
+          channel: 'webapi',
+          metadata: phone_number ? { telephone: phone_number } : undefined
+        }
       }
-      return { success: true, data: response }
+
+      // Appel one-shot
+      try {
+        if (process.client) console.log('[API] purchase-and-pay request', { eventId: event.id, body })
+        const res = await http(`/client/events/${event.id}/orders/purchase-and-pay`, {
+          method: 'POST',
+          body
+        })
+        const payload = (res as any)?.data ?? res
+        if (process.dev) console.log('[API] purchase-and-pay response', payload)
+        // Extraire et stocker l'order number si disponible (inclut metadata.flexpay.orderNumber)
+        const orderNumber =
+          (payload as any)?.data?.orderNumber ||
+          (payload as any)?.orderNumber ||
+          (payload as any)?.data?.order_number ||
+          (payload as any)?.order_number ||
+          (payload as any)?.data?.payment?.metadata?.flexpay?.orderNumber ||
+          (payload as any)?.payment?.metadata?.flexpay?.orderNumber
+        if (orderNumber) {
+          currentOrderNumberState.value = String(orderNumber)
+        }
+        return { success: true, data: payload }
+      } catch (err: any) {
+        const status = err?.response?.status || err?.status
+        const message = err?.response?.statusText || err?.message || 'Erreur purchase-and-pay'
+        if (process.client) console.warn('[API] purchase-and-pay failed', { status, message })
+        return { success: false, error: `purchase-and-pay échoué (${status || 'n/a'}): ${message}` }
+      }
     } catch (error: any) {
       return { success: false, error: error?.message || 'Erreur lors de la réservation' }
     }
@@ -282,6 +320,7 @@ export const useTickets = () => {
     currentEvent,
     reservationSummary,
     currentReservationId,
+    currentOrderNumber,
     // getters
     totalQuantity,
     totalPrice,
@@ -296,6 +335,7 @@ export const useTickets = () => {
     getTicketQuantity,
     calculateTicketTotal,
     clearSelection,
+    resetCheckoutState,
     startReservation,
     startReservationWithId,
     confirmReservation

@@ -1,6 +1,8 @@
 <template>
   <div class="px-1 py-8 md:px-8 pt-24 lg:px-12 max-w-5xl mx-auto">
     <!-- En-tête de la page -->
+
+    
     <div class="mb-8 text-center">
       <h1 class="text-4xl font-bold text-gray-900 mb-3">Mes Billets</h1>
       <p class="text-lg text-gray-600 max-w-2xl mx-auto">Consultez et gérez vos réservations de tickets en toute simplicité</p>
@@ -23,7 +25,7 @@
       <h3 class="text-xl font-semibold text-red-900 mb-3">Erreur lors du chargement</h3>
       <p class="text-red-600 mb-6 max-w-md mx-auto">{{ errorMessage }}</p>
       <button
-        @click="fetchMyTickets"
+        @click="() => { void fetchMyTickets() }"
         class="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 font-medium"
       >
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +36,7 @@
     </div>
 
     <!-- Message si aucun billet -->
-    <div v-else-if="!ticketsByEvent || Object.keys(ticketsByEvent).length === 0" class="text-center py-16">
+    <div v-else-if="!tickets || tickets.length === 0" class="text-center py-16">
       <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
         <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
@@ -53,245 +55,89 @@
       </NuxtLink>
     </div>
 
-    <!-- Liste des billets par événement -->
+    <!-- Liste des billets (nouveau format API) -->
     <div v-else class="space-y-6">
-      <div
-        v-for="(eventData, eventId) in ticketsByEvent"
-        :key="eventId"
-        class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
-      >
-        <!-- En-tête de l'événement -->
-        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-          <div class="flex items-start justify-between">
-            <div class="flex-1">
-              <h3 class="text-xl font-semibold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors duration-200">{{ eventData.event.name }}</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                <div class="flex items-center space-x-2">
-                  <svg class="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span><span class="font-medium">Date :</span> {{ formatDate(eventData.event.date_time) }}</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <svg class="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span><span class="font-medium">Lieu :</span> {{ eventData.event.location }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="ml-4">
-              <NuxtImg
-                v-if="eventData.event.image" 
-                :src="`https://api.bisoticket.com/storage/${eventData.event.image}`" 
-                :alt="eventData.event.name"
-                class="w-16 h-16 object-cover rounded-lg"
-                loading="lazy"
-                placeholder
-                format="webp"
-                quality="85"
-                sizes="64px"
-              />
-            </div>
+      <div v-for="item in tickets" :key="item.id" class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group">
+        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white flex justify-between items-start">
+          <div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors duration-200">{{ item.event.title }}</h3>
+            <p class="text-sm text-gray-600"><span class="font-medium">Date :</span> {{ formatDate(item.event.startsAt) }}</p>
           </div>
+          <img v-if="item.event.imageUrl" :src="item.event.imageUrl" :alt="item.event.title" class="w-16 h-16 object-cover rounded-lg" />
         </div>
-
-        <!-- Grille des billets avec TicketCard -->
-        <div class="p-6">
-          <h4 class="font-medium text-gray-900 mb-6 flex items-center space-x-2">
-            <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-            </svg>
-            <span>Vos billets ({{ eventData.participants.length }})</span>
-          </h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-            <TicketCard
-              v-for="participant in eventData.participants"
-              :key="participant.id"
-              :ticket="{
-                id: participant.id,
-                status: participant.payment_status,
-                price: parseFloat(participant.ticket.price),
-                event: {
-                  name: participant.event.name,
-                  date_time: participant.event.date_time,
-                  location: participant.event.location,
-                  image: participant.event.image
-                },
-                participant: {
-                  name: participant.name,
-                  qr_code: participant.qr_code
-                },
-                ticket: {
-                  type: participant.ticket.type,
-                  price: participant.ticket.price,
-                  devise: participant.ticket.devise
-                }
-              }"
-              @view-details="handleViewTicketDetails"
-              @download="handleDownloadTicket"
-            />
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+          <div class="space-y-1 text-sm">
+            <div><span class="text-gray-500">Billet:</span> <span class="font-medium text-gray-900">{{ item.ticket.name }}</span></div>
+            <div><span class="text-gray-500">Quantité:</span> <span class="font-medium text-gray-900">{{ item.quantity }}</span></div>
+            <div><span class="text-gray-500">Prix:</span> <span class="font-medium text-gray-900">{{ item.ticket.price }} {{ item.ticket.currency }}</span></div>
+            <div><span class="text-gray-500">Acheté le:</span> <span class="font-medium text-gray-900">{{ formatDate(item.createdAt) }}</span></div>
+          </div>
+          <div class="flex md:justify-end">
+            <div class="flex flex-col items-center gap-2">
+              <img v-if="getQrImageSrc(item.qrCode)" :src="getQrImageSrc(item.qrCode)" alt="QR Code" class="w-40 h-40 object-contain border rounded" />
+              <template v-else>
+                <div class="text-xs text-gray-500">QR code indisponible</div>
+                <div v-if="item.qrCode" class="text-[10px] text-gray-600 break-all max-w-[240px]">{{ item.qrCode }}</div>
+              </template>
+              <UButton v-if="getQrImageSrc(item.qrCode)" size="xs" color="neutral" variant="soft" @click="() => downloadQr(item)">Télécharger</UButton>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Résumé global -->
-    <div v-if="ticketsByEvent && Object.keys(ticketsByEvent).length > 0" class="mt-8 bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
-      <h3 class="text-xl font-semibold text-gray-900 mb-6 text-center">Résumé de vos réservations</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="text-center p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
-          <div class="text-3xl font-bold text-primary-600 mb-1">{{ totalEvents }}</div>
-          <div class="text-sm text-primary-700 font-medium">Événements</div>
-        </div>
-        <div class="text-center p-4 bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-lg border border-secondary-200">
-          <div class="text-3xl font-bold text-secondary-600 mb-1">{{ totalTickets }}</div>
-          <div class="text-sm text-secondary-700 font-medium">Billets</div>
-        </div>
-        <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
-          <div class="text-3xl font-bold text-green-600 mb-1">{{ completedPayments }}</div>
-          <div class="text-sm text-green-700 font-medium">Paiements confirmés</div>
-        </div>
+      <!-- Pagination simple -->
+      <div v-if="meta" class="flex justify-center items-center gap-3 pt-4">
+        <UButton color="neutral" variant="soft" :disabled="(meta && meta.currentPage <= 1)" @click="() => { void changePage((meta?.currentPage || 1) - 1) }">Précédent</UButton>
+        <span class="text-sm text-gray-600">Page {{ meta?.currentPage }} / {{ meta?.lastPage }}</span>
+        <UButton color="neutral" variant="soft" :disabled="(meta && meta.currentPage >= meta.lastPage)" @click="() => { void changePage((meta?.currentPage || 1) + 1) }">Suivant</UButton>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useAuth } from '~/composables/useAuth'
-import { useTickets } from '~/composables/useTickets'
-
-// Import du composant TicketCard
-import TicketCard from '~/components/TicketCard.vue'
+import { useClientTickets, type ClientTicketItem } from '~/composables/useClientTickets'
 
 
 definePageMeta({
   middleware: ['authenticated'],
 })
 
-// Types pour les tickets
-interface Ticket {
-  id: number
-  type: string
-  price: string
-  formatted_price: string
-  devise: string
-}
-
-interface Participant {
-  id: number
-  name: string
-  email: string
-  phone: string
-  qr_code: string
-  payment_status: 'completed' | 'pending' | 'failed'
-  event: {
-    id: number
-    name: string
-    date_time: string
-    location: string
-    image: string
-  }
-  ticket: Ticket
-  created_at: string
-  updated_at: string
-}
-
-interface EventData {
-  event: {
-    id: number
-    name: string
-    date_time: string
-    location: string
-    image: string
-  }
-  participants: Participant[]
-}
-
-interface MyTicketsResponse {
-  success: boolean
-  message?: string
-  data: {
-    tickets_by_event: Record<string, EventData>
-    total_tickets: number
-    total_events: number
-  }
-}
+interface Pagination { currentPage: number; lastPage: number; perPage: number; total: number }
 
 // État local
 const isLoading = ref(true)
-const ticketsByEvent = ref<Record<string, EventData> | null>(null)
+const tickets = ref<ClientTicketItem[]>([])
+const meta = ref<Pagination | null>(null)
 const errorMessage = ref<string | null>(null)
 
-// Composables
-const { isAuthenticated, user } = useAuth()
-
-// Computed
-const totalEvents = computed(() => {
-  if (!ticketsByEvent.value) return 0
-  return Object.keys(ticketsByEvent.value).length
-})
-
-const totalTickets = computed(() => {
-  if (!ticketsByEvent.value) return 0
-  return Object.values(ticketsByEvent.value).reduce((total: number, eventData: any) => {
-    return total + eventData.participants.length
-  }, 0)
-})
-
-const completedPayments = computed(() => {
-  if (!ticketsByEvent.value) return 0
-  return Object.values(ticketsByEvent.value).reduce((total: number, eventData: any) => {
-    return total + eventData.participants.filter((p: any) => p.payment_status === 'completed').length
-  }, 0)
-})
+const { fetchClientTickets } = useClientTickets()
 
 // Fonctions
-const fetchMyTickets = async () => {
+const fetchMyTickets = async (page = 1) => {
   try {
     isLoading.value = true
     errorMessage.value = null
-    
-    console.log('🚀 Appel API /tickets/my-tickets...')
-    
-    // Utiliser useAPI directement
-    const { data, error: fetchError } = await useAPI<MyTicketsResponse>('/tickets/my-tickets')
-    
-    console.log('📡 Réponse API:', { data: data.value, fetchError: fetchError.value })
-    
-    if (fetchError.value) {
-      console.error('❌ Erreur fetch:', fetchError.value)
-      throw new Error(`Erreur réseau: ${fetchError.value.message || 'Erreur inconnue'}`)
-    }
-    
-    if (!data.value) {
-      console.error('❌ Pas de données reçues')
-      throw new Error('Aucune donnée reçue de l\'API')
-    }
-    
-    console.log('✅ Données reçues:', data.value)
-    
-    if (data.value.success && data.value.data) {
-      console.log('🎯 Billets trouvés:', data.value.data.total_tickets)
-      ticketsByEvent.value = data.value.data.tickets_by_event
-    } else {
-      console.error('❌ Format de réponse invalide:', data.value)
-      throw new Error(`Format de réponse invalide: ${JSON.stringify(data.value)}`)
+    const res = await fetchClientTickets(page, 15)
+    if (process.dev) console.log('[MyTickets] raw', res)
+    // Réponse API: { status, message, data: { data: [...], current_page, last_page, per_page, total } }
+    const envelope = (res as any)?.data ?? res
+    const itemsArray = Array.isArray(envelope?.data) ? (envelope.data as any[]) : []
+    tickets.value = itemsArray
+    meta.value = {
+      currentPage: Number(envelope?.current_page || 1),
+      lastPage: Number(envelope?.last_page || 1),
+      perPage: Number(envelope?.per_page || 15),
+      total: Number(envelope?.total || 0)
     }
   } catch (error: any) {
     console.error('💥 Erreur lors de la récupération des billets:', error)
-    
-    // Gestion des erreurs avec messages clairs
     if (error.status === 401) {
-      // Rediriger vers la connexion si non authentifié
       navigateTo('/connexion')
     } else if (error.status === 404) {
-      // Aucun billet trouvé
-      ticketsByEvent.value = {}
+      tickets.value = []
+      meta.value = { currentPage: 1, lastPage: 1, perPage: 15, total: 0 }
       errorMessage.value = null
     } else {
-      // Autre erreur
       console.error('Erreur API:', error)
       errorMessage.value = error.message || 'Erreur lors de la récupération des billets'
     }
@@ -301,16 +147,53 @@ const fetchMyTickets = async () => {
 }
 
 // Fonctions utilitaires
-const handleViewTicketDetails = (ticket: any) => {
-  console.log('🔍 Voir les détails du billet:', ticket)
-  // Ici vous pouvez ajouter la logique pour afficher les détails
-  // Par exemple, ouvrir une modal ou naviguer vers une page de détails
+const handleViewTicketDetails = (item: ClientTicketItem) => {
+  // TODO: ouvrir une modal ou page billet
+  console.log('Voir billet', item)
 }
 
-const handleDownloadTicket = (ticket: any) => {
-  console.log('📥 Télécharger le billet:', ticket)
-  // Ici vous pouvez ajouter la logique pour télécharger le billet
-  // Par exemple, générer un PDF ou télécharger une image
+// QR helpers
+const getQrImageSrc = (qr: string | null | undefined) => {
+  if (!qr) return ''
+  // Si c'est déjà une data URL
+  if (qr.startsWith('data:image')) return qr
+  // Si c'est du base64 sans prefix
+  const isBase64 = /^[A-Za-z0-9+/=\n\r]+$/.test(qr)
+  if (isBase64) return `data:image/png;base64,${qr}`
+  // Si c'est une URL http(s)
+  try {
+    const u = new URL(qr)
+    if (u.protocol === 'http:' || u.protocol === 'https:') return qr
+  } catch {}
+  // Fallback: générer un QR image via un service public
+  const size = 200
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(qr)}`
+}
+
+const downloadQr = (item: ClientTicketItem) => {
+  const src = getQrImageSrc(item.qrCode)
+  if (!src) return
+  // Forcer le download proprement même si c'est une URL distante
+  fetch(src)
+    .then(r => r.blob())
+    .then(blob => {
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `ticket-${item.id}-qrcode.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    })
+    .catch(() => {
+      const link = document.createElement('a')
+      link.href = src
+      link.download = `ticket-${item.id}-qrcode.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    })
 }
 
 const formatDate = (dateString: string) => {
@@ -326,28 +209,15 @@ const formatDate = (dateString: string) => {
   })
 }
 
-const getPaymentStatusLabel = (status: string) => {
-  switch (status) {
-    case 'completed':
-      return 'Confirmé'
-    case 'pending':
-      return 'En attente'
-    case 'failed':
-      return 'Échoué'
-    default:
-      return status
-  }
+// Pagination
+const changePage = async (page: number) => {
+  if (!meta.value) return
+  const safe = Math.min(Math.max(1, page), meta.value.lastPage)
+  await fetchMyTickets(safe)
 }
 
-// Vérification de l'authentification et chargement des données
+// Chargement initial (middleware authenticated protège déjà la page)
 onMounted(async () => {
-  if (!isAuthenticated.value) {
-    // Rediriger vers la connexion si non connecté
-    navigateTo('/connexion')
-    return
-  }
-  
-  // Charger les billets
   await fetchMyTickets()
 })
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 py-8 md:px-8 pt-20 lg:px-12 max-w-5xl mx-auto">
+  <div class="px-4 py-8 md:px-8  lg:px-12 container mx-auto">
     <!-- En-tête de la page -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Paiement</h1>
@@ -11,11 +11,11 @@
       <h2 class="text-xl font-semibold text-gray-900 mb-4">Détails de l'événement</h2>
       <div class="grid md:grid-cols-2 gap-4">
         <div>
-          <h3 class="font-medium text-gray-900">{{ event.name }}</h3>
+          <h3 class="font-medium text-gray-900">{{ event.title }}</h3>
         </div>
         <div class="text-right">
           <p class="text-sm text-gray-600">
-            <span class="font-medium">Date :</span> {{ formatDate(event.date_time) }}
+            <span class="font-medium">Date :</span> {{ formatDate(event.startsAt) }}
           </p>
           <p class="text-sm text-gray-600">
             <span class="font-medium">Lieu :</span> {{ event.location }}
@@ -36,11 +36,11 @@
           class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
         >
           <div>
-            <span class="font-medium text-gray-900">{{ ticketSelection.ticket.type }}</span>
+            <span class="font-medium text-gray-900">{{ ticketSelection.ticket.name || ticketSelection.ticket.type }}</span>
             <span class="text-gray-600 text-sm ml-2">x{{ ticketSelection.quantity }}</span>
           </div>
           <span class="font-semibold text-gray-900">
-            {{ (parseFloat(ticketSelection.ticket.price) * ticketSelection.quantity).toFixed(2) }} {{ ticketSelection.ticket.devise }}
+            {{ (parseFloat(ticketSelection.ticket.price as any) * ticketSelection.quantity).toFixed(2) }} {{ ticketSelection.ticket.currency || ticketSelection.ticket.devise || reservationSummary.currency }}
           </span>
         </div>
       </div>
@@ -204,7 +204,7 @@
             🔍 Voir les détails techniques
           </summary>
           <div class="mt-2 text-xs text-red-700 font-mono bg-red-50 p-2 rounded border">
-            <p><strong>URL API:</strong> /tickets/simple/reserve</p>
+            <p><strong>URL API:</strong> /client/events/{event}/orders (+ payments)</p>
             <p><strong>Méthode:</strong> POST</p>
             <p><strong>Timestamp:</strong> {{ new Date().toISOString() }}</p>
             <p><strong>Erreur:</strong> {{ paymentError }}</p>
@@ -271,11 +271,7 @@
         <p>• Attendez la validation automatique</p>
       </div>
       
-      <!-- Message informatif -->
-      <div class="text-xs text-gray-500 mb-4">
-        <p>💡 Le statut sera vérifié automatiquement</p>
-        <p>Vous serez redirigé dès confirmation</p>
-      </div>
+     
     </div>
     
     <template #footer>
@@ -290,11 +286,11 @@
 </template>
 
 <script setup lang="ts">
-import type { Event } from '~/types/events'
-import { useTickets } from '~/composables/useTickets'
-import { useUserPreferences } from '~/composables/useUserPreferences'
-import { useAuth } from '~/composables/useAuth'
+import type { Event } from '~/types/api'
 import Modal from '~/components/Modal.vue'
+
+// useTickets and useUserPreferences are auto-imported by Nuxt from app/composables
+// so no manual import is needed
 
 definePageMeta({
   middleware: ['authenticated'],
@@ -314,6 +310,7 @@ const isWaitingForSMS = ref(false)
 const countdownInterval = ref<NodeJS.Timeout | null>(null)
 const pollingInterval = ref<NodeJS.Timeout | null>(null)
 const currentReservationReference = ref<string | null>(null)
+const toast = useToast()
 
 // Nouveaux refs pour la méthode de paiement
 const paymentMethod = ref<'mobile_money' | 'card' | ''>('')
@@ -331,10 +328,22 @@ const {
   phoneNumber: savedPhoneNumber,
   setPhoneNumber
 } = useUserPreferences()
-const { isAuthenticated, user, token } = useAuth()
+
+// Auth via cookie
+const authToken = useCookie('auth_token')
 
 // Computed pour l'événement
 const event = computed(() => currentEvent.value)
+
+// Aide: devise par défaut en fonction du panier
+const preferCdfForMobile = () => {
+  const rs = reservationSummary.value
+  if (!rs) return false
+  // Si la devise calculée est CDF, ou si le total en USD serait < 1, on privilégie CDF
+  const isCdf = (rs.currency || '').toUpperCase() === 'CDF'
+  const isUsdUnderMin = (rs.currency || '').toUpperCase() === 'USD' && (rs.totalPrice || 0) < 1
+  return isCdf || isUsdUnderMin
+}
 
 // Initialiser les valeurs depuis les préférences utilisateur
 onMounted(() => {
@@ -342,9 +351,9 @@ onMounted(() => {
     phoneNumber.value = savedPhoneNumber.value
   }
   
-  // Initialiser la devise par défaut
   if (hasPaidTickets.value) {
-    paymentCurrency.value = 'USD'
+    // Auto-choix devise selon règles ci-dessus si mobile money sélectionné plus tard
+    paymentCurrency.value = preferCdfForMobile() ? 'CDF' : 'USD'
   }
 })
 
@@ -370,10 +379,12 @@ const startCountdown = () => {
   countdownInterval.value = setInterval(() => {
     countdown.value--
     
-    // Arrêter le compteur quand il atteint 0
+    // Ne pas fermer automatiquement: rester en attente si le paiement n'est pas encore confirmé
     if (countdown.value <= 0) {
-      stopCountdown()
-      paymentError.value = 'Temps d\'attente écoulé. Veuillez réessayer votre paiement.'
+      countdown.value = 0
+      if (!paymentError.value.includes('📱')) {
+        paymentError.value = '📱 Toujours en attente de confirmation côté opérateur...'
+      }
     }
   }, 1000)
   
@@ -384,174 +395,101 @@ const startCountdown = () => {
 // Démarrer le polling pour vérifier le statut du paiement
 const startPaymentStatusPolling = () => {
   console.log('🔄 Démarrage du polling de vérification du statut de paiement...')
-  
-  // Vérifier le statut toutes les 5 secondes
-  pollingInterval.value = setInterval(async () => {
+
+  const interpretPaymentStatus = (result: any): 'paid' | 'failed' | 'pending' => {
+    const normalized = String(result?.status || '').toLowerCase()
+    const code = String(result?.code ?? '')
+    const message = String(result?.message ?? '').toLowerCase()
+    if (normalized === 'paid' || message.includes('réussi') || message.includes('confir')) return 'paid'
+    // code "0" et/ou message d'attente => toujours pending même si status retourné "failed"
+    if (code === '0' || normalized === 'pending' || message.includes('attente')) return 'pending'
+    if (normalized === 'failed' || message.includes('échoué') || message.includes('refus')) return 'failed'
+    return 'pending'
+  }
+
+  const doCheck = async () => {
     try {
-      console.log('🔍 Vérification du statut de paiement...')
-      
+      if (process.dev) console.log('🔍 Vérification du statut de paiement...')
+
       // Utiliser la référence de réservation pour vérifier le statut
-      const statusResult = await checkPaymentStatusByReference()
-      
+      let statusResult = await checkPaymentStatusByReference(currentReservationReference.value, currentOrderNumber?.value)
+
       if (statusResult) {
-        console.log('📊 Résultat de la vérification:', statusResult)
-        
-        // Vérifier le statut selon la logique de l'API
-        if ('status' in statusResult) {
-          const status = statusResult.status
-          console.log('📊 Statut du paiement:', status)
-          
-          if (status === 'success' || status === 'completed') {
-            // ✅ Paiement réussi
-            console.log('✅ Paiement réussi !')
-            console.log('📝 Détails:', {
-              reference: statusResult.reference,
-              status: statusResult.status,
-              method: statusResult.method,
-              amount: statusResult.amount,
-              currency: statusResult.currency,
-              participant: statusResult.participant_name,
-              message: statusResult.message,
-              action: statusResult.action,
-              push_notification: statusResult.push_notification,
-              last_flexpay_check: statusResult.last_flexpay_check,
-              status_updated: statusResult.status_updated
-            })
-            
-            // Afficher un message de succès
-            paymentError.value = '' // Effacer les erreurs
-            
-            // Afficher un message de succès temporaire
-            const successMessage = `🎉 Paiement réussi !\n\n${statusResult.message}\n\n${statusResult.action}\n\nRedirection dans 2 secondes...`
-            paymentError.value = successMessage
-            
-            // Arrêter le polling et rediriger
-            stopCountdown()
-            
-            // Afficher un message de succès avant la redirection
-            setTimeout(() => {
-              navigateTo('/tickets/my-tickets')
-            }, 2000)
-            
-            return
-            
-          } else if (status === 'pending') {
-            // ⏳ Paiement en cours de traitement
-            console.log('⏳ Paiement en cours de traitement...')
-            console.log('📝 Message:', statusResult.message)
-            console.log('💡 Action:', statusResult.action)
-            console.log('🔔 Push notification:', statusResult.push_notification)
-            console.log('📊 Status updated:', statusResult.status_updated)
-            console.log('⏰ Dernière vérification FlexPay:', statusResult.last_flexpay_check)
-            
-            // Afficher un message d'attente avec push notification si applicable
-            if (statusResult.push_notification) {
-              const pendingMessage = `📱 ${statusResult.message}\n\n${statusResult.action}\n\n⏳ En attente de confirmation sur votre téléphone...`
-              paymentError.value = pendingMessage
-            }
-            
-            // Continuer le polling
-            // Pas besoin d'arrêter, c'est normal
-            
-          } else if (status === 'failed') {
-            // ❌ Paiement échoué
-            console.log('❌ Paiement échoué')
-            console.log('📝 Message d\'erreur:', statusResult.message)
-            console.log('💡 Action suggérée:', statusResult.action)
-            console.log('🔔 Push notification:', statusResult.push_notification)
-            
-            // Arrêter le polling et afficher l'erreur
-            stopCountdown()
-            paymentError.value = `Paiement échoué: ${statusResult.message}\n\nAction: ${statusResult.action}`
-            return
-            
-          } else {
-            // 🔍 Statut inconnu
-            console.log('❓ Statut inconnu:', status)
-            console.log('📝 Message:', statusResult.message)
-            console.log('🔔 Push notification:', statusResult.push_notification)
-            
-            // Continuer le polling pour voir l'évolution
-          }
-          
-        } else {
-          // Erreur de type PaymentStatusError
-          console.log('❌ Erreur de vérification:', statusResult.message)
-          if ('error' in statusResult) {
-            console.log('📝 Code d\'erreur:', statusResult.error)
-          }
-          
-          // Arrêter le polling et afficher l'erreur
+        if (process.dev) console.log('📊 Résultat de la vérification:', statusResult)
+        const resolved = interpretPaymentStatus(statusResult)
+        if (resolved === 'paid') {
+          // ✅ Paiement réussi
+          paymentError.value = ''
+          const successMessage = `🎉 Paiement réussi !\n\n${statusResult.message || ''}`
+          paymentError.value = successMessage
+          try { toast.add({ title: 'Paiement réussi', description: statusResult.message || 'Vos billets sont disponibles.' }) } catch {}
           stopCountdown()
-          paymentError.value = `Erreur de vérification: ${statusResult.message}`
+          // Nettoyer l'état de panier/réservation après succès
+          try { (useTickets() as any).resetCheckoutState?.() } catch {}
+          setTimeout(() => { navigateTo('/tickets/my-tickets') }, 2000)
           return
+        }
+        if (resolved === 'failed') {
+          stopCountdown()
+          const errMsg = `Paiement échoué: ${statusResult.message || ''}`
+          paymentError.value = errMsg
+          try { toast.add({ title: 'Paiement échoué', description: statusResult.message || 'Veuillez réessayer.' }) } catch {}
+          return
+        }
+        // Sinon, status null => en attente; on continue le polling
+      } else {
+        // Si la vérification combinée échoue, tenter via order_number seul si disponible
+        const orderNo = currentOrderNumber?.value
+        if (orderNo) {
+          statusResult = await checkPaymentStatusByOrderNumber(orderNo)
+          if (statusResult) {
+            if (process.dev) console.log('📊 Vérification via order_number:', statusResult)
+            const resolved = interpretPaymentStatus(statusResult)
+            if (resolved === 'paid') {
+              paymentError.value = ''
+              const successMessage = `🎉 Paiement réussi !\n\n${statusResult.message || ''}`
+              paymentError.value = successMessage
+              try { toast.add({ title: 'Paiement réussi', description: statusResult.message || 'Vos billets sont disponibles.' }) } catch {}
+              stopCountdown()
+              try { (useTickets() as any).resetCheckoutState?.() } catch {}
+              setTimeout(() => { navigateTo('/tickets/my-tickets') }, 2000)
+              return
+            }
+            if (resolved === 'failed') {
+              stopCountdown()
+              const errMsg = `Paiement échoué: ${statusResult.message || ''}`
+              paymentError.value = errMsg
+              try { toast.add({ title: 'Paiement échoué', description: statusResult.message || 'Veuillez réessayer.' }) } catch {}
+              return
+            }
+          }
         }
       }
     } catch (error: any) {
-      console.error('❌ Erreur lors de la vérification du statut:', error)
-      
-      // Afficher clairement l'erreur
-      if (error.message) {
-        console.log('📝 Message d\'erreur du backend:', error.message)
-        
-        // Si c'est une erreur 404 (paiement non trouvé), continuer le polling
-        if (error.message.includes('404') || error.message.includes('non trouvé')) {
-          console.log('⏳ Paiement pas encore traité, continuation du polling...')
-        } else {
-          // Autre erreur, afficher et arrêter
-          console.log('🚨 Erreur critique, arrêt du polling')
-          stopCountdown()
-          paymentError.value = `Erreur de vérification: ${error.message}`
-          return
-        }
-      }
-      
-      // Continuer le polling même en cas d'erreur non critique
+      if (process.dev) console.error('❌ Erreur lors de la vérification du statut:', error)
     }
-  }, 5000) // Vérifier toutes les 5 secondes
+  }
+
+  // Laisser 3s au backend pour indexer la référence avant le premier check
+  setTimeout(() => { doCheck() }, 3000)
+  // Puis vérifier le statut toutes les 5 secondes
+  pollingInterval.value = setInterval(() => { doCheck() }, 5000)
 }
 
-// Fonction pour vérifier le statut du paiement par référence
-const checkPaymentStatusByReference = async () => {
-  try {
-    // Utiliser la référence de réservation depuis le résultat de l'API
-    // La référence est dans data.data.reference selon votre message
-    const reference = currentReservationReference.value
-    
-    if (!reference) {
-      console.log('⚠️ Aucune référence de réservation disponible')
-      return null
-    }
-    
-    console.log('🔍 Vérification du statut pour la référence:', reference)
-    
-    // Utiliser l'instance HTTP injectée via plugins (customFetch / myFetch / api)
-    const { $customFetch, $myFetch, $api } = useNuxtApp() as any
-    const http = $customFetch || $myFetch || $api
-    const response = await http<any>(`/tickets/payments/check?reference=${reference}`, { method: 'GET' })
-    
-    return response
-  } catch (error) {
-    console.error('❌ Erreur lors de la vérification du statut:', error)
-    return null
-  }
-}
+// Vérification via repository de paiement + fallback order_number
+const { checkPaymentStatusByReference, checkPaymentStatusByOrderNumber } = usePayments()
+const { currentOrderNumber } = useTickets()
 
 // Arrêter le compteur
 const stopCountdown = () => {
-  // Arrêter le compteur
   if (countdownInterval.value) {
     clearInterval(countdownInterval.value)
     countdownInterval.value = null
   }
-  
-  // Arrêter le polling
   if (pollingInterval.value) {
     clearInterval(pollingInterval.value)
     pollingInterval.value = null
   }
-  
-  // Réinitialiser le compteur à 60
   countdown.value = 60
   isWaitingForSMS.value = false
 }
@@ -562,7 +500,6 @@ const validatePhoneNumber = (phone: string) => {
     phoneError.value = 'Le numéro de téléphone est requis'
     return false
   }
-  // Format: +243XXXXXXXXX ou 243XXXXXXXXX
   const phoneRegex = /^(\+243|243)?[0-9]{9}$/
   if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
     phoneError.value = 'Veuillez entrer un numéro de téléphone congolais valide'
@@ -576,7 +513,6 @@ const validatePhoneNumber = (phone: string) => {
 watch(phoneNumber, (newPhone) => {
   if (newPhone) {
     validatePhoneNumber(newPhone)
-    // Sauvegarder dans les préférences
     setPhoneNumber(newPhone)
   } else {
     phoneError.value = ''
@@ -586,8 +522,16 @@ watch(phoneNumber, (newPhone) => {
 // Écouter les changements de la méthode de paiement
 watch(paymentMethod, (newMethod) => {
   if (newMethod === 'card') {
-    // Forcer USD pour les cartes
     paymentCurrency.value = 'USD'
+  } else if (newMethod === 'mobile_money') {
+    paymentCurrency.value = preferCdfForMobile() ? 'CDF' : 'USD'
+  }
+})
+
+// Recalibrer la devise si le panier change
+watch(reservationSummary, () => {
+  if (paymentMethod.value === 'mobile_money') {
+    paymentCurrency.value = preferCdfForMobile() ? 'CDF' : 'USD'
   }
 })
 
@@ -595,89 +539,51 @@ watch(paymentMethod, (newMethod) => {
 const processPayment = async () => {
   if (!canProcessPayment.value) return
 
-  // Vérifier l'authentification
-  if (!isAuthenticated.value || !token.value) {
+  if (!authToken.value) {
     paymentError.value = 'Vous devez être connecté pour effectuer une réservation. Veuillez vous connecter.'
     navigateTo('/connexion')
     return
   }
 
-  // Validation finale
   if (paymentMethod.value === 'mobile_money' && !validatePhoneNumber(phoneNumber.value)) return
 
   try {
     isProcessing.value = true
     paymentError.value = ''
 
-    // Préparer les données de paiement
+    // Ajuster la devise juste avant l'appel (sécurité)
+    if (paymentMethod.value === 'mobile_money') {
+      paymentCurrency.value = preferCdfForMobile() ? 'CDF' : 'USD'
+      if (process.client) console.log('[Payment] effective currency for mobile_money:', paymentCurrency.value)
+    }
+
     const paymentData = {
       payment_method: paymentMethod.value as 'mobile_money' | 'card',
       payment_currency: paymentCurrency.value as 'USD' | 'CDF',
       telephone: paymentMethod.value === 'mobile_money' ? phoneNumber.value : undefined
     }
 
-    console.log('Traitement du paiement:', paymentData)
-
-    // Utiliser le composable useTickets avec la nouvelle API
     const result = await confirmReservation(paymentData)
 
     if (result.success && result.data) {
-      console.log('✅ Réservation réussie:', result.data)
-      
-      // Stocker la référence de réservation pour le polling
-      // La référence est dans data.data.reference selon votre message
-      const reference = (result.data as any)?.data?.reference || (result.data as any)?.reference
+      const reference = (result.data as any)?.data?.reference || (result.data as any)?.reference || (result.data as any)?.payment?.reference
       if (reference) {
         currentReservationReference.value = reference
-        console.log('📝 Référence de réservation stockée:', currentReservationReference.value)
       }
-      
-      // Sauvegarder les préférences utilisateur
       if (paymentMethod.value === 'mobile_money') {
         setPhoneNumber(phoneNumber.value)
-        
-        // Démarrer le countdown pour mobile money
         startCountdown()
       } else if (paymentMethod.value === 'card') {
-        // Redirection vers l'URL de paiement par carte
-        if (result.data.data?.payment_url) {
-          window.open(result.data.data.payment_url, '_blank')
+        if ((result.data as any).data?.payment_url) {
+          window.open((result.data as any).data.payment_url, '_blank')
         }
-        // Redirection vers mes billets
         navigateTo('/tickets/my-tickets')
       }
     } else {
       paymentError.value = result.error || 'Erreur lors de la réservation'
     }
   } catch (error: any) {
-    console.error('❌ Erreur lors du traitement du paiement:', error)
-    
-    // Gestion détaillée des erreurs
-    if (error.message) {
-      // Erreur avec message spécifique
-      if (error.message.includes('404')) {
-        paymentError.value = 'Erreur 404: Endpoint API non trouvé. Veuillez contacter le support.'
-      } else if (error.message.includes('500')) {
-        paymentError.value = 'Erreur 500: Problème serveur. Veuillez réessayer plus tard.'
-      } else if (error.message.includes('422')) {
-        paymentError.value = 'Erreur 422: Données invalides. Veuillez vérifier vos informations.'
-      } else if (error.message.includes('401')) {
-        paymentError.value = 'Erreur 401: Session expirée. Veuillez vous reconnecter.'
-        navigateTo('/connexion')
-        return
-      } else if (error.message.includes('Validation échouée')) {
-        paymentError.value = `Erreur de validation: ${error.message}`
-      } else {
-        // Afficher le message d'erreur technique
-        paymentError.value = `Erreur technique: ${error.message}`
-      }
-    } else if (error.status) {
-      // Erreur HTTP avec statut
-      paymentError.value = `Erreur HTTP ${error.status}: ${error.statusText || 'Erreur inconnue'}`
-    } else {
-      // Erreur générique
-      paymentError.value = 'Erreur inattendue lors du traitement du paiement. Veuillez réessayer.'
-    }
+    paymentError.value = error?.message || 'Erreur inattendue lors du paiement.'
   } finally {
     isProcessing.value = false
   }
@@ -689,47 +595,15 @@ const processFreeReservation = async () => {
     isProcessing.value = true
     paymentError.value = ''
 
-    console.log('Traitement de la réservation gratuite')
-
-    // Utiliser le composable useTickets avec la nouvelle API (sans données de paiement)
-    const result = await confirmReservation({
-      payment_method: 'mobile_money', // Valeur par défaut pour tickets gratuits
-      payment_currency: 'USD' // Valeur par défaut pour tickets gratuits
-    })
+    const result = await confirmReservation()
 
     if (result.success && result.data) {
-      console.log('✅ Réservation gratuite réussie:', result.data)
-      
-      // Redirection immédiate pour tickets gratuits
       navigateTo('/tickets/my-tickets')
     } else {
       paymentError.value = result.error || 'Erreur lors de la réservation gratuite'
     }
   } catch (error: any) {
-    console.error('❌ Erreur lors de la réservation gratuite:', error)
-    
-    // Gestion détaillée des erreurs
-    if (error.message) {
-      if (error.message.includes('404')) {
-        paymentError.value = 'Erreur 404: Endpoint API non trouvé. Veuillez contacter le support.'
-      } else if (error.message.includes('500')) {
-        paymentError.value = 'Erreur 500: Problème serveur. Veuillez réessayer plus tard.'
-      } else if (error.message.includes('422')) {
-        paymentError.value = 'Erreur 422: Données invalides. Veuillez vérifier vos informations.'
-      } else if (error.message.includes('401')) {
-        paymentError.value = 'Erreur 401: Session expirée. Veuillez vous reconnecter.'
-        navigateTo('/connexion')
-        return
-      } else if (error.message.includes('Validation échouée')) {
-        paymentError.value = `Erreur de validation: ${error.message}`
-      } else {
-        paymentError.value = `Erreur technique: ${error.message}`
-      }
-    } else if (error.status) {
-      paymentError.value = `Erreur HTTP ${error.status}: ${error.statusText || 'Erreur inconnue'}`
-    } else {
-      paymentError.value = 'Erreur inattendue lors de la réservation gratuite. Veuillez réessayer.'
-    }
+    paymentError.value = error?.message || 'Erreur inattendue lors de la réservation gratuite.'
   } finally {
     isProcessing.value = false
   }
@@ -737,22 +611,13 @@ const processFreeReservation = async () => {
 
 // Fonction pour réessayer le paiement
 const retryPayment = () => {
-  // Effacer l'erreur précédente
   paymentError.value = ''
-  
-  // Relancer le processus de paiement
   if (hasPaidTickets.value) {
     processPayment()
   } else {
     processFreeReservation()
   }
 }
-
-
-
-
-
-
 
 // Fonctions utilitaires pour les messages
 const getMessageClass = () => {
@@ -812,7 +677,6 @@ const formatDate = (dateString: string) => {
 // Vérification que l'utilisateur a des tickets sélectionnés
 onMounted(() => {
   if (!reservationSummary.value) {
-    // Redirection vers la page des événements si aucun ticket n'est sélectionné
     navigateTo('/evenements')
   }
 })

@@ -35,7 +35,14 @@ export default defineNuxtPlugin((nuxtApp) => {
       } else if (response.status === 404) {
         console.error('Erreur 404: Ressource non trouvée')
       } else if (response.status >= 500) {
-        console.error('Erreur serveur:', response.status)
+        // Essayer d'extraire un body JSON lisible pour debug
+        try {
+          // @ts-ignore - certaines implémentations exposent _data
+          const body = (response as any)._data || null
+          console.error('Erreur serveur:', response.status, body || '')
+        } catch (_e) {
+          console.error('Erreur serveur:', response.status)
+        }
       }
     },
   })

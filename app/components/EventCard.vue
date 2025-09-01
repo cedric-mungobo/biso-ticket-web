@@ -4,15 +4,30 @@
       ref="cardRef"
       class="rounded-xl border bg-white transition-all hover:shadow-lg border-primary-400 hover:border-primary-300 group event-card-animated"
     >
-      <div class="p-4">
-        <!-- Badge de catégorie avec animation -->
-        <div class="text-xs font-semibold mb-3">
-          <span
-            class="inline-flex items-center rounded-md px-2.5 py-1.5 text-[12px] leading-none font-medium category-badge"
-            :class="categoryColorClass"
-          >
-            {{ category }}
-          </span>
+      <div class="p-2">
+        <!-- Catégories + date -->
+        <div class="text-xs font-semibold mb-3 flex justify-between items-center">
+          <div class="flex flex-wrap items-center gap-2">
+            <template v-if="categories && categories.length">
+              <span
+                v-for="cat in categories"
+                :key="cat"
+                class="inline-flex items-center rounded-md px-2.5 py-1.5 text-[12px] leading-none font-medium category-badge border"
+                :class="getCategoryClass(cat)"
+              >
+                {{ cat }}
+              </span>
+            </template>
+            <template v-else-if="category">
+              <span
+                class="inline-flex items-center rounded-md px-2.5 py-1.5 text-[12px] leading-none font-medium category-badge border"
+                :class="getCategoryClass(category)"
+              >
+                {{ category }}
+              </span>
+            </template>
+          </div>
+          <span>{{ formatDate }}</span>
         </div>
 
         <!-- Titre de l'événement avec animation -->
@@ -43,18 +58,7 @@
           </div>
         </div>
 
-        <!-- Actions avec animation -->
-        <div class="mt-4 flex justify-between items-center event-actions">
-          <span class="text-sm text-gray-500 event-date">
-            {{ formatDate }}
-          </span>
-          <NuxtLink 
-            :to="`/evenements/${eventId}`"
-            class="text-primary-600 hover:text-primary-700 font-medium text-sm group-hover:underline transition-all duration-200 event-link"
-          >
-            Voir détails →
-          </NuxtLink>
-        </div>
+      
       </div>
     </article>
   </NuxtLink>
@@ -62,10 +66,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
-import type { Event } from '~/types/events'
 
 interface Props {
-  category: string
+  category?: string
+  categories?: string[]
   title: string
   image?: string
   date?: string
@@ -79,7 +83,8 @@ const props = withDefaults(defineProps<Props>(), {
   date: new Date().toISOString(),
   description: '',
   location: '',
-  eventId: undefined
+  eventId: undefined,
+  categories: () => []
 })
 
 // Référence pour l'animation
@@ -93,29 +98,35 @@ const {
   prefersReducedMotion 
 } = useGSAP()
 
-// Couleur du badge selon la catégorie
-const categoryColorClass = computed(() => {
-  const category = props.category.toLowerCase()
-  
+// Classes par catégorie
+const getCategoryClass = (raw: string) => {
+  const category = (raw || '').toLowerCase()
   switch (category) {
     case 'image':
-      return 'bg-sky-50 text-sky-700 border border-sky-200'
+      return 'bg-sky-50 text-sky-700 border-sky-200'
     case 'code':
-      return 'bg-primary-50 text-primary-700 border border-primary-200'
+      return 'bg-primary-50 text-primary-700 border-primary-200'
     case 'rédaction':
-      return 'bg-violet-50 text-violet-700 border border-violet-200'
+    case 'redaction':
+      return 'bg-violet-50 text-violet-700 border-violet-200'
     case 'événement':
-      return 'bg-orange-50 text-orange-700 border border-orange-200'
+    case 'evenement':
+      return 'bg-orange-50 text-orange-700 border-orange-200'
     case 'concert':
-      return 'bg-pink-50 text-pink-700 border border-pink-200'
+      return 'bg-pink-50 text-pink-700 border-pink-200'
     case 'théâtre':
-      return 'bg-purple-50 text-purple-700 border border-purple-200'
+    case 'theatre':
+      return 'bg-purple-50 text-purple-700 border-purple-200'
     case 'sport':
-      return 'bg-red-50 text-red-700 border border-red-200'
+      return 'bg-red-50 text-red-700 border-red-200'
+    case 'conference':
+      return 'bg-amber-50 text-amber-700 border-amber-200'
+    case 'live':
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200'
     default:
-      return 'bg-gray-50 text-gray-700 border border-gray-200'
+      return 'bg-gray-50 text-gray-700 border-gray-200'
   }
-})
+}
 
 // Formatage de la date
 const formatDate = computed(() => {
@@ -279,6 +290,7 @@ onMounted(async () => {
 
 /* Classe pour limiter le texte à 2 lignes */
 .line-clamp-2 {
+  line-clamp: 2;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;

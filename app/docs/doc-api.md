@@ -1,4 +1,4 @@
-## API Frontend Guide doc
+## API Frontend Guide
 
 # Biso Ticket SaaS 
 
@@ -9,7 +9,7 @@ Créer une plateforme SaaS permettant aux organisateurs d'événements de :
 * Gérer les invitations électroniques.
 * Gérer la billetterie (gratuit et payant).
 * Contrôler l'accès aux événements sur site via application mobile offline et site client.
-* Vendre et gérer les billets en ligne  via FlexPay.
+* Vendre et gérer les billets en ligne  via FlexPay.
 * Suivre les ventes, statistiques et commissions.
 
 ---
@@ -18,6 +18,7 @@ Base URL: `http://api.bisoticket.com/api	`
 
 ### Headers
 - **Content-Type**: `application/json`
+- **Accept**: `application/json` (recommandé pour éviter le HTML)
 - **Authorization**: `Bearer {token}` (pour les routes protégées)
 
 ### Format des réponses
@@ -72,11 +73,39 @@ Base URL: `http://api.bisoticket.com/api	`
   - GET `/api/public/events/{slug}/tickets?per_page=15` → billets disponibles
 
 - Auth (client)
-  - POST `/api/client/events/{event}/orders` → créer commande (pending)
-    - body: `{ items: [{ ticket_id, quantity }, ...] }`
-  - GET `/api/client/events/{event}/orders/{order}` → voir commande (client propriétaire)
-  - POST `/api/client/events/{event}/orders/{order}/payments` → initier paiement (FlexPay/cash)
-    - body: `{ method, status?, reference, amount?, currency?, metadata?, gateway_reference?, payload? }`
+  - RECOMMANDÉ (une requête): `POST /api/client/events/{event}/orders/purchase-and-pay`
+    - body:
+```json
+{
+  "items": [ { "ticket_id": 123, "quantity": 1 } ],
+  "payment": {
+    "method": "mobile_money",          
+    "currency": "CDF",                 
+    "phone_number": "243826785727",    
+    "channel": "webapi",               
+    "payment_provider": "flexpay",     
+    "metadata": { "note": "checkout" }
+  }
+}
+```
+    - 201: `{ status, message, data: { order: {...}, payment: {...} } }`
+    - Notes:
+      - Le serveur calcule le montant total et génère `reference`/`amount`.
+      - Montant minimal FlexPay: `FLEXPAY_MIN_AMOUNT_CDF` / `FLEXPAY_MIN_AMOUNT_USD`.
+      - Le push STK/USSD peut prendre 30–90s. La réponse inclut souvent `data.payment.metadata.flexpay` (`{ code, message, orderNumber }`).
+
+  - ALTERNATIVE (deux étapes):
+    1) Créer la commande: `POST /api/client/events/{event}/orders`
+       - body: `{ items: [{ ticket_id, quantity }, ...] }`
+       - 201: `{ status, message, data: { ...order } }`
+    2) Initier paiement: `POST /api/client/events/{event}/orders/{order}/payments`
+       - body: `{ method, currency, phone_number?, channel?, metadata? }`
+       - 201: `{ status, message, data: { ...payment } }`
+
+Notes FlexPay:
+- Format téléphone E.164 local: `243XXXXXXXXX` (sans `+`).
+- `channel` identifie la source (`webapi`, `mobile_app`, `pos`).
+- En cas de montant nul (tickets gratuits), aucun paiement n'est requis: seule la création d'order est effectuée.
 
 ---
 
@@ -251,54 +280,11 @@ Ticket (resource)
 
 Note: si `invitation_template_id` n’est pas fourni lors de la création, l’API applique automatiquement `settings.default_invitation_template_id` de l’événement.
 
-Invitation (resource)
-```json
-{
-  "id": 1,
-  "eventId": 1,
-  "invitationTemplateId": 2,
-  "guestName": "John",
-  "guestEmail": "john@example.com",
-  "guestPhone": "+243...",
-  "guestTableName": "Table A",
-  "token": "...",
-  "status": "pending|sent|confirmed|cancelled",
-  "sentAt": null,
-  "viewedAt": null,
-  "confirmedAt": null,
-  "metadata": {},
-  "createdAt": "...",
-  "updatedAt": "..."
-}
-```
-
 ### Templates d’invitation (lecture seule côté API)
 - GET `/api/invitation-templates?per_page=15` → pagination `InvitationTemplate`
 - GET `/api/invitation-templates/{id}` → `InvitationTemplate`
 
 Note: la création, la mise à jour et la suppression des templates se font uniquement via le back-office (routes web `/admin/templates`). Aucune route API n’expose le CRUD.
-
-InvitationTemplate (resource)
-```json
-{
-  "id": 5,
-  "organizerId": 1,
-  "title": "Classique",
-  "designKey": "classic_v1",
-  "previewImageUrl": "https://.../storage/templates/classic.png",
-  "isDefault": false,
-  "createdAt": "...",
-  "updatedAt": "..."
-}
-```
-
-Upload image de prévisualisation
-- Champ fichier: `preview_image` (multipart/form-data)
-- Champs texte: `title`, `design_key`, `is_default`
-- Le backend stocke le fichier dans le disque `public` et renvoie `previewImageUrl`.
-
-Notes
-- Les endpoints ci-dessus sont protégés (admin). Le back-office utilise des routes web `/admin/templates` pour gérer les templates, mais l’API reste disponible pour intégrations programmatiques.
 
 ### Crédits d'invitation (auth)
 - POST `/api/credits/purchase-and-pay` → 201 `{ reference, amount, currency, orderNumber, provider }`
@@ -318,41 +304,9 @@ Notes
 - GET `/api/events/{event}/orders/{order}` → `Order` (avec `items`)
 - DELETE `/api/events/{event}/orders/{order}` → `{ status, message }`
 
-Order (resource)
-```json
-{
-  "id": 10,
-  "eventId": 1,
-  "customerId": 5,
-  "totalAmount": 150,
-  "status": "pending|paid|cancelled",
-  "items": [ { "id": 1, "ticketId": 3, "quantity": 2, "unitPrice": 50 } ],
-  "createdAt": "...",
-  "updatedAt": "..."
-}
-```
-
 ### Paiements
 - GET `/api/events/{event}/orders/{order}/payments?per_page=15` → pagination `Payment`
 - POST `/api/events/{event}/orders/{order}/payments` → 201 `Payment`
-
-Payment (resource)
-```json
-{
-  "id": 1,
-  "orderId": 10,
-  "method": "flexpay|cash|...",
-  "status": "pending|confirmed|failed",
-  "reference": "REF-...",
-  "amount": 150,
-  "currency": "CDF",
-  "paidAt": null,
-  "metadata": {},
-  "transactions": [],
-  "createdAt": "...",
-  "updatedAt": "..."
-}
-```
 
 ### Commissions
 - GET `/api/commissions?per_page=15` → pagination `Commission`

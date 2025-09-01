@@ -21,6 +21,18 @@ export default defineNuxtConfig({
     'nuxt-auth-utils',
     'nuxt-qrcode'
   ],
+  ui: {
+    colorMode: false,
+    // Aligne Nuxt UI sur les palettes définies dans app/assets/index.css
+    theme: {
+      colors: ['primary', 'secondary', 'neutral', 'info', 'success', 'warning', 'error'],
+      defaultVariants: {
+        color: 'primary',
+        size: 'md'
+      },
+      transitions: true
+    }
+  },
   
   // Configuration des alias de chemins
   alias: {

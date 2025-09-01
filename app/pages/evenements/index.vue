@@ -1,165 +1,93 @@
 <template>
-  <main class="px-2 py-8 md:px-8 pt-24 lg:px-12">
-    <div class="mx-auto max-w-7xl">
-      <!-- Titre avec animation d'entrée -->
-      <Transition
-        name="fade-slide-down"
-        appear
-        @enter="onTitleEnter"
-        @leave="onTitleLeave"
-      >
-        <h1 
-          ref="pageTitle"
-          class="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight mb-6"
-        >
-          Découvrez les événements à venir
-        </h1>
-      </Transition>
+  <main class="px-4 py-10">
+    <div class="mx-auto container">
+      <h1 class="text-3xl font-bold mb-6">Événements</h1>
 
-      <!-- Filtres avec animation -->
-      <Transition
-        name="fade-slide-up"
-        appear
-        @enter="onFiltersEnter"
-        @leave="onFiltersLeave"
-      >
-        <div ref="filtersContainer">
-          <EventFilters 
-            :pagination="pagination"
-            :current-filters="currentFilters"
-            @search="handleSearch"
-            @date-filter-change="handleDateFilterChange"
-            @reset="handleReset"
+      <p class="text-sm text-neutral-600 mb-6">Retrouvez tous les  événements disponibles sur Biso Ticket.</p>
+
+      <div class="mb-6 flex items-center gap-2">
+        <UInput
+          v-model="searchTerm"
+          class="flex-1"
+          placeholder="Rechercher un événement..."
+          @keydown.enter="applySearch"
+        />
+        <UButton color="primary" @click="applySearch">Rechercher</UButton>
+      </div>
+
+      <div v-if="loading" class="text-center py-12 text-neutral-600">
+        Chargement des événements...
+      </div>
+
+      <div v-else-if="error" class="text-center py-12">
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+          <h3 class="text-lg font-medium text-red-800 mb-2">Erreur de chargement</h3>
+          <p class="text-red-600 mb-4">{{ error }}</p>
+          <button @click="() => refresh()" class="bg-red-600 text-white px-4 py-2 rounded-md">Réessayer</button>
+        </div>
+      </div>
+
+      <div v-else>
+        <div v-if="eventsList.length" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <EventCard
+            v-for="event in eventsList"
+            :key="event.id"
+            :categories="event.settings?.categories || []"
+            :title="event.title"
+            :image="event.imageUrl"
+            :date="event.startsAt"
+            :description="event.description || ''"
+            :location="event.location"
+            :eventId="event.slug || event.id"
+            class="rounded-xl shadow-sm hover:shadow-md transition-shadow"
           />
         </div>
-      </Transition>
-
-      <!-- États conditionnels avec animations -->
-      <div v-if="loading" ref="loadingContainer">
-        <Transition name="fade-scale" mode="out-in">
-          <div class="text-center py-12">
-            <div class="inline-flex items-center gap-2">
-              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
-              <span class="text-gray-600">Chargement des événements...</span>
-            </div>
-          </div>
-        </Transition>
-      </div>
-
-      <div v-else-if="error" ref="errorContainer">
-        <Transition name="fade-slide-up" mode="out-in">
-          <div class="text-center py-12">
-            <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-              <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <h3 class="text-lg font-medium text-red-800 mb-2">Erreur de chargement</h3>
-              <p class="text-red-600 mb-4">{{ error }}</p>
-              <button 
-                @click="() => fetchEvents()"
-                class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
-              >
-                Réessayer
-              </button>
-            </div>
-          </div>
-        </Transition>
-      </div>
-
-      <div v-else-if="events.length > 0" ref="eventsGrid">
-        <Transition
-          name="fade-slide-up"
-          mode="out-in"
-          @enter="onEventsGridEnter"
-          @leave="onEventsGridLeave"
-        >
-          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
-            <TransitionGroup
-              name="event-card"
-              tag="div"
-              class="contents"
-              @enter="onEventCardEnter"
-              @leave="onEventCardLeave"
-            >
-              <EventCard
-                v-for="(event, index) in events"
-                :key="event.id"
-                :ref="el => setEventCardRef(el, index)"
-                :category="event.category"
-                :title="event.name"
-                :image="event.image_url || event.image"
-                :date="event.date_time"
-                :description="event.description"
-                :location="event.location"
-                :eventId="event.slug || event.id"
-                class="event-card-item"
-              />
-            </TransitionGroup>
-          </div>
-        </Transition>
-      </div>
-
-      <div v-else ref="noEventsContainer">
-        <Transition
-          name="fade-slide-up"
-          mode="out-in"
-          @enter="onNoEventsEnter"
-          @leave="onNoEventsLeave"
-        >
-          <div class="text-center py-12">
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md mx-auto">
-              <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full">
-                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-              </div>
-              <h3 class="text-lg font-medium text-gray-800 mb-2">Aucun événement trouvé</h3>
-              <p class="text-gray-600">Aucun événement ne correspond à vos critères de recherche.</p>
-            </div>
-          </div>
-        </Transition>
-      </div>
-
-      <!-- Pagination avec animation -->
-      <Transition
-        name="fade-slide-up"
-        appear
-        @enter="onPaginationEnter"
-        @leave="onPaginationLeave"
-      >
-        <div v-if="pagination" ref="paginationContainer">
-          <Pagination 
-            :pagination="pagination" 
-            @page-change="changePage" 
-          />
+        <div v-else class="text-center py-12 text-neutral-600">
+          Aucun événement ne correspond à vos critères de recherche.
         </div>
-      </Transition>
+      </div>
+
+      <div v-if="pagination" class="mt-8">
+        <Pagination :pagination="pagination" @page-change="changePage" />
+      </div>
     </div>
   </main>
 </template>
 
 <script setup lang="ts">
-import { onMounted, nextTick, ref, watch } from 'vue'
-import type { EventFilters } from '../../types/events'
+import { onMounted, nextTick, ref, watch, type ComponentPublicInstance } from 'vue'
 import { useEvents } from '../../composables/useEvents'
 
-// Utilisation du composable useEvents
-const { 
-  events, 
-  loading, 
-  error, 
-  pagination,
-  currentFilters,
-  fetchEvents, 
-  changePage,
-  changePerPage,
-  filterByDate,
-  searchEvents,
-  resetFilters,
-  formatDate 
-} = useEvents()
+// Repository (pas de state interne)
+const { fetchPublicEvents, formatDate } = useEvents()
+
+// Filtres et pagination locaux
+type DateFilter = 'today' | 'tomorrow' | 'this_week' | 'all'
+const currentFilters = ref<{ per_page?: number; page?: number; q?: string; category?: string; date_filter?: DateFilter }>({
+  per_page: 12,
+  page: 1,
+  q: '',
+  date_filter: 'all'
+})
+
+const { data, pending: loading, error, refresh } = await useAsyncData('public:events', () =>
+  fetchPublicEvents({
+    per_page: currentFilters.value.per_page,
+    page: currentFilters.value.page,
+    q: currentFilters.value.q,
+    category: currentFilters.value.category,
+    date_filter: currentFilters.value.date_filter
+  })
+, { server: false, watch: [() => currentFilters.value] })
+
+const eventsList = computed(() => Array.isArray(data.value?.items) ? data.value!.items : [])
+const pagination = computed(() => data.value?.meta)
+
+if (process.client) {
+  watch(data, (val) => {
+    console.log('[Page] events data', val)
+  }, { immediate: true })
+}
 
 // Références pour les animations
 const pageTitle = ref<HTMLElement>()
@@ -402,8 +330,7 @@ const onPaginationLeave = (el: Element) => {
 // Récupération des événements au montage du composant
 onMounted(() => {
   nextTick(() => {
-    fetchEvents()
-    
+    refresh()
     // Configuration des animations au scroll
     if (pageTitle.value) {
       createScrollAnimation(pageTitle.value, {
@@ -423,33 +350,30 @@ onMounted(() => {
 
 // Gestion de la recherche
 const handleSearch = (term: string) => {
-  if (term.trim()) {
-    searchEvents(term.trim())
-  } else {
-    // Si la recherche est vide, on récupère tous les événements
-    fetchEvents({ ...currentFilters.value, search: undefined })
+  currentFilters.value = {
+    ...currentFilters.value,
+    page: 1,
+    q: term?.trim() || ''
   }
 }
 
-// Gestion du changement de filtre de date
-const handleDateFilterChange = (filter: EventFilters['date_filter']) => {
-  filterByDate(filter)
-}
+// Barre de recherche locale
+const searchTerm = ref('')
+const applySearch = () => handleSearch(searchTerm.value)
 
-// Gestion de la réinitialisation
-const handleReset = () => {
-  resetFilters()
-}
+// Initialiser et synchroniser le terme de recherche depuis les filtres
+watch(
+  () => currentFilters.value.q,
+  (q) => { searchTerm.value = q || '' },
+  { immediate: true }
+)
 
-// Gestion du changement du nombre d'éléments par page
-const handlePerPageChange = () => {
-  changePerPage(parseInt(selectedPerPage.value.toString()))
-}
+// (Filtres avancés retirés)
 
-// Synchroniser les filtres locaux avec les filtres du composable
-watch(currentFilters, (newFilters) => {
-  selectedPerPage.value = newFilters.per_page || 12
-}, { immediate: true })
+// Pagination
+const changePage = (page: number) => {
+  currentFilters.value = { ...currentFilters.value, page }
+}
 </script>
 
 <style scoped>

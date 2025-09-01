@@ -6,21 +6,21 @@
   >
     <div class="space-y-4">
       <!-- Liste des tickets -->
-      <div v-if="event?.tickets && event.tickets.length > 0" class="space-y-4">
+      <div v-if="ticketsList.length" class="space-y-4">
         <div
-          v-for="ticket in event.tickets"
+          v-for="ticket in ticketsList"
           :key="ticket.id"
           class="border border-gray-200 rounded-lg p-4"
         >
           <div class="flex justify-between items-start mb-3">
             <div>
-              <h4 class="font-semibold text-gray-900">{{ ticket.type }}</h4>
+              <h4 class="font-semibold text-gray-900">{{ ticket.name }}</h4>
               <p class="text-sm text-gray-600">
-                {{ ticket.available || ticket.quantity }} places disponibles
+                {{ ticket.quantity }} places disponibles
               </p>
             </div>
             <span class="text-lg font-bold text-primary-600">
-              {{ ticket.formatted_price || `${ticket.price} ${ticket.devise}` }}
+              {{ ticket.price }} {{ ticket.currency }}
             </span>
           </div>
 
@@ -44,7 +44,7 @@
               
               <button
                 @click="incrementQuantity(ticket.id)"
-                :disabled="getTicketQuantity(ticket.id) >= (ticket.available || ticket.quantity)"
+                :disabled="getTicketQuantity(ticket.id) >= ticket.quantity"
                 class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,14 +60,14 @@
       <div v-if="hasSelectedTickets" class="border-t border-gray-200 pt-4">
         <div class="space-y-2 mb-4">
           <div
-            v-for="ticket in event?.tickets || []"
+            v-for="ticket in ticketsList"
             :key="ticket.id"
             v-show="getTicketQuantity(ticket.id) > 0"
             class="flex justify-between text-sm"
           >
-            <span>{{ ticket.type }} x{{ getTicketQuantity(ticket.id) }}</span>
+            <span>{{ ticket.name }} x{{ getTicketQuantity(ticket.id) }}</span>
             <span class="font-medium">
-              {{ calculateTicketTotal(ticket.id) }} {{ ticket.devise }}
+              {{ calculateTicketTotal(ticket.id) }} {{ ticket.currency || currency }}
             </span>
           </div>
         </div>
@@ -108,12 +108,13 @@
 </template>
 
 <script setup lang="ts">
-import type { Event } from '~/types/events'
+import type { Event } from '~/types/api'
 import { useTickets } from '~/composables/useTickets'
 
 interface Props {
   modelValue: boolean
   event: Event | null
+  tickets?: any[]
 }
 
 const props = defineProps<Props>()
@@ -136,32 +137,31 @@ const {
   startReservationWithId
 } = useTickets()
 
+const ticketsList = computed<any[]>(() => Array.isArray(props.tickets) ? props.tickets : [])
+
 // Computed pour l'ouverture/fermeture
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
 
-// Mettre à jour l'événement dans le composable
-watch(() => props.event, (newEvent) => {
-  if (newEvent) {
-    setEvent(newEvent)
-  }
-}, { immediate: true })
+// Synchroniser l'événement + tickets pour le calcul des totaux
+watch(
+  [ticketsList, () => props.event],
+  ([tickets, ev]) => {
+    const base = ev ? { ...ev } : ({} as any)
+    ;(base as any).tickets = tickets || []
+    setEvent(base)
+  },
+  { immediate: true, deep: true }
+)
 
 const handleReservation = () => {
   if (!props.event?.slug) {
     console.error('Slug de l\'événement manquant')
     return
   }
-  
-  // Sauvegarder l'événement dans les cookies via le composable
-  // (cela se fait automatiquement grâce aux watchers)
-  
-  // Fermer le modal
   emit('update:modelValue', false)
-  
-  // Naviguer vers la page de paiement
   navigateTo(`/evenements/${props.event.slug}/paiement`)
 }
 </script>
