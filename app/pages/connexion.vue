@@ -15,8 +15,6 @@
           <p class="text-gray-600">Entrez vos identifiants pour accéder à votre compte.</p>
         </div>
 
-        
-
         <!-- Form -->
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <!-- Email ou Téléphone -->

@@ -198,18 +198,7 @@
         </div>
         <p class="text-sm mb-3 whitespace-pre-line" :class="getMessageTextClass()">{{ paymentError }}</p>
         
-        <!-- Détails techniques pour le débogage -->
-        <details class="text-left bg-red-100 p-3 rounded border border-red-300 mb-3">
-          <summary class="cursor-pointer text-red-800 font-medium text-sm">
-            🔍 Voir les détails techniques
-          </summary>
-          <div class="mt-2 text-xs text-red-700 font-mono bg-red-50 p-2 rounded border">
-            <p><strong>URL API:</strong> /client/events/{event}/orders (+ payments)</p>
-            <p><strong>Méthode:</strong> POST</p>
-            <p><strong>Timestamp:</strong> {{ new Date().toISOString() }}</p>
-            <p><strong>Erreur:</strong> {{ paymentError }}</p>
-          </div>
-        </details>
+      
         
         <div v-if="!paymentError.includes('🎉')" class="flex gap-2 justify-center">
           <button
@@ -310,6 +299,7 @@ const isWaitingForSMS = ref(false)
 const countdownInterval = ref<NodeJS.Timeout | null>(null)
 const pollingInterval = ref<NodeJS.Timeout | null>(null)
 const currentReservationReference = ref<string | null>(null)
+const localOrderNumber = ref<string | null>(null)
 const toast = useToast()
 
 // Nouveaux refs pour la méthode de paiement
@@ -352,8 +342,10 @@ onMounted(() => {
   }
   
   if (hasPaidTickets.value) {
-    // Auto-choix devise selon règles ci-dessus si mobile money sélectionné plus tard
-    paymentCurrency.value = preferCdfForMobile() ? 'CDF' : 'USD'
+    // Définir une devise par défaut uniquement s'il n'y a pas encore de choix
+    if (!paymentCurrency.value) {
+      paymentCurrency.value = preferCdfForMobile() ? 'CDF' : 'USD'
+    }
   }
 })
 
@@ -379,12 +371,13 @@ const startCountdown = () => {
   countdownInterval.value = setInterval(() => {
     countdown.value--
     
-    // Ne pas fermer automatiquement: rester en attente si le paiement n'est pas encore confirmé
+    // À 0s: considérer comme échec si aucune confirmation reçue
     if (countdown.value <= 0) {
       countdown.value = 0
-      if (!paymentError.value.includes('📱')) {
-        paymentError.value = '📱 Toujours en attente de confirmation côté opérateur...'
-      }
+      stopCountdown()
+      const timeoutMsg = 'Paiement échoué: délai de confirmation dépassé. Veuillez réessayer.'
+      paymentError.value = timeoutMsg
+      try { toast.add({ title: 'Paiement échoué', description: timeoutMsg, color: 'error' }) } catch {}
     }
   }, 1000)
   
@@ -400,10 +393,14 @@ const startPaymentStatusPolling = () => {
     const normalized = String(result?.status || '').toLowerCase()
     const code = String(result?.code ?? '')
     const message = String(result?.message ?? '').toLowerCase()
-    if (normalized === 'paid' || message.includes('réussi') || message.includes('confir')) return 'paid'
-    // code "0" et/ou message d'attente => toujours pending même si status retourné "failed"
+    // 1) Détection d'échec AVANT tout (ex: "n'a pas réussi" contient "réussi")
+    const failedHints = ['failed', 'échoué', 'echec', 'refus', "n'a pas réussi", 'pas réussi', 'non confirmé']
+    if (normalized === 'failed' || failedHints.some(h => message.includes(h))) return 'failed'
+    // 2) Succès explicite uniquement
+    const paidRegex = /(paiement\s+réussi|réussi(\s|$)|confirmé|confirme)/
+    if (normalized === 'paid' || paidRegex.test(message)) return 'paid'
+    // 3) Attente (code 0, pending, attente)
     if (code === '0' || normalized === 'pending' || message.includes('attente')) return 'pending'
-    if (normalized === 'failed' || message.includes('échoué') || message.includes('refus')) return 'failed'
     return 'pending'
   }
 
@@ -411,11 +408,20 @@ const startPaymentStatusPolling = () => {
     try {
       if (process.dev) console.log('🔍 Vérification du statut de paiement...')
 
-      // Utiliser la référence de réservation pour vérifier le statut
-      let statusResult = await checkPaymentStatusByReference(currentReservationReference.value, currentOrderNumber?.value)
+      // Éviter l'erreur 500 côté backend: ne pas interroger par référence sans order_number
+      const orderNoForCheck = localOrderNumber.value || currentOrderNumber?.value
+      if (!orderNoForCheck) {
+        if (process.dev) console.log('⏳ Order number indisponible, attente avant premier check...')
+        return
+      }
+      // Utiliser la référence + order_number dès que possible
+      let statusResult = await checkPaymentStatusByReference(currentReservationReference.value, orderNoForCheck)
 
       if (statusResult) {
         if (process.dev) console.log('📊 Résultat de la vérification:', statusResult)
+        // Capturer l'orderNumber si le backend le renvoie maintenant
+        const polledOrderNo = (statusResult as any)?.orderNumber || (statusResult as any)?.order_number
+        if (polledOrderNo && !localOrderNumber.value) localOrderNumber.value = String(polledOrderNo)
         const resolved = interpretPaymentStatus(statusResult)
         if (resolved === 'paid') {
           // ✅ Paiement réussi
@@ -433,13 +439,13 @@ const startPaymentStatusPolling = () => {
           stopCountdown()
           const errMsg = `Paiement échoué: ${statusResult.message || ''}`
           paymentError.value = errMsg
-          try { toast.add({ title: 'Paiement échoué', description: statusResult.message || 'Veuillez réessayer.' }) } catch {}
+          try { toast.add({ title: 'Paiement échoué', description: statusResult.message || 'Veuillez réessayer.', color: 'error' }) } catch {}
           return
         }
         // Sinon, status null => en attente; on continue le polling
       } else {
         // Si la vérification combinée échoue, tenter via order_number seul si disponible
-        const orderNo = currentOrderNumber?.value
+        const orderNo = localOrderNumber.value || currentOrderNumber?.value
         if (orderNo) {
           statusResult = await checkPaymentStatusByOrderNumber(orderNo)
           if (statusResult) {
@@ -459,7 +465,7 @@ const startPaymentStatusPolling = () => {
               stopCountdown()
               const errMsg = `Paiement échoué: ${statusResult.message || ''}`
               paymentError.value = errMsg
-              try { toast.add({ title: 'Paiement échoué', description: statusResult.message || 'Veuillez réessayer.' }) } catch {}
+              try { toast.add({ title: 'Paiement échoué', description: statusResult.message || 'Veuillez réessayer.', color: 'error' }) } catch {}
               return
             }
           }
@@ -521,16 +527,20 @@ watch(phoneNumber, (newPhone) => {
 
 // Écouter les changements de la méthode de paiement
 watch(paymentMethod, (newMethod) => {
-  if (newMethod === 'card') {
-    paymentCurrency.value = 'USD'
-  } else if (newMethod === 'mobile_money') {
-    paymentCurrency.value = preferCdfForMobile() ? 'CDF' : 'USD'
+  // Ne pas écraser le choix de l'utilisateur. Poser une valeur par défaut seulement si vide.
+  if (!paymentCurrency.value) {
+    if (newMethod === 'card') {
+      paymentCurrency.value = 'USD'
+    } else if (newMethod === 'mobile_money') {
+      paymentCurrency.value = preferCdfForMobile() ? 'CDF' : 'USD'
+    }
   }
 })
 
 // Recalibrer la devise si le panier change
 watch(reservationSummary, () => {
-  if (paymentMethod.value === 'mobile_money') {
+  // Ne définir qu'un défaut si l'utilisateur n'a pas encore choisi
+  if (!paymentCurrency.value && paymentMethod.value === 'mobile_money') {
     paymentCurrency.value = preferCdfForMobile() ? 'CDF' : 'USD'
   }
 })
@@ -551,11 +561,7 @@ const processPayment = async () => {
     isProcessing.value = true
     paymentError.value = ''
 
-    // Ajuster la devise juste avant l'appel (sécurité)
-    if (paymentMethod.value === 'mobile_money') {
-      paymentCurrency.value = preferCdfForMobile() ? 'CDF' : 'USD'
-      if (process.client) console.log('[Payment] effective currency for mobile_money:', paymentCurrency.value)
-    }
+    // Respecter strictement la devise choisie par l'utilisateur (aucune réécriture ici)
 
     const paymentData = {
       payment_method: paymentMethod.value as 'mobile_money' | 'card',

@@ -305,9 +305,13 @@ export const useTickets = () => {
         return { success: true, data: payload }
       } catch (err: any) {
         const status = err?.response?.status || err?.status
-        const message = err?.response?.statusText || err?.message || 'Erreur purchase-and-pay'
-        if (process.client) console.warn('[API] purchase-and-pay failed', { status, message })
-        return { success: false, error: `purchase-and-pay échoué (${status || 'n/a'}): ${message}` }
+        // Ne pas exposer l'URL/stack au client: extraire un message "safe"
+        const backendMsg = err?.data?.message || err?.response?._data?.message
+        const safeMessage = backendMsg
+          || (status === 422 ? 'Données de paiement invalides. Veuillez vérifier les informations.'
+          : 'Une erreur est survenue lors de la réservation. Veuillez réessayer.')
+        if (process.client) console.warn('[API] purchase-and-pay failed', { status, error: err })
+        return { success: false, error: safeMessage }
       }
     } catch (error: any) {
       return { success: false, error: error?.message || 'Erreur lors de la réservation' }
