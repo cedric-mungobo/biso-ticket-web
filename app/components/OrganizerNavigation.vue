@@ -50,6 +50,17 @@
     
     <!-- Main Content -->
     <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Mobile Header -->
+      <div class="lg:hidden flex items-center justify-between p-4 bg-white border-b border-gray-200">
+        <h1 class="text-lg font-semibold text-gray-900">{{ getCurrentPageTitle() }}</h1>
+        <UButton
+          @click="toggleSidebar"
+          variant="ghost"
+          size="sm"
+          :icon="isSidebarOpen ? 'i-heroicons-x-mark' : 'i-heroicons-bars-3'"
+        />
+      </div>
+      
       <!-- Content Area -->
       <main class="flex-1 md:p-6 overflow-auto">
         <div class="max-w-7xl mx-auto">
@@ -118,56 +129,24 @@ const navigationItems = [
 
 // Get current page title
 const getCurrentPageTitle = () => {
-  if (props.pageTitle) return props.pageTitle
-  
   const currentItem = navigationItems.find(item => item.route === route.path)
   return currentItem ? currentItem.name : 'Espace Organisateur'
 }
 
-// Show create button only on certain pages
-const showCreateButton = () => {
-  if (!props.showCreateButton) return false
-  return route.path === '/organisateur' || route.path === '/organisateur/my-events'
-}
-
 // Handle logout
-const handleLogout = () => {
-  // Ici vous pouvez ajouter la logique de déconnexion
-  // Par exemple, appeler une API de déconnexion ou nettoyer le localStorage
-  console.log('Déconnexion...')
-  // Rediriger vers la page de connexion
-  navigateTo('/connexion')
-}
-
-// Get action button classes based on variant
-const getActionClasses = (variant) => {
-  const baseClasses = 'inline-flex items-center px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium'
-  
-  switch (variant) {
-    case 'primary':
-      return `${baseClasses} bg-primary text-primary-foreground hover:bg-primary/90`
-    case 'secondary':
-      return `${baseClasses} bg-gray-100 text-gray-700 hover:bg-gray-200`
-    case 'danger':
-      return `${baseClasses} bg-red-100 text-red-700 hover:bg-red-200`
-    default:
-      return `${baseClasses} bg-gray-100 text-gray-700 hover:bg-gray-200`
+const handleLogout = async () => {
+  try {
+    const { logout } = useAuth()
+    await logout()
+    await navigateTo('/connexion')
+  } catch (error) {
+    console.error('Erreur lors de la déconnexion:', error)
+    // Rediriger quand même vers la page de connexion
+    await navigateTo('/connexion')
   }
 }
 
-// Menu utilisateur (Nuxt UI Dropdown)
-const userMenuItems = [
-  [{
-    label: 'Profil',
-    icon: 'i-heroicons-user',
-    click: () => navigateTo('/profile')
-  }],
-  [{
-    label: 'Déconnexion',
-    icon: 'i-heroicons-arrow-right-on-rectangle',
-    click: () => handleLogout()
-  }]
-]
+
 </script>
 
 <style scoped>

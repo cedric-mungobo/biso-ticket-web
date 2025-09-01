@@ -17,25 +17,21 @@
     </div>
     
     <!-- Détails des erreurs -->
-    <div class="space-y-2">
-      <div
-        v-for="(errors, field) in validationErrors"
-        :key="field"
-        class="text-sm"
-      >
-        <div class="font-medium text-red-800">
-          <strong>{{ field }}:</strong>
-        </div>
-        <ul class="ml-4 list-disc list-inside space-y-1">
+    <div class="space-y-1">
+      <ul class="list-disc list-inside space-y-1">
+        <template
+          v-for="(errors, field) in validationErrors"
+          :key="field"
+        >
           <li
             v-for="error in errors"
             :key="error"
-            class="text-red-700"
+            class="text-red-700 text-sm"
           >
             {{ error }}
           </li>
-        </ul>
-      </div>
+        </template>
+      </ul>
     </div>
   </div>
 </template>
@@ -48,15 +44,7 @@ const validationErrors = $validationErrors as Ref<Record<string, string[]>>
 const hasValidationErrors = $hasValidationErrors as ComputedRef<boolean>
 const clearValidationErrors = $clearValidationErrors as () => void
 
-// Debug: Log des erreurs
-watch(validationErrors, (newErrors) => {
-  console.log('ValidationErrorsAlert - Errors changed:', newErrors)
-}, { deep: true })
 
-watch(hasValidationErrors, (hasErrors) => {
-  console.log('ValidationErrorsAlert - Has errors:', hasErrors)
-  console.log('ValidationErrorsAlert - Should show alert:', hasErrors)
-})
 
 // Fonction pour fermer l'alerte
 const clearErrors = () => {

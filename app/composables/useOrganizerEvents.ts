@@ -90,6 +90,8 @@ export const useOrganizerEvents = () => {
 
   const createEvent = async (eventData: EventCreateRequest, image?: File): Promise<Event> => {
     try {
+      console.log('createEvent - Image:', image ? `${image.name} (${image.size} bytes)` : 'Aucune image')
+      
       let res: any
       if (image) {
         const formData = new FormData()
@@ -103,11 +105,11 @@ export const useOrganizerEvents = () => {
         if (eventData.ends_at) formData.append('ends_at', eventData.ends_at)
         if (eventData.description) formData.append('description', eventData.description)
         if (eventData.status) formData.append('status', eventData.status)
-        if (eventData.is_public !== undefined) formData.append('is_public', eventData.is_public.toString())
+        if (eventData.is_public !== undefined) formData.append('is_public', eventData.is_public ? '1' : '0')
         
         // Settings
         if (eventData.settings) {
-          if (eventData.settings.scan_enabled !== undefined) formData.append('settings[scan_enabled]', eventData.settings.scan_enabled.toString())
+          if (eventData.settings.scan_enabled !== undefined) formData.append('settings[scan_enabled]', eventData.settings.scan_enabled ? '1' : '0')
           if (eventData.settings.categories && eventData.settings.categories.length > 0) {
             eventData.settings.categories.forEach(cat => formData.append('settings[categories][]', cat))
           }
@@ -122,8 +124,13 @@ export const useOrganizerEvents = () => {
         // Image (toujours en dernier)
         formData.append('image', image)
         
-        console.log('FormData créé pour création événement avec image')
-        res = await $myFetch<any>('/events', { method: 'POST', body: formData })
+        console.log('FormData créé avec image')
+        console.log('Envoi de la requête POST avec FormData...')
+        res = await $myFetch<any>('/events', { 
+          method: 'POST', 
+          body: formData,
+          // Ne pas spécifier Content-Type - laisser le navigateur le définir automatiquement
+        })
       } else {
         console.log('Création événement sans image')
         res = await $myFetch<any>('/events', { method: 'POST', body: eventData })
@@ -151,42 +158,117 @@ export const useOrganizerEvents = () => {
   }
 
   const updateEvent = async (eventId: number, eventData: Partial<EventCreateRequest>, image?: File): Promise<Event> => {
+    console.log('=== UPDATE EVENT DEBUG ===')
+    console.log('updateEvent appelé avec:')
+    console.log('  eventId:', eventId)
+    console.log('  eventData:', JSON.stringify(eventData, null, 2))
+    console.log('  image:', image ? `${image.name} (${image.size} bytes)` : 'Aucune image')
+    console.log('  image type:', typeof image)
+    console.log('  image instanceof File:', image instanceof File)
+    
     let res: any
     if (image) {
+      // Récupérer l'événement existant pour avoir toutes les données
+      const existingEvent = await fetchEvent(eventId)
+      console.log('Événement existant récupéré:', JSON.stringify(existingEvent, null, 2))
+      
       const formData = new FormData()
+      console.log('FormData créé, ajout des champs...')
       
-      // Champs à mettre à jour
-      if (eventData.title) formData.append('title', eventData.title)
-      if (eventData.location) formData.append('location', eventData.location)
-      if (eventData.starts_at) formData.append('starts_at', eventData.starts_at)
-      if (eventData.ends_at) formData.append('ends_at', eventData.ends_at)
-      if (eventData.description) formData.append('description', eventData.description)
-      if (eventData.status) formData.append('status', eventData.status)
-      if (eventData.is_public !== undefined) formData.append('is_public', eventData.is_public.toString())
+      // Champs obligatoires (toujours envoyés comme dans createEvent)
+      const title = eventData.title || existingEvent.title || ''
+      const startsAt = eventData.starts_at || existingEvent.startsAt || ''
+      console.log('Ajout title:', title)
+      console.log('Ajout starts_at:', startsAt)
+      formData.append('title', title)
+      formData.append('starts_at', startsAt)
       
-      // Settings
-      if (eventData.settings) {
-        if (eventData.settings.scan_enabled !== undefined) formData.append('settings[scan_enabled]', eventData.settings.scan_enabled.toString())
-        if (eventData.settings.categories && eventData.settings.categories.length > 0) {
-          eventData.settings.categories.forEach(cat => formData.append('settings[categories][]', cat))
-        }
-        if (eventData.settings.tags && eventData.settings.tags.length > 0) {
-          eventData.settings.tags.forEach(tag => formData.append('settings[tags][]', tag))
-        }
-        if (eventData.settings.default_invitation_template_id) {
-          formData.append('settings[default_invitation_template_id]', eventData.settings.default_invitation_template_id.toString())
-        }
+      // Champs optionnels (utiliser les nouvelles valeurs ou les existantes)
+      if (eventData.location || existingEvent.location) {
+        const location = eventData.location || existingEvent.location || ''
+        console.log('Ajout location:', location)
+        formData.append('location', location)
+      }
+      if (eventData.ends_at || existingEvent.endsAt) {
+        const endsAt = eventData.ends_at || existingEvent.endsAt || ''
+        console.log('Ajout ends_at:', endsAt)
+        formData.append('ends_at', endsAt)
+      }
+      if (eventData.description || existingEvent.description) {
+        const description = eventData.description || existingEvent.description || ''
+        console.log('Ajout description:', description)
+        formData.append('description', description)
+      }
+      const status = eventData.status || existingEvent.status || 'draft'
+      const isPublic = (eventData.is_public !== undefined ? eventData.is_public : existingEvent.isPublic) ? '1' : '0'
+      console.log('Ajout status:', status)
+      console.log('Ajout is_public:', isPublic)
+      formData.append('status', status)
+      formData.append('is_public', isPublic)
+      
+      // Settings (fusionner les nouvelles avec les existantes)
+      const newSettings = eventData.settings || {}
+      const existingSettings = existingEvent.settings || {}
+      console.log('newSettings:', newSettings)
+      console.log('existingSettings:', existingSettings)
+      
+      // scan_enabled
+      const scanEnabled = newSettings.scan_enabled !== undefined ? newSettings.scan_enabled : existingSettings.scanEnabled
+      console.log('Ajout settings[scan_enabled]:', scanEnabled ? '1' : '0')
+      formData.append('settings[scan_enabled]', scanEnabled ? '1' : '0')
+      
+      // categories
+      const categories = newSettings.categories || existingSettings.categories || []
+      if (categories.length > 0) {
+        categories.forEach(cat => formData.append('settings[categories][]', cat))
+      }
+      
+      // tags
+      const tags = newSettings.tags || existingSettings.tags || []
+      if (tags.length > 0) {
+        tags.forEach(tag => formData.append('settings[tags][]', tag))
+      }
+      
+      // default_invitation_template_id
+      const templateId = newSettings.default_invitation_template_id || existingSettings.defaultInvitationTemplateId
+      if (templateId) {
+        formData.append('settings[default_invitation_template_id]', templateId.toString())
       }
       
       // Image (toujours en dernier)
+      console.log('Ajout de l\'image:', image.name, image.size, 'bytes')
       formData.append('image', image)
       
-      console.log('FormData créé pour mise à jour événement avec image')
-      res = await $myFetch<any>(`/events/${eventId}`, { method: 'PUT', body: formData })
+      // Debug: Afficher le contenu du FormData
+      console.log('FormData créé pour mise à jour événement avec image (données complètes)')
+      console.log('Contenu du FormData:')
+      for (const [key, value] of formData.entries()) {
+        if (key === 'image') {
+          console.log(`  ${key}:`, value instanceof File ? `${value.name} (${value.size} bytes)` : value)
+        } else {
+          console.log(`  ${key}:`, value)
+        }
+      }
+      
+      // Ajouter _method=PUT pour Laravel (requis pour les uploads de fichiers)
+      formData.append('_method', 'PUT')
+      
+      console.log('Envoi de la requête POST avec FormData et _method=PUT...')
+      console.log('FormData instanceof FormData:', formData instanceof FormData)
+      console.log('FormData entries count:', Array.from(formData.entries()).length)
+      
+      res = await $myFetch<any>(`/events/${eventId}`, { 
+        method: 'POST', 
+        body: formData,
+        // Ne pas spécifier Content-Type - laisser le navigateur le définir automatiquement
+      })
+      console.log('Réponse API après mise à jour avec image:', JSON.stringify(res, null, 2))
     } else {
       console.log('Mise à jour événement sans image')
       res = await $myFetch<any>(`/events/${eventId}`, { method: 'PUT', body: eventData })
+      console.log('Réponse API après mise à jour sans image:', JSON.stringify(res, null, 2))
     }
+    console.log('=== FIN UPDATE EVENT DEBUG ===')
     return unwrap<Event>(res)
   }
 

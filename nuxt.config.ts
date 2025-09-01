@@ -7,7 +7,10 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   css: ['~/assets/index.css'],
-  plugins: ['~/plugins/preline.client.ts'],
+  plugins: [
+    '~/plugins/preline.client.ts',
+    '~/plugins/mobileOptimization.client.ts'
+  ],
   vite: {
     plugins: [
       tailwindcss(),
@@ -50,6 +53,16 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'fr',
       },
+      meta: [
+        { 
+          name: 'viewport', 
+          content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover' 
+        },
+        { name: 'format-detection', content: 'telephone=no' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' }
+      ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },

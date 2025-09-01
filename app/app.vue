@@ -1,5 +1,5 @@
 <template>
-  <div class="font-display bg-white dark:bg-gray-950 relative min-h-[100dvh] w-full">
+  <div class="font-display bg-secondary-50  relative min-h-[100dvh] w-full">
     <!-- Tech-themed radial gradients -->
     <div class="absolute inset-0">
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.1),transparent_30%)] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_30%)]" />

@@ -72,7 +72,6 @@ export default defineNuxtPlugin((nuxtApp) => {
       try {
         // @ts-ignore - certaines implémentations exposent _data
         const responseData = (response as any)._data
-        console.log('Response error data:', responseData) // Debug
         
         if (responseData) {
           // Format API Biso Ticket: { status: false, message: "...", errors: { } }
@@ -80,11 +79,9 @@ export default defineNuxtPlugin((nuxtApp) => {
           if (responseData.status === false) {
             errorMessage = responseData.message || errorMessage
             errorDetails = responseData.errors || {}
-            console.log('API Error details (status false):', errorDetails) // Debug
           } else if (responseData.message) {
             errorMessage = responseData.message
             errorDetails = responseData.errors || {}
-            console.log('API Error details (direct message):', errorDetails) // Debug
           }
         }
       } catch (_e) {
@@ -101,14 +98,9 @@ export default defineNuxtPlugin((nuxtApp) => {
         errorMessage = 'Session expirée. Veuillez vous reconnecter.'
       } else if (response.status === 422) {
         console.error('Erreur 422: Données de validation invalides')
-        console.log('Error message for 422:', errorMessage) // Debug
         if (Object.keys(errorDetails).length > 0) {
           // Stocker les erreurs de validation globalement
-          console.log('Storing validation errors:', errorDetails) // Debug
           validationErrors.value = errorDetails
-          console.log('Validation errors stored:', validationErrors.value) // Debug
-          // Utiliser le message exact de l'API au lieu d'un message générique
-          console.log('Final error message for toast:', errorMessage) // Debug
         } else {
           errorMessage = 'Données de validation invalides'
         }

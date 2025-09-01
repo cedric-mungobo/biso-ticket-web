@@ -1,42 +1,104 @@
 <template>
   <OrganizerNavigation>
     <div class="">
+     
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between mb-6">
-          <div>
+        <!-- En-tête responsive -->
+        <div class="mb-6">
+          <!-- Navigation de retour -->
+          <div class="mb-4">
             <NuxtLink
               to="/organisateur/my-events"
-              class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 mb-2"
+              class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 mb-3"
             >
               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               Retour à mes événements
             </NuxtLink>
-            <h1 class="text-2xl font-bold text-gray-900">
-              {{ event?.name || (isLoading ? 'Chargement...' : '—') }}
+            
+            <!-- Titre responsive -->
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
+              {{ event?.name || (pageLoading ? 'Chargement...' : '—') }}
             </h1>
           </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <UButton @click="showTicketsList = true" variant="solid" size="md" color="primary" class="shadow-sm">
-              <UIcon name="i-heroicons-ticket" class="w-4 h-4 mr-1" /> Voir les tickets
-            </UButton>
-            <UButton @click="openCreateTicket()" variant="solid" size="md" color="success" class="shadow-sm">
-              <UIcon name="i-heroicons-plus" class="w-4 h-4 mr-1" /> Ajouter un ticket
-            </UButton>
-            <UButton :to="reportsUrl" variant="solid" size="md" color="neutral" class="shadow-sm">
-              <UIcon name="i-heroicons-chart-bar" class="w-4 h-4 mr-1" /> Rapports
-            </UButton>
-            <UButton @click="openEditEvent()" variant="solid" size="md" color="warning" class="shadow-sm">
-              <UIcon name="i-heroicons-pencil-square" class="w-4 h-4 mr-1" /> Éditer
-            </UButton>
-            <UButton @click="onDelete" variant="solid" size="md" color="error" class="shadow-sm">
-              <UIcon name="i-heroicons-trash" class="w-4 h-4 mr-1" /> Supprimer
-            </UButton>
+          
+          <!-- Boutons d'action responsive -->
+          <div class="space-y-3 sm:space-y-0">
+            <!-- Actions principales (toujours visibles) -->
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <UButton 
+                @click="showTicketsList = true" 
+                variant="solid" 
+                size="md" 
+                color="primary" 
+                class="shadow-sm flex-1 sm:flex-none"
+                :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+              >
+                <UIcon name="i-heroicons-ticket" class="w-4 h-4 mr-2" /> 
+                <span class="hidden sm:inline">Voir les tickets</span>
+                <span class="sm:hidden">Tickets</span>
+              </UButton>
+              
+              <UButton 
+                @click="openCreateTicket()" 
+                variant="solid" 
+                size="md" 
+                color="success" 
+                class="shadow-sm flex-1 sm:flex-none"
+                :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+              >
+                <UIcon name="i-heroicons-plus" class="w-4 h-4 mr-2" /> 
+                <span class="hidden sm:inline">Ajouter un ticket</span>
+                <span class="sm:hidden">Ajouter</span>
+              </UButton>
+            </div>
+            
+            <!-- Actions secondaires (menu déroulant sur mobile) -->
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <UButton 
+                :to="reportsUrl" 
+                variant="solid" 
+                size="md" 
+                color="neutral" 
+                class="shadow-sm flex-1 sm:flex-none"
+                :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+              >
+                <UIcon name="i-heroicons-chart-bar" class="w-4 h-4 mr-2" /> 
+                <span class="hidden sm:inline">Rapports</span>
+                <span class="sm:hidden">Stats</span>
+              </UButton>
+              
+              <UButton 
+                @click="openEditEvent()" 
+                variant="solid" 
+                size="md" 
+                color="warning" 
+                class="shadow-sm flex-1 sm:flex-none"
+                :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+              >
+                <UIcon name="i-heroicons-pencil-square" class="w-4 h-4 mr-2" /> 
+                <span class="hidden sm:inline">Éditer</span>
+                <span class="sm:hidden">Modifier</span>
+              </UButton>
+              
+              <UButton 
+                @click="onDelete" 
+                variant="solid" 
+                size="md" 
+                color="error" 
+                class="shadow-sm flex-1 sm:flex-none"
+                :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+              >
+                <UIcon name="i-heroicons-trash" class="w-4 h-4 mr-2" /> 
+                <span class="hidden sm:inline">Supprimer</span>
+                <span class="sm:hidden">Suppr.</span>
+              </UButton>
+            </div>
           </div>
         </div>
         
-        <div v-if="isLoading" class="space-y-4">
+        <div v-if="pageLoading" class="space-y-4">
           <USkeleton class="h-48 w-full" />
           <USkeleton class="h-6 w-1/2" />
           <USkeleton class="h-4 w-1/3" />
@@ -53,8 +115,8 @@
         <div v-else class="space-y-6">
           <UCard class="overflow-hidden">
             <img
-              v-if="event?.image_url"
-              :src="event.image_url"
+              v-if="event?.image_url || event?.image"
+              :src="event?.image_url || event?.image"
               :alt="event?.name"
               class="w-full h-64 object-cover"
             />
@@ -106,27 +168,53 @@
                 Aucun ticket configuré.
           </div>
           
-              <div v-else class="space-y-2">
+              <div v-else class="space-y-3">
                 <div
                   v-for="t in tickets"
                   :key="t.id"
-                  class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+                  class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
                 >
-                  <div class="flex items-center gap-2">
+                  <!-- Informations du ticket -->
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-3 sm:mb-0">
                     <span class="text-sm font-medium text-gray-900">{{ t.type }}</span>
-                    <UBadge variant="soft">{{ t.quantity }} disponibles</UBadge>
-          </div>
-                  <div class="flex items-center gap-2">
-                    <div class="text-sm font-semibold text-gray-900">
-                      {{ t.price }} {{ t.devise || 'USD' }}
-        </div>
-                    <UButton size="xs" variant="ghost" color="primary" @click="openEditTicket(t)">
+                    <div class="flex items-center gap-2">
+                      <UBadge variant="soft" class="text-xs">{{ t.quantity }} disponibles</UBadge>
+                      <div class="text-sm font-semibold text-gray-900">
+                        {{ t.price }} {{ t.devise || 'USD' }}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Actions du ticket -->
+                  <div class="flex items-center gap-1 sm:gap-2">
+                    <UButton 
+                      size="xs" 
+                      variant="ghost" 
+                      color="primary" 
+                      @click="openEditTicket(t)"
+                      class="min-h-[36px] min-w-[36px]"
+                      :ui="{ base: 'touch-manipulation' }"
+                    >
                       <UIcon name="i-heroicons-eye" class="w-4 h-4" />
                     </UButton>
-                    <UButton size="xs" variant="ghost" color="warning" @click="openEditTicket(t)">
+                    <UButton 
+                      size="xs" 
+                      variant="ghost" 
+                      color="warning" 
+                      @click="openEditTicket(t)"
+                      class="min-h-[36px] min-w-[36px]"
+                      :ui="{ base: 'touch-manipulation' }"
+                    >
                       <UIcon name="i-heroicons-pencil-square" class="w-4 h-4" />
                     </UButton>
-                    <UButton size="xs" variant="ghost" color="error" @click="openDeleteTicket(t)">
+                    <UButton 
+                      size="xs" 
+                      variant="ghost" 
+                      color="error" 
+                      @click="openDeleteTicket(t)"
+                      class="min-h-[36px] min-w-[36px]"
+                      :ui="{ base: 'touch-manipulation' }"
+                    >
                       <UIcon name="i-heroicons-trash" class="w-4 h-4" />
                     </UButton>
                   </div>
@@ -139,27 +227,57 @@
 
       <!-- Modals -->
       <Modal v-model="showTicketsList" title="Liste des tickets">
-        <div class="space-y-2 max-h-[60vh] overflow-auto">
-          <div v-if="ticketsLoading" class="space-y-2">
-            <USkeleton class="h-6 w-full" />
-            <USkeleton class="h-6 w-2/3" />
-                </div>
-          <div v-else-if="!tickets || tickets.length === 0" class="text-sm text-gray-500">Aucun ticket configuré.</div>
-          <div v-else class="divide-y divide-gray-100">
-            <div v-for="t in tickets" :key="t.id" class="flex items-center justify-between py-2">
-              <div class="flex items-center gap-2">
+        <div class="space-y-3 max-h-[60vh] overflow-auto">
+          <div v-if="ticketsLoading" class="space-y-3">
+            <USkeleton class="h-16 w-full" />
+            <USkeleton class="h-16 w-full" />
+            <USkeleton class="h-16 w-2/3" />
+          </div>
+          <div v-else-if="!tickets || tickets.length === 0" class="text-center py-8">
+            <UIcon name="i-heroicons-ticket" class="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p class="text-sm text-gray-500">Aucun ticket configuré.</p>
+          </div>
+          <div v-else class="space-y-3">
+            <div v-for="t in tickets" :key="t.id" class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <!-- Informations du ticket -->
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-3 sm:mb-0">
                 <span class="text-sm font-medium text-gray-900">{{ t.type }}</span>
-                <UBadge variant="soft">{{ t.quantity }} dispo</UBadge>
-                <span class="text-sm text-gray-700">{{ t.price }} {{ t.devise || 'USD' }}</span>
+                <div class="flex items-center gap-2">
+                  <UBadge variant="soft" class="text-xs">{{ t.quantity }} dispo</UBadge>
+                  <span class="text-sm font-semibold text-gray-700">{{ t.price }} {{ t.devise || 'USD' }}</span>
+                </div>
               </div>
-              <div class="flex items-center gap-2">
-                <UButton size="xs" variant="ghost" color="primary" @click="openViewTicket(t)">
+              
+              <!-- Actions du ticket -->
+              <div class="flex items-center gap-1 sm:gap-2">
+                <UButton 
+                  size="xs" 
+                  variant="ghost" 
+                  color="primary" 
+                  @click="openViewTicket(t)"
+                  class="min-h-[36px] min-w-[36px]"
+                  :ui="{ base: 'touch-manipulation' }"
+                >
                   <UIcon name="i-heroicons-eye" class="w-4 h-4" />
                 </UButton>
-                <UButton size="xs" variant="ghost" color="warning" @click="openEditTicket(t)">
+                <UButton 
+                  size="xs" 
+                  variant="ghost" 
+                  color="warning" 
+                  @click="openEditTicket(t)"
+                  class="min-h-[36px] min-w-[36px]"
+                  :ui="{ base: 'touch-manipulation' }"
+                >
                   <UIcon name="i-heroicons-pencil-square" class="w-4 h-4" />
                 </UButton>
-                <UButton size="xs" variant="ghost" color="error" @click="openDeleteTicket(t)">
+                <UButton 
+                  size="xs" 
+                  variant="ghost" 
+                  color="error" 
+                  @click="openDeleteTicket(t)"
+                  class="min-h-[36px] min-w-[36px]"
+                  :ui="{ base: 'touch-manipulation' }"
+                >
                   <UIcon name="i-heroicons-trash" class="w-4 h-4" />
                 </UButton>
               </div>
@@ -169,20 +287,37 @@
       </Modal>
       
       <Modal v-model="showTicketCreate" title="Ajouter un ticket">
-        <TicketForm v-model="ticketForm" :submitting="submitting" submit-label="Ajouter" @cancel="showTicketCreate=false" @submit="handleCreateTicket" />
+        <TicketForm v-model="ticketForm" :submitting="ticketSubmitting" submit-label="Ajouter" @cancel="showTicketCreate=false" @submit="handleCreateTicket" />
       </Modal>
       <Modal v-model="showTicketEdit" title="Éditer le ticket">
-        <TicketForm v-model="ticketForm" :submitting="submitting" submit-label="Enregistrer" @cancel="showTicketEdit=false" @submit="handleUpdateTicket" />
+        <TicketForm v-model="ticketForm" :submitting="ticketSubmitting" submit-label="Enregistrer" @cancel="showTicketEdit=false" @submit="handleUpdateTicket" />
       </Modal>
       <Modal v-model="showTicketDelete" title="Supprimer le ticket">
         <p class="text-sm text-gray-600">Confirmer la suppression du ticket "{{ currentTicket?.type }}" ?</p>
         <template #footer>
           <UButton variant="ghost" @click="showTicketDelete=false">Annuler</UButton>
-          <UButton color="error" :loading="submitting" @click="handleDeleteTicket">Supprimer</UButton>
+          <UButton color="error" :loading="ticketSubmitting" @click="handleDeleteTicket">Supprimer</UButton>
         </template>
       </Modal>
       <Modal v-model="showEventEdit" title="Éditer l'événement">
-        <EventForm v-model="eventForm" :submitting="submitting" @cancel="showEventEdit=false" @submit="handleUpdateEvent" />
+        <div class="relative">
+          <!-- Overlay de loading -->
+          <LoadingOverlay
+            :show="submitting"
+            title="Mise à jour de l'événement..."
+            description="Veuillez patienter"
+            color="primary"
+            :size="48"
+          />
+          
+          <EventForm 
+            v-model="eventForm" 
+            :submitting="submitting" 
+            :is-edit-mode="true"
+            @cancel="showEventEdit=false" 
+            @submit="handleUpdateEvent" 
+          />
+        </div>
       </Modal>
     </div>
   </OrganizerNavigation>
@@ -192,6 +327,7 @@
 // @ts-nocheck
 import TicketForm from '~/components/organizer/forms/TicketForm.vue'
 import EventForm from '~/components/organizer/forms/EventForm.vue'
+import LoadingOverlay from '~/components/LoadingOverlay.vue'
 
 definePageMeta({ middleware: 'authenticated' })
 
@@ -200,6 +336,7 @@ const router = useRouter()
 const eventId = Number(route.params.id)
 
 const { fetchEventWithState, fetchEventTickets, updateTicket, deleteTicket, updateEvent, deleteEvent, currentEvent, formatDate, loading, error } = useOrganizerEvents()
+const { isLoading, withLoading, preventMultipleSubmissions } = useLoading()
 
 const event = computed(() => currentEvent.value)
 const toast = useToast()
@@ -216,8 +353,10 @@ const publicUrl = computed(() => `/evenements/${event.value?.slug || eventId}`)
 const editUrl = computed(() => `/organisateur/events/${eventId}?mode=edit`)
 const reportsUrl = computed(() => `/organisateur/events/${eventId}?section=stats`)
 
+
+
 const { pending } = await useAsyncData('organizer-event', () => fetchEventWithState(eventId))
-const isLoading = computed(() => loading.value || pending.value)
+const pageLoading = computed(() => loading.value || pending.value)
 
 const tickets = ref<any[]>([])
 const { pending: ticketsPending, refresh: refreshTickets } = await useAsyncData('organizer-event-tickets', async () => {
@@ -235,7 +374,9 @@ const showTicketsList = ref(false)
 const currentTicket = ref<any>(null)
 const ticketForm = ref<any>({ type: '', price: 0, quantity: 1, devise: 'USD' })
 const eventForm = ref<any>({})
-const submitting = ref(false)
+
+// Utilisation du loading du composable pour l'édition d'événement
+const submitting = isLoading
 
 const getApiErrorMessage = (err: any): string => {
   const response = err?.response
@@ -282,15 +423,22 @@ const openEditEvent = () => {
     description: event.value?.description || '',
     status: event.value?.status,
     is_public: typeof event.value?.is_public === 'boolean' ? event.value.is_public : (typeof event.value?.isPublic === 'boolean' ? event.value.isPublic : true),
-    settings: { tags: event.value?.settings?.tags || [], categories: event.value?.settings?.categories || [] },
-    image_url: event.value?.image_url || event.value?.imageUrl
+    settings: { 
+      scan_enabled: event.value?.settings?.scan_enabled ?? true,
+      tags: event.value?.settings?.tags || [], 
+      categories: event.value?.settings?.categories || [] 
+    },
+    image_url: event.value?.image_url || event.value?.imageUrl,
+    image: null // Initialiser le champ image pour l'upload
   }
   showEventEdit.value = true
 }
 
+const ticketSubmitting = ref(false)
+
 const handleCreateTicket = async (payload: any) => {
   try {
-    submitting.value = true
+    ticketSubmitting.value = true
     // add via existing addTicket from repository
     const { addTicket } = useOrganizerEvents()
     if (process.dev) console.log('[UI] handleCreateTicket → payload (UI):', JSON.stringify(payload))
@@ -301,14 +449,14 @@ const handleCreateTicket = async (payload: any) => {
   } catch (e: any) {
     toast.add({ title: 'Erreur lors de la création du ticket', description: getApiErrorMessage(e), color: 'error' })
   } finally {
-    submitting.value = false
+    ticketSubmitting.value = false
   }
 }
 
 const handleUpdateTicket = async (payload: any) => {
   if (!currentTicket.value) return
   try {
-    submitting.value = true
+    ticketSubmitting.value = true
     if (process.dev) console.log('[UI] handleUpdateTicket → ticketId:', currentTicket.value.id, 'payload (UI):', JSON.stringify(payload))
     await updateTicket(eventId, currentTicket.value.id, payload)
     showTicketEdit.value = false
@@ -317,14 +465,14 @@ const handleUpdateTicket = async (payload: any) => {
   } catch (e: any) {
     toast.add({ title: 'Erreur lors de la mise à jour', description: getApiErrorMessage(e), color: 'error' })
   } finally {
-    submitting.value = false
+    ticketSubmitting.value = false
   }
 }
 
 const handleDeleteTicket = async () => {
   if (!currentTicket.value) return
   try {
-    submitting.value = true
+    ticketSubmitting.value = true
     await deleteTicket(eventId, currentTicket.value.id)
     showTicketDelete.value = false
     await refreshTickets()
@@ -332,32 +480,49 @@ const handleDeleteTicket = async () => {
   } catch (e: any) {
     toast.add({ title: 'Erreur lors de la suppression', description: getApiErrorMessage(e), color: 'error' })
   } finally {
-    submitting.value = false
+    ticketSubmitting.value = false
   }
 }
 
-const handleUpdateEvent = async (payload: any) => {
-  try {
-    submitting.value = true
-    await updateEvent(eventId, {
-      title: payload.title,
-      location: payload.location,
-      starts_at: payload.starts_at,
-      ends_at: payload.ends_at,
-      description: payload.description,
-      status: payload.status,
-      is_public: payload.is_public,
-      settings: { tags: payload.settings?.tags || [], categories: payload.settings?.categories || [] }
-    }, payload.image)
+const handleUpdateEvent = preventMultipleSubmissions(async (data: any) => {
+  await withLoading(async () => {
+    // Préparer les données selon la documentation API
+    const apiBody: any = {
+      title: data.title,
+      location: data.location,
+      starts_at: data.starts_at ? new Date(data.starts_at).toISOString() : undefined,
+      ends_at: data.ends_at ? new Date(data.ends_at).toISOString() : undefined,
+      description: data.description,
+      status: data.status,
+      is_public: data.is_public,
+      settings: {
+        scan_enabled: data.settings?.scan_enabled,
+        tags: data.settings?.tags || [],
+        categories: data.settings?.categories || []
+      }
+    }
+    
+    console.log('Mise à jour de l\'événement en cours...', apiBody)
+    console.log('Image reçue:', data.image ? `${data.image.name} (${data.image.size} bytes)` : 'Aucune image')
+    console.log('Type de data.image:', typeof data.image)
+    console.log('data.image est null?', data.image === null)
+    console.log('data.image est undefined?', data.image === undefined)
+    console.log('data.image est File?', data.image instanceof File)
+    
+    await updateEvent(eventId, apiBody, data.image)
     showEventEdit.value = false
     await fetchEventWithState(eventId)
-    toast.add({ title: 'Événement mis à jour', description: 'Les informations de l’événement ont été enregistrées.', color: 'success' })
-  } catch (e: any) {
-    toast.add({ title: 'Erreur lors de la mise à jour de l’événement', description: getApiErrorMessage(e), color: 'error' })
-  } finally {
-    submitting.value = false
-  }
-}
+    
+    toast.add({
+      title: 'Succès',
+      description: 'L\'événement a été mis à jour avec succès',
+      color: 'success'
+    })
+  }, 'Mise à jour de l\'événement...').catch((error: any) => {
+    console.error('Erreur lors de la mise à jour:', error)
+    // Les toasts d'erreur sont maintenant gérés automatiquement par myFetch
+  })
+})
 
 const onDelete = async () => {
   if (!eventId) return
@@ -372,3 +537,130 @@ const onDelete = async () => {
   }
 }
 </script>
+
+<style scoped>
+/* Optimisations pour mobile */
+@media (max-width: 640px) {
+  /* Améliorer l'espacement des boutons sur mobile */
+  .space-y-3 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  /* Assurer que les boutons prennent toute la largeur sur mobile */
+  .flex-1 {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+  
+  /* Améliorer la lisibilité du titre sur mobile */
+  h1 {
+    word-break: break-word;
+    hyphens: auto;
+    line-height: 1.2;
+  }
+  
+  /* Optimiser l'espacement des icônes dans les boutons */
+  .ui-button .ui-icon {
+    flex-shrink: 0;
+  }
+  
+  /* Améliorer la zone de touch des boutons */
+  .ui-button {
+    min-height: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Optimiser l'espacement des cartes */
+  .space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  /* Améliorer la lisibilité des badges */
+  .ui-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  /* Optimiser l'affichage des tickets */
+  .divide-y > * + * {
+    border-top-width: 1px;
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Améliorations pour les écrans moyens */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Espacement optimal pour les tablettes */
+  .gap-2 {
+    gap: 0.75rem;
+  }
+  
+  .gap-3 {
+    gap: 1rem;
+  }
+}
+
+/* Optimisations globales pour tous les boutons */
+:deep(.ui-button) {
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+:deep(.ui-button:hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.ui-button:active) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Améliorer l'accessibilité */
+@media (prefers-reduced-motion: reduce) {
+  :deep(.ui-button) {
+    transition: none;
+  }
+  
+  :deep(.ui-button:hover) {
+    transform: none;
+  }
+}
+
+/* Optimiser les modals sur mobile */
+@media (max-width: 640px) {
+  :deep(.ui-modal) {
+    margin: 0.5rem;
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100vh - 1rem);
+  }
+}
+
+/* Améliorer la scrollabilité sur mobile */
+@media (max-width: 640px) {
+  .overflow-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Optimiser l'affichage des images */
+@media (max-width: 640px) {
+  .object-cover {
+    height: 200px;
+  }
+}
+
+/* Améliorer l'espacement des éléments de liste */
+@media (max-width: 640px) {
+  .space-y-2 > * + * {
+    margin-top: 0.5rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+}
+</style>
