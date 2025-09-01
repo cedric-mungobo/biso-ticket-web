@@ -2,7 +2,7 @@
   <div>
     <UiHeader/>
 
-    <div class="pt-14">
+    <div class="pt-16">
       <!-- Alerte pour les erreurs de validation API -->
       <div class="container mx-auto px-4 py-2">
         <ValidationErrorsAlert />
