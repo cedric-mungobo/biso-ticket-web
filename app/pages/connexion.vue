@@ -87,6 +87,11 @@
             Se connecter
           </UButton>
         </form>
+        <div class="mt-6 text-center">
+          <p class="text-gray-500 text-sm">Pas de compte ?
+            <NuxtLink to="/inscription" class="text-primary-600 hover:text-primary-500 font-medium">S'inscrire</NuxtLink>
+          </p>
+        </div>
       </div>
     </div>
   </div>
