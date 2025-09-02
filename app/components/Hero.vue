@@ -3,11 +3,11 @@
     <main>
      
 
-      <section class="overflow-hidden  ">
+      <section class="overflow-hidden  flex flex-col justify-center items-center min-h-[90dvh] ">
          <!-- Hero Section -->
     <div class="relative">
       <!-- Announcement Banner -->
-      <div class="flex justify-center pt-2 ">
+      <div class="flex justify-center  ">
         <div class="flex items-center gap-2 text-sm text-gray-600">
           <span>Biso Ticket plateforme de billetterie</span>
           <button class="inline-flex items-center gap-1 font-medium text-gray-900 hover:text-gray-700">
@@ -20,7 +20,7 @@
       </div>
 
       <!-- Main Hero Content -->
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 text-left sm:text-center py-8 sm:py-16">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 text-left sm:text-center py-8 sm:py-10">
         <h1 class="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight">
           Organisez, vendez, contrôlez
         </h1>
@@ -47,46 +47,9 @@
       </div>
     </div>
 
-        <div class="mx-auto -mt-4 sm:-mt-16 max-w-7xl [mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)]">
-          <div class="[perspective:1200px] [mask-image:linear-gradient(to_right,black_50%,transparent_100%)] px-4 sm:-mr-16 sm:pl-16 lg:-mr-56 lg:pl-56">
-            <div class="[transform:rotateX(20deg)]">
-              <div class="h-64 sm:h-80 md:h-96 lg:h-[44rem] relative skew-x-[.36rad]">
-                <img
-                  class="rounded-[--radius] z-[2] relative border dark:hidden w-full h-full object-cover"
-                  src="https://tailark.com/_next/image?url=%2Fcard.png&w=3840&q=75"
-                  alt="Biso Ticket interface"
-                  width="2880"
-                  height="2074"
-                />
-                <img
-                  class="rounded-[--radius] z-[2] relative hidden border dark:block w-full h-full object-cover"
-                  src="https://tailark.com/_next/image?url=%2Fdark-card.webp&w=3840&q=75"
-                  alt="Biso Ticket interface"
-                  width="2880"
-                  height="2074"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
       </section>
 
-      <section class="bg-background relative z-10 py-8 sm:py-16">
-        <div class="mx-auto max-w-5xl px-4 sm:px-6">
-          <h2 class="text-center text-base sm:text-lg font-medium">Your favorite companies are our partners.</h2>
-          <div class="mx-auto mt-12 sm:mt-20 flex max-w-4xl flex-wrap items-center justify-center gap-x-8 gap-y-6 sm:gap-x-12 sm:gap-y-8 md:gap-x-16 md:gap-y-12">
-            <img
-              v-for="company in companies"
-              :key="company.name"
-              :class="company.class"
-              :src="company.src"
-              :alt="company.alt"
-              :height="company.height"
-              width="auto"
-            />
-          </div>
-        </div>
-      </section>
+  
     </main>
   </div>
 

@@ -23,7 +23,7 @@ onMounted(() => {
   <div>
     <main id="content">
       <!-- Hero Section -->
-      <div class="max-sm:px-1  pt-2 container mx-auto">
+      <div class="max-sm:px-1  container mx-auto">
         <Hero />
       </div>
 

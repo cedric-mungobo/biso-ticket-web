@@ -1,16 +1,16 @@
 <template>
   <div v-if="!isHiddenNav" class="fixed bottom-0 left-0 right-0 z-50 md:hidden pb-[env(safe-area-inset-bottom)]">
     <nav class="mx-2 mb-2" role="navigation" aria-label="Navigation principale mobile">
-      <div class="max-w-5xl mx-auto bg-neutral-100/50 dark:bg-neutral-900/60 backdrop-blur-md rounded-[26px] p-1 border border-neutral-200/50 dark:border-neutral-800/50 shadow-lg">
+      <div class="max-w-5xl mx-auto bg-white/10 backdrop-blur-md rounded-[26px] p-1 border border-primary-200/50 dark:border-neutral-800/50 shadow-lg">
         <div class="flex items-center justify-around" data-testid="mobile-bottom-nav">
           <NuxtLink
             v-for="item in navItems"
             :key="item.key"
-            :to="item.to"
+            :to="item.to"   
             :prefetch="true"
             :aria-label="item.label"
             class="flex flex-col items-center justify-center flex-1 py-2 transition-all duration-200 group"
-            :class="isActive(item.to) ? 'text-primary-500' : 'text-neutral-700 dark:text-neutral-300 hover:text-primary-500'"
+            :class="isActive(item.to) ? 'text-primary-500' : 'text-black dark:text-neutral-300 hover:text-primary-500'"
             :aria-current="isActive(item.to) ? 'page' : undefined"
           >
             <div class="w-5 h-5 flex items-center justify-center mb-1">
