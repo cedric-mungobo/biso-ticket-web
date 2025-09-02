@@ -1,49 +1,18 @@
 <template>
-  <div class="font-display bg-secondary-50  relative min-h-[100dvh] w-full">
-    <!-- Tech-themed radial gradients -->
-    <div class="absolute inset-0">
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.1),transparent_30%)] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_30%)]" />
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(124,58,237,0.1),transparent_30%)] dark:bg-[radial-gradient(circle_at_70%_80%,rgba(124,58,237,0.15),transparent_30%)]" />
-    </div>
-    
-    <!-- Circuit Lines -->
-    <div class="absolute inset-0 overflow-hidden opacity-10 dark:opacity-20">
-      <svg width="100%" height="100%" class="absolute">
-        <pattern id="circuit-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-          <path
-            d="M0 50h40c5.5 0 10 4.5 10 10s4.5 10 10 10h40M50 0v40c0 5.5 4.5 10 10 10s10 4.5 10 10v40"
-            stroke="currentColor"
-            stroke-width="1"
-            fill="none"
-            class="text-gray-400 dark:text-gray-600"
-          />
-        </pattern>
-        <rect width="100%" height="100%" fill="url(#circuit-pattern)" />
-      </svg>
-    </div>
-    
-    <!-- Binary numbers -->
-    <div class="absolute inset-0 opacity-5 dark:opacity-10">
-      <div class="absolute left-[10%] top-[15%] text-xs font-mono text-gray-900 dark:text-gray-200">0</div>
-      <div class="absolute left-[20%] top-[25%] text-xs font-mono text-gray-900 dark:text-gray-200">1</div>
-      <div class="absolute left-[30%] top-[45%] text-xs font-mono text-gray-900 dark:text-gray-200">0</div>
-      <div class="absolute left-[40%] top-[65%] text-xs font-mono text-gray-900 dark:text-gray-200">1</div>
-      <div class="absolute left-[50%] top-[85%] text-xs font-mono text-gray-900 dark:text-gray-200">0</div>
-      <div class="absolute left-[60%] top-[35%] text-xs font-mono text-gray-900 dark:text-gray-200">1</div>
-      <div class="absolute left-[70%] top-[55%] text-xs font-mono text-gray-900 dark:text-gray-200">0</div>
-      <div class="absolute left-[80%] top-[75%] text-xs font-mono text-gray-900 dark:text-gray-200">1</div>
-      <div class="absolute left-[90%] top-[5%] text-xs font-mono text-gray-900 dark:text-gray-200">0</div>
-    </div>
-    
-    <!-- Content -->
-    <div class="relative z-10">
-      <UApp>
-        <NuxtLayout>
-          <NuxtPage />
-        </NuxtLayout>
-      </UApp>
-    </div>
-    
+  <!-- Background fixe -->
+  <div class="fixed inset-0 bg-white dark:bg-gray-950">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(148,163,184,0.15)_0%,rgba(148,163,184,0)_70%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(148,163,184,0.15)_0%,rgba(15,23,42,0)_70%)]" />
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.15)_0%,rgba(139,92,246,0)_60%)] dark:bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.15)_0%,rgba(139,92,246,0)_60%)]" />
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(14,165,233,0.15)_0%,rgba(14,165,233,0)_60%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,rgba(14,165,233,0.15)_0%,rgba(14,165,233,0)_60%)]" />
+  </div>
+
+  <!-- Contenu scrollable -->
+  <div class="relative z-10 min-h-screen">
+    <UApp>
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
+    </UApp>
   </div>
 </template>
 

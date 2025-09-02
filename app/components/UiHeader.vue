@@ -1,7 +1,7 @@
 <template>
   <div class="fixed top-0 left-0 right-0 z-50 w-full">
     <div class="container mx-auto rounded-2xl p-2">
-      <header class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-white/30">
+      <header class="bg-white/10 backdrop-blur-xl rounded-2xl  border  border-primary-100">
       <div class="flex items-center justify-between px-4 py-1.5 md:py-3">
         <!-- Logo -->
       <NuxtLink to="/" aria-label="Biso Ticket" class="inline-flex items-center gap-2">
@@ -46,7 +46,7 @@
           aria-label="Menu"
         >
           <Icon
-            :name="isMobileMenuOpen ? 'heroicons:x-mark' : 'heroicons:bars-3'"
+            :name="isMobileMenuOpen ? 'heroicons:x-mark' : 'heroicons:queue-list'"
             class="w-6 h-6"
           />
         </button>
