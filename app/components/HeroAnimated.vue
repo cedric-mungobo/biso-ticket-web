@@ -12,13 +12,13 @@
      <Hero />
       </section>
   
-      <!-- Section 2 - Dark Image Section -->
+      <!-- Section 2 - Dark Events Section -->
       <section
         ref="section2"
         :style="{
           transform: `scale(${section2Scale}) rotate(${section2Rotate}deg)`,
         }"
-        class="relative h-[90dvh] bg-gradient-to-t to-[#1a1919] from-[#06060e] text-white"
+        class="relative min-h-[90dvh] bg-gradient-to-t to-[#1a1919] from-[#06060e] text-white"
       >
         <!-- Grid Pattern Overlay -->
         <div class="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:54px_54px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
@@ -27,30 +27,19 @@
           <h1 class="text-4xl sm:text-5xl lg:text-6xl leading-[100%] py-8 pt-36 sm:py-10 font-semibold tracking-tight">
             Découvrez nos événements <br /> exceptionnels
           </h1> 
+          
+          <!-- Grille des cartes d'événements -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <NuxtImg
-              src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1200&auto=format&fit=crop"
-              alt="Concert en plein air"
-              class="object-cover w-full rounded-md h-48 sm:h-64 lg:h-80"
-              loading="lazy"
-            />
-            <NuxtImg
-              src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=500&auto=format&fit=crop"
-              alt="Festival de musique"
-              class="object-cover w-full rounded-md h-32 sm:h-48 lg:h-64"
-              loading="lazy"
-            />
-            <NuxtImg
-              src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&auto=format&fit=crop"
-              alt="Événement corporate"
-              class="object-cover w-full rounded-md h-48 sm:h-64 lg:h-80"
-              loading="lazy"
-            />
-            <NuxtImg
-              src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=500&auto=format&fit=crop"
-              alt="Mariage élégant"
-              class="object-cover w-full rounded-md h-32 sm:h-48 lg:h-64"
-              loading="lazy"
+            <EventCard
+              v-for="(event, index) in displayedEvents"
+              :key="event.id || index"
+              :event-id="event.id"
+              :title="event.title"
+              :image="event.imageUrl"
+              :date="event.startsAt"
+              :location="event.location"
+              :categories="event.settings?.categories || []"
+              class="transform transition-all duration-300 hover:scale-105"
             />
           </div>
           
@@ -68,13 +57,41 @@
     </main>
   </template>
   
-  <script setup>
+  <script setup lang="ts">
   import { ref, onMounted, onUnmounted, computed } from 'vue'
   
-  const container = ref(null)
-  const section1 = ref(null)
-  const section2 = ref(null)
+  // Interface pour les événements
+  interface Event {
+    id: number | string
+    title: string
+    imageUrl?: string
+    startsAt: string
+    location?: string
+    settings?: {
+      categories?: string[]
+    }
+  }
+  
+  // Props
+  interface Props {
+    events?: Event[]
+    maxEvents?: number
+  }
+  
+  const props = withDefaults(defineProps<Props>(), {
+    events: () => [],
+    maxEvents: 4
+  })
+  
+  const container = ref<HTMLElement | null>(null)
+  const section1 = ref<HTMLElement | null>(null)
+  const section2 = ref<HTMLElement | null>(null)
   const scrollY = ref(0)
+  
+  // Événements à afficher (limités au nombre maximum)
+  const displayedEvents = computed(() => {
+    return props.events.slice(0, props.maxEvents)
+  })
   
   // Calculate scroll progress
   const scrollProgress = computed(() => {

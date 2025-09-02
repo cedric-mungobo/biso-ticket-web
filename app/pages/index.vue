@@ -31,7 +31,7 @@ const events = computed(() => {
 <template>
   <div>
     <main id="content">
-      <HeroAnimated />
+      <HeroAnimated :events="events" :max-events="4" />
 
       <!-- Discover Section -->
        <section class=" mt-10   ">
