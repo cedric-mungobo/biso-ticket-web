@@ -19,6 +19,7 @@ export const useEvents = () => {
     const payload = (res as any)?.data ?? res
     if (process.client) {
       console.log('[API] /public/events', { params, raw: res, payload, items: payload?.items?.length })
+      console.log('[API] /public/events - payload structure:', JSON.stringify(payload, null, 2))
     }
     return payload as PaginatedResponse<Event>
   }

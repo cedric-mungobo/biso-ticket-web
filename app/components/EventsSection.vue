@@ -38,13 +38,14 @@
       <EventCard
         v-for="(event, index) in events" 
         :key="event.id"
-        :category="event.category"
-        :title="event.name"
-        :image="event.image_url || event.image"
-        :date="event.date_time"
+        :category="event.settings?.categories?.[0] || event.category"
+        :title="event.title || event.name"
+        :image="event.imageUrl || event.image_url || event.image"
+        :date="event.startsAt || event.date_time"
         :description="event.description"
         :location="event.location"
         :eventId="event.id"
+        :slug="event.slug"
         :data-index="index"
         class="event-card opacity-0"
       />
@@ -119,13 +120,13 @@ const handleRetry = () => {
 const triggerAnimations = () => {
   const { gsap } = useGSAP()
   
-  // Animation immédiate du header
+  // Animation simple du header
   if (headerRef.value) {
     gsap.to(headerRef.value, {
       y: 0,
       opacity: 1,
-      duration: 1.5,  // Durée fixe
-      ease: 'power3.out'           // Easing plus doux
+      duration: 0.8,
+      ease: 'power2.out'
     })
   }
   
@@ -135,10 +136,9 @@ const triggerAnimations = () => {
     gsap.to(eventCards, {
       y: 0,
       opacity: 1,
-      scale: 1,
-      duration: 1.2,    // Durée fixe
-      ease: 'power3.out',            // Easing plus doux
-      stagger: 0.2      // Délai fixe
+      duration: 0.6,
+      ease: 'power2.out',
+      stagger: 0.1
     })
   }
   
@@ -147,8 +147,8 @@ const triggerAnimations = () => {
     gsap.to(ctaRef.value, {
       y: 0,
       opacity: 1,
-      duration: 1.8,    // Durée fixe
-      ease: 'back.out(2.2)'         // Rebond plus doux
+      duration: 0.8,
+      ease: 'power2.out'
     })
   }
 }
@@ -174,87 +174,46 @@ const resetAnimationState = () => {
 
 // Fonction pour animer les éléments au scroll
 const setupScrollAnimations = () => {
-  const { gsap, ScrollTrigger, createScrollAnimation } = useGSAP()
+  const { gsap, ScrollTrigger } = useGSAP()
   
   // Nettoyer les triggers existants
   scrollTriggers.value.forEach(trigger => trigger.kill())
   scrollTriggers.value = []
   
-  // Animation du header avec déclencheur personnalisé
+  // Animation simple du header
   if (headerRef.value) {
-    const headerTrigger = createScrollAnimation(headerRef.value, {
-      start: 'top 85%',
-      end: 'bottom 15%',
-              onEnter: () => {
-          if (headerRef.value) {
-            gsap.to(headerRef.value, {
-              y: 0,
-              opacity: 1,
-              duration: 1.5,  // Durée fixe
-              ease: 'power3.out'           // Easing plus doux
-            })
-          }
-        },
-        onLeave: () => {
-          if (headerRef.value) {
-            gsap.to(headerRef.value, {
-              y: 20,
-              opacity: 0.8,
-              duration: 0.8,  // Durée fixe
-              ease: 'power2.in'
-            })
-          }
-        },
-        onEnterBack: () => {
-          if (headerRef.value) {
-            gsap.to(headerRef.value, {
-              y: 0,
-              opacity: 1,
-              duration: 1.2,  // Durée fixe
-              ease: 'power3.out'           // Easing plus doux
-            })
-          }
+    const headerTrigger = ScrollTrigger.create({
+      trigger: headerRef.value,
+      start: 'top 80%',
+      onEnter: () => {
+        if (headerRef.value) {
+          gsap.to(headerRef.value, {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: 'power2.out'
+          })
         }
+      }
     })
     scrollTriggers.value.push(headerTrigger)
   }
 
-  // Animation des cartes d'événements avec déclencheur intelligent
+  // Animation des cartes d'événements
   if (eventsGridRef.value && props.events.length > 0) {
     const eventCards = eventsGridRef.value.querySelectorAll('.event-card')
     
-    // Créer un déclencheur pour chaque carte individuellement
     eventCards.forEach((card, index) => {
-      const cardTrigger = createScrollAnimation(card, {
+      const cardTrigger = ScrollTrigger.create({
         trigger: card,
-        start: 'top 90%',
-        end: 'bottom 10%',
+        start: 'top 85%',
         onEnter: () => {
           gsap.to(card, {
             y: 0,
             opacity: 1,
-            scale: 1,
-            duration: 1.2,    // Durée fixe
-            ease: 'power3.out',            // Easing plus doux
-            delay: index * 0.15 // Délai fixe
-          })
-        },
-        onLeave: () => {
-          gsap.to(card, {
-            y: -20,
-            opacity: 0.7,
-            scale: 0.98,
-            duration: 0.8,    // Durée fixe
-            ease: 'power2.in'
-          })
-        },
-        onEnterBack: () => {
-          gsap.to(card, {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            duration: 1.0,    // Durée fixe
-            ease: 'power3.out'             // Easing plus doux
+            duration: 0.6,
+            ease: 'power2.out',
+            delay: index * 0.1
           })
         }
       })
@@ -262,41 +221,21 @@ const setupScrollAnimations = () => {
     })
   }
 
-    // Animation du CTA avec déclencheur avancé
+  // Animation du CTA
   if (ctaRef.value) {
-    const ctaTrigger = createScrollAnimation(ctaRef.value, {
+    const ctaTrigger = ScrollTrigger.create({
+      trigger: ctaRef.value,
       start: 'top 80%',
-      end: 'bottom 20%',
-              onEnter: () => {
-          if (ctaRef.value) {
-            gsap.to(ctaRef.value, {
-              y: 0,
-              opacity: 1,
-              duration: 1.8,  // Durée fixe
-              ease: 'back.out(2.2)'        // Rebond plus doux et plus lent
-            })
-          }
-        },
-        onLeave: () => {
-          if (ctaRef.value) {
-            gsap.to(ctaRef.value, {
-              y: 15,
-              opacity: 0.6,
-              duration: 1.0,  // Durée fixe
-              ease: 'power2.in'
-              })
-          }
-        },
-        onEnterBack: () => {
-          if (ctaRef.value) {
-            gsap.to(ctaRef.value, {
-              y: 0,
-              opacity: 1,
-              duration: 1.4,  // Durée fixe
-              ease: 'power3.out'           // Easing plus doux
-            })
-          }
+      onEnter: () => {
+        if (ctaRef.value) {
+          gsap.to(ctaRef.value, {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: 'power2.out'
+          })
         }
+      }
     })
     scrollTriggers.value.push(ctaTrigger)
   }

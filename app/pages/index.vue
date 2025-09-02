@@ -1,39 +1,45 @@
 <script setup lang="ts">
-import { onMounted,nextTick } from 'vue'
-
-
 // Utilisation du composable useEvents
-const { 
-  events, 
-  loading, 
-  error, 
-  fetchFeaturedEvents, 
-  formatDate 
-} = useEvents()
+const { fetchPublicEvents, formatDate } = useEvents()
 
-// Récupération des événements au montage du composant
-onMounted(() => {
-  nextTick(() => {
-    fetchFeaturedEvents()
-  })
+// Récupération des événements avec useAsyncData
+const { data, pending: loading, error, refresh } = await useAsyncData('featured:events', async () => {
+  try {
+    console.log('[DEBUG] Starting fetchPublicEvents...')
+    const result = await fetchPublicEvents({
+      per_page: 6,
+      page: 1,
+      date_filter: 'all'
+    })
+    console.log('[DEBUG] fetchPublicEvents result:', result)
+    return result
+  } catch (err) {
+    console.error('[DEBUG] fetchPublicEvents error:', err)
+    throw err
+  }
+}, { server: false })
+
+const events = computed(() => {
+  console.log('[DEBUG] data.value:', data.value)
+  console.log('[DEBUG] data.value?.items:', data.value?.items)
+  const result = Array.isArray(data.value?.items) ? data.value!.items : []
+  console.log('[DEBUG] events computed result:', result)
+  return result
 })
 </script>
 
 <template>
   <div>
     <main id="content">
-      <!-- Hero Section -->
-      <div class="max-sm:px-1  container mx-auto">
-        <Hero />
-      </div>
+      <HeroAnimated />
 
       <!-- Discover Section -->
        <section class=" mt-10   ">
       <EventsSection 
         :events="events"
         :loading="loading"
-        :error="error"
-        @retry="fetchFeaturedEvents"
+        :error="error?.message || null"
+        @retry="refresh"
       />
       </section>
       <!-- Our Approach Section -->
