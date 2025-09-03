@@ -8,8 +8,7 @@
     <input
       :id="id"
       :type="type"
-      :value="modelValue"
-      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+      v-model.lazy="localValue"
       :placeholder="placeholder"
       :required="required"
       :disabled="disabled"
@@ -54,9 +53,19 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false
 })
 
-defineEmits<{
+const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
+
+const localValue = ref(String(props.modelValue ?? ''))
+
+watch(() => props.modelValue, (val) => {
+  if (String(val ?? '') !== localValue.value) localValue.value = String(val ?? '')
+})
+
+watch(localValue, (val) => {
+  emit('update:modelValue', val)
+})
 </script>
 
 <style scoped>

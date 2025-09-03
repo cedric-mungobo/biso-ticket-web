@@ -22,6 +22,7 @@
           :size="48"
         />
 
+        <input type="text" v-model="formData.title" placeholder="Ex: Concert de Jazz"  id="title" required>
         <EventForm
           v-model="formData"
           :submitting="loading"

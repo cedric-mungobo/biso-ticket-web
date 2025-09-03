@@ -16,7 +16,6 @@
           id="title"
           required
         />
-        <input type="text" v-model="formData.title" placeholder="Ex: Concert de Jazz" :error="formErrors.title" id="title" required>
 
         <!-- Lieu -->
         <FormInput
