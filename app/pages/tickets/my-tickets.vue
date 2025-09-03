@@ -1,5 +1,5 @@
 <template>
-  <div class="px-1 py-8 md:px-8 pt-24 lg:px-12 max-w-5xl mx-auto">
+  <div class="px-1  md:px-8  lg:px-12 max-w-5xl mx-auto">
     <!-- En-tête de la page -->
 
     
