@@ -109,13 +109,17 @@
       <!-- Modals -->
       <Modal v-model="showTemplate" title="Choisir un template">
         <div class="space-y-2">
+            
           <div v-if="templatesPending" class="space-y-2">
             <USkeleton class="h-6 w-1/2" />
             <USkeleton class="h-32 w-full" />
           </div>
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div v-for="t in templates" :key="t.id" class="border rounded-lg p-3">
-              <div class="font-medium text-gray-900">{{ t.title }}</div>
+              <div class="aspect-video w-full overflow-hidden rounded-lg bg-gray-100">
+                <img :src="t.previewImageUrl" :alt="t.title" class="h-full w-full object-cover" />
+              </div>
+              <div class="mt-2 font-medium text-gray-900">{{ t.title }}</div>
               <div class="text-xs text-gray-600">{{ t.designKey }}</div>
               <div class="mt-2 text-right">
                 <UButton size="xs" color="primary">Sélectionner</UButton>
@@ -194,6 +198,7 @@ const totalPages = computed(() => Math.max(1, Number((data.value as any)?.meta?.
 watch([perPage, currentPage], () => { refresh() })
 const prevPage = () => { if (currentPage.value > 1) currentPage.value-- }
 const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
+onMounted(() => { refresh() })
 const totalCount = computed(() => invitations.value.length)
 const pendingCount = computed(() => invitations.value.filter(i => String(i.status || '').toLowerCase() === 'pending').length)
 const sentCount = computed(() => invitations.value.filter(i => String(i.status || '').toLowerCase() === 'sent').length)
