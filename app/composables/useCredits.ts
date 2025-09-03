@@ -1,4 +1,4 @@
-import type { CreditPurchase, CreditBalance } from '~/types/api'
+import type { CreditPurchase, CreditBalance, PaginatedResponse } from '~/types/api'
 
 // Repository sans state/loading/error
 export const useCredits = () => {
@@ -24,7 +24,8 @@ export const useCredits = () => {
   }
 
   const fetchCreditBalance = async (): Promise<CreditBalance> => {
-    return $myFetch<CreditBalance>('/credits/balance', { method: 'GET' })
+    const res = await $myFetch<any>('/credits/balance', { method: 'GET' })
+    return (res?.data || res) as CreditBalance
   }
 
   const fetchCreditPrice = async (): Promise<{ unitPriceUsd: number }> => {

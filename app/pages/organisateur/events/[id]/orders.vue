@@ -91,6 +91,7 @@
                   <th class="py-2 pr-4">Client</th>
                   <th class="py-2 pr-4">Billets</th>
                   <th class="py-2 pr-4">Statut</th>
+                  <th class="py-2 pr-4">Date</th>
                   <th class="py-2 pr-4">Total</th>
                   <th class="py-2 pr-4">Actions</th>
                 </tr>
@@ -106,6 +107,7 @@
                     <span v-else>—</span>
                   </td>
                   <td class="py-2 pr-4 capitalize" :class="o.status === 'paid' ? 'text-primary-600' : (o.status === 'failed' ? 'text-red-600' : 'text-amber-600')">{{ getStatusLabel(o.status) }}</td>
+                  <td class="py-2 pr-4">{{ formatDateTime((o as any).createdAt) }}</td>
                   <td class="py-2 pr-4">{{ o.totalAmount }} {{ o.currency || 'CDF' }}</td>
                   <td class="py-2 pr-4">
                     <UButton size="xs" variant="ghost" color="primary" @click="openPayments(o)">
@@ -130,16 +132,19 @@
 
       <Modal v-model="showPayments" title="Paiements de la commande">
         <div class="space-y-2">
+            
           <div v-if="paymentsLoading" class="space-y-2">
             <USkeleton class="h-6 w-1/3" />
             <USkeleton class="h-6 w-2/3" />
           </div>
+          
           <div v-else-if="currentPayments.length === 0" class="text-sm text-gray-500">Aucun paiement.</div>
           <div v-else class="divide-y divide-gray-200">
             <div v-for="p in currentPayments" :key="p.id" class="py-2">
               <div class="flex items-center justify-between">
                 <div class="text-sm text-gray-800">
-                  {{ p.method }} — {{ p.amount }} {{ p.currency }}
+                  {{ p.method }} — {{ p.amount }} {{ p.currency || 'CDF' }}
+                  <span v-if="p.paidAt"> · {{ formatDateTime(p.paidAt) }}</span>
                 </div>
                 <UBadge :color="p.status === 'confirmed' ? 'success' : (p.status === 'failed' ? 'error' : 'warning')" variant="soft" class="capitalize">
                   {{ p.status }}
@@ -166,8 +171,14 @@ const route = useRoute()
 const eventId = Number(route.params.id)
 const backUrl = computed(() => `/organisateur/events/${eventId}`)
 
-const loading = ref(true)
-const orders = ref<Order[]>([])
+// Chargement & données via useAsyncData (bonnes pratiques Nuxt)
+const { pending: ordersPending, data: ordersData, refresh: refreshOrders } = await useAsyncData<Order[]>(
+  `organizer-event-orders-${eventId}`,
+  () => getEventOrders(eventId, { per_page: 50 }),
+  { server: false, default: () => [] }
+)
+const loading = computed(() => ordersPending.value)
+const orders = computed<Order[]>(() => ordersData.value || [])
 const statusFilter = ref<'all'|'pending'|'paid'|'cancelled'>('paid')
 const currencyFilter = ref<'all' | string>('all')
 const searchQuery = ref('')
@@ -244,22 +255,25 @@ const paidStatsByCurrency = computed<Record<string, { amount: number; count: num
 })
 
 const formatAmount = (n: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(n)
+const formatDateTime = (iso?: string) => {
+  if (!iso) return '—'
+  try {
+    return new Date(iso).toLocaleString('fr-FR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return '—'
+  }
+}
 
 const showPayments = ref(false)
 const paymentsLoading = ref(false)
 const currentPayments = ref<Payment[]>([])
 let currentOrderId: number | null = null
 
-const { $myFetch } = useNuxtApp()
+const { getEventOrders, getOrderPayments } = useOrders()
 
-onMounted(async () => {
-  try {
-    const res = await $myFetch<any>(`/events/${eventId}/orders`, { method: 'GET', params: { per_page: 50 } })
-    const payload = (res?.data?.items) || res?.items || []
-    orders.value = payload as Order[]
-  } finally {
-    loading.value = false
-  }
+// Déclencher un rafraîchissement côté client au montage
+onMounted(() => {
+  refreshOrders()
 })
 
 const openPayments = async (order: any) => {
@@ -267,9 +281,10 @@ const openPayments = async (order: any) => {
   showPayments.value = true
   paymentsLoading.value = true
   try {
-    const res = await $myFetch<any>(`/events/${eventId}/orders/${order.id}/payments`, { method: 'GET', params: { per_page: 50 } })
-    const items = (res?.data?.items) || res?.items || []
-    currentPayments.value = items as Payment[]
+    currentPayments.value = await getOrderPayments(eventId, order.id, { per_page: 50 })
+  } catch (_e) {
+    // L'API a déjà affiché un toast via customFetch; éviter l'erreur non interceptée
+    currentPayments.value = []
   } finally {
     paymentsLoading.value = false
   }

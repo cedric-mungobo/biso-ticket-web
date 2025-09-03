@@ -4,6 +4,8 @@ import type { Order, Payment } from '~/types/api'
 export const useOrders = () => {
   const { $myFetch } = useNuxtApp()
 
+  const unwrapList = (res: any) => (res?.data?.items) || res?.items || []
+
   const createOrder = async (eventId: string | number, items: Array<{
     ticket_id: number
     quantity: number
@@ -43,9 +45,28 @@ export const useOrders = () => {
     return response.payment
   }
 
+  const getEventOrders = async (
+    eventId: string | number,
+    params: { per_page?: number; page?: number } = {}
+  ): Promise<Order[]> => {
+    const res = await $myFetch<any>(`/events/${eventId}/orders`, { method: 'GET', params })
+    return unwrapList(res) as Order[]
+  }
+
+  const getOrderPayments = async (
+    eventId: string | number,
+    orderId: string | number,
+    params: { per_page?: number; page?: number } = {}
+  ): Promise<Payment[]> => {
+    const res = await $myFetch<any>(`/events/${eventId}/orders/${orderId}/payments`, { method: 'GET', params })
+    return unwrapList(res) as Payment[]
+  }
+
   return {
     createOrder,
     getOrder,
-    createPayment
+    createPayment,
+    getEventOrders,
+    getOrderPayments
   }
 }

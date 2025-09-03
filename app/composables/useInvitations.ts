@@ -4,15 +4,20 @@ import type { Invitation, InvitationTemplate, PaginatedResponse } from '~/types/
 export const useInvitations = () => {
   const { $myFetch } = useNuxtApp()
 
+  const unwrapList = (res: any) => (res?.data?.items) || res?.items || res?.data || []
+  const unwrapMeta = (res: any) => (res?.data?.meta) || res?.meta || null
+  const unwrap = (res: any) => res?.data ?? res
+
   const fetchEventInvitations = async (eventId: number, params: {
     per_page?: number
     page?: number
     status?: string
-  } = {}): Promise<PaginatedResponse<Invitation>> => {
-    return $myFetch<PaginatedResponse<Invitation>>(`/events/${eventId}/invitations`, {
+  } = {}): Promise<{ items: Invitation[]; meta: any }> => {
+    const res = await $myFetch<any>(`/events/${eventId}/invitations`, {
       method: 'GET',
       params
     })
+    return { items: unwrapList(res) as Invitation[], meta: unwrapMeta(res) }
   }
 
   const createInvitation = async (eventId: number, invitationData: {
@@ -23,11 +28,24 @@ export const useInvitations = () => {
     invitationTemplateId?: number
     metadata?: Record<string, any>
   }): Promise<Invitation> => {
-    const response = await $myFetch<{ invitation: Invitation }>(`/events/${eventId}/invitations`, {
+    // Mapper en snake_case pour l'API
+    const body: Record<string, any> = {}
+    body.guest_name = invitationData.guestName
+    if (invitationData.guestEmail !== undefined) body.guest_email = invitationData.guestEmail
+    if (invitationData.guestPhone !== undefined) body.guest_phone = invitationData.guestPhone
+    if (invitationData.guestTableName !== undefined) body.guest_table_name = invitationData.guestTableName
+    if (invitationData.invitationTemplateId !== undefined) body.invitation_template_id = invitationData.invitationTemplateId
+    if (invitationData.metadata !== undefined) body.metadata = invitationData.metadata
+
+    const response = await $myFetch<any>(`/events/${eventId}/invitations`, {
       method: 'POST',
-      body: invitationData
+      body
     })
-    return response.invitation
+    // Envoyer aussi en camelCase pour compatibilité backend si nécessaire
+    // (certains endpoints peuvent accepter l'un ou l'autre)
+    if (!response || typeof response !== 'object') return response as Invitation
+    const unwrapped = unwrap(response)
+    return (unwrapped?.invitation ?? unwrapped) as Invitation
   }
 
   const updateInvitation = async (
@@ -57,11 +75,12 @@ export const useInvitations = () => {
   const fetchInvitationTemplates = async (params: {
     per_page?: number
     page?: number
-  } = {}): Promise<PaginatedResponse<InvitationTemplate>> => {
-    return $myFetch<PaginatedResponse<InvitationTemplate>>('/invitation-templates', {
+  } = {}): Promise<{ items: InvitationTemplate[]; meta: any }> => {
+    const res = await $myFetch<any>('/invitation-templates', {
       method: 'GET',
       params
     })
+    return { items: unwrapList(res) as InvitationTemplate[], meta: unwrapMeta(res) }
   }
 
   const fetchInvitationTemplate = async (templateId: number): Promise<InvitationTemplate> => {

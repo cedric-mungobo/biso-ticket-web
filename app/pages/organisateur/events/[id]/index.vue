@@ -51,18 +51,6 @@
               <span class="sm:hidden">Ajouter</span>
             </UButton>
 
-            <UButton 
-              :to="reportsUrl" 
-              variant="solid" 
-              size="md" 
-              color="neutral" 
-              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
-              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-            >
-              <UIcon name="i-heroicons-chart-bar" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Rapports</span>
-              <span class="sm:hidden">Stats</span>
-            </UButton>
 
             <UButton 
               @click="openOrders" 
@@ -75,6 +63,19 @@
               <UIcon name="i-heroicons-clipboard-document-list" class="w-4 h-4 mr-2" /> 
               <span class="hidden sm:inline">Commandes</span>
               <span class="sm:hidden">Cmd</span>
+            </UButton>
+
+            <UButton 
+              :to="invitationsUrl" 
+              variant="solid" 
+              size="md" 
+              color="primary" 
+              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+            >
+              <UIcon name="i-heroicons-envelope" class="w-4 h-4 mr-2" /> 
+              <span class="hidden sm:inline">Invitation électronique</span>
+              <span class="sm:hidden">Invitations</span>
             </UButton>
 
             <UButton 
@@ -101,6 +102,19 @@
               <UIcon name="i-heroicons-trash" class="w-4 h-4 mr-2" /> 
               <span class="hidden sm:inline">Supprimer</span>
               <span class="sm:hidden">Suppr.</span>
+            </UButton>
+
+            <UButton 
+              @click="showCredits = true" 
+              variant="solid" 
+              size="md" 
+              color="primary" 
+              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+            >
+              <UIcon name="i-heroicons-banknotes" class="w-4 h-4 mr-2" /> 
+              <span class="hidden sm:inline">Acheter des crédits</span>
+              <span class="sm:hidden">Crédits</span>
             </UButton>
           </div>
         </div>
@@ -332,6 +346,33 @@
         </div>
       </Modal>
 
+      <!-- Achat crédits d'invitation -->
+      <Modal v-model="showCredits" title="Acheter des crédits d'invitation">
+        <div class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm text-gray-700">Crédits</label>
+              <input v-model.number="creditsForm.credits" type="number" min="1" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700">Devise</label>
+              <select v-model="creditsForm.currency" class="rounded-lg border border-gray-300 px-3 py-1 w-full">
+                <option value="CDF">CDF</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-700">Téléphone (Mobile Money)</label>
+            <input v-model="creditsForm.phone" placeholder="243xxxxxxxxx" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
+          </div>
+        </div>
+        <template #footer>
+          <UButton variant="ghost" @click="showCredits=false">Fermer</UButton>
+          <UButton color="primary" @click="purchaseCredits">Acheter</UButton>
+        </template>
+      </Modal>
+
       <!-- Confirmation suppression événement (Modal custom) -->
       <Modal v-model="showEventDeleteConfirm" title="Supprimer l'événement ?">
         <div class="modal-content-mobile">
@@ -376,8 +417,9 @@ const statusColor = computed(() => {
 
 const publicUrl = computed(() => `/evenements/${event.value?.slug || eventId}`)
 const editUrl = computed(() => `/organisateur/events/${eventId}?mode=edit`)
-const reportsUrl = computed(() => `/organisateur/events/${eventId}?section=stats`)
+// const reportsUrl = computed(() => `/organisateur/events/${eventId}?section=stats`)
 const ordersUrl = computed(() => `/organisateur/events/${eventId}/orders`)
+const invitationsUrl = computed(() => `/organisateur/events/${eventId}/invitations`)
 
 
 
@@ -403,6 +445,7 @@ const showEventEdit = ref(false)
 const showTicketsList = ref(false)
 const showEventDeleteConfirm = ref(false)
 const eventDeleting = ref(false)
+const showCredits = ref(false)
 
 const currentTicket = ref<any>(null)
 const ticketForm = ref<any>({ type: '', price: 0, quantity: 1, devise: 'USD' })
@@ -470,6 +513,16 @@ const openEditEvent = () => {
 const openOrders = () => {
   navigateTo(ordersUrl.value)
 }
+
+const { purchaseCredits: repoPurchaseCredits } = useOrganizerEvents()
+const creditsForm = reactive({ credits: 10, currency: 'CDF', phone: '' })
+const purchaseCredits = preventMultipleSubmissions(async () => {
+  await withLoading(async () => {
+    await repoPurchaseCredits({ credits: Number(creditsForm.credits), currency: creditsForm.currency, phone: creditsForm.phone })
+    toast.add({ title: 'Demande envoyée', description: 'Vérifiez le push Mobile Money.', color: 'success' })
+    showCredits.value = false
+  }, 'Achat de crédits...')
+})
 
 const ticketSubmitting = ref(false)
 
