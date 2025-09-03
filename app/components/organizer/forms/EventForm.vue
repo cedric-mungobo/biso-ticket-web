@@ -1,6 +1,6 @@
 <template>
   <div class="">
-  <UForm :state="formData" @submit="handleSubmit" class="space-y-2">
+  <UForm :state="formData" @submit="handleSubmit" class="space-y-4">
     <!-- Message d'erreur général -->
     <UAlert
       v-if="formErrors.general"
@@ -10,7 +10,7 @@
       :title="formErrors.general"
     />
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- Titre de l'événement -->
       <div>
         <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
@@ -22,7 +22,6 @@
           :error="formErrors.title"
           id="title"
           class="w-full"
-          :ui="{ base: 'relative disabled:cursor-not-allowed disabled:opacity-75 focus:outline-none block w-full border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6' }"
           autocomplete="off"
           autocorrect="off"
           autocapitalize="off"
@@ -41,7 +40,6 @@
           :error="formErrors.location"
           id="location"
           class="w-full"
-          :ui="{ base: 'relative disabled:cursor-not-allowed disabled:opacity-75 focus:outline-none block w-full border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6' }"
           autocomplete="off"
           autocorrect="off"
           autocapitalize="off"
@@ -60,7 +58,6 @@
           class="w-full"
           type="datetime-local"
           :error="formErrors.starts_at"
-          :ui="{ base: 'relative disabled:cursor-not-allowed disabled:opacity-75 focus:outline-none block w-full border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6' }"
         />
       </div>
 
@@ -75,7 +72,6 @@
           :error="formErrors.ends_at"
           id="ends_at"
           class="w-full"
-          :ui="{ base: 'relative disabled:cursor-not-allowed disabled:opacity-75 focus:outline-none block w-full border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6' }"
         />
       </div>
 
@@ -91,7 +87,6 @@
           :error="formErrors.description"
           id="description"
           class="w-full"
-          :ui="{ base: 'relative disabled:cursor-not-allowed disabled:opacity-75 focus:outline-none block w-full border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6 resize-none' }"
           autocomplete="off"
           autocorrect="off"
           autocapitalize="off"
@@ -125,9 +120,6 @@
           id="categories"
           class="w-full"
           :error="formErrors.categories"
-          :ui="{ 
-            base: 'relative disabled:cursor-not-allowed disabled:opacity-75 focus:outline-none block w-full border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6'
-          }"
         />
         <p v-if="formErrors.categories" class="mt-1 text-sm text-red-600">{{ formErrors.categories }}</p>
       </div>
@@ -137,20 +129,19 @@
         <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
           Statut
         </label>
-        <select
+        <USelect
           v-model="formData.status"
+          :items="[
+            { label: 'Brouillon', value: 'draft' },
+            { label: 'Actif', value: 'active' },
+            { label: 'Terminé', value: 'ended' },
+            { label: 'Annulé', value: 'cancelled' },
+            { label: 'Suspendu', value: 'suspended' }
+          ]"
           id="status"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 relative disabled:cursor-not-allowed disabled:opacity-75"
-          :class="{ 'border-red-500': formErrors.status }"
-          autocomplete="off"
-        >
-          <option value="draft">Brouillon</option>
-          <option value="active">Actif</option>
-          <option value="ended">Terminé</option>
-          <option value="cancelled">Annulé</option>
-          <option value="suspended">Suspendu</option>
-        </select>
-        <p v-if="formErrors.status" class="mt-1 text-sm text-red-600">{{ formErrors.status }}</p>
+          class="w-full"
+          :error="formErrors.status"
+        />
       </div>
 
       <!-- Options d'événement -->
@@ -207,11 +198,12 @@
     </div>
 
     <!-- Boutons d'action -->
-    <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
+    <div class="flex flex-col sm:flex-row gap-3 sm:justify-end mt-8 pt-6 border-t border-gray-200">
       <UButton
         variant="ghost"
         color="neutral"
         @click="handleCancel"
+        class="w-full sm:w-auto"
       >
         Annuler
       </UButton>
@@ -219,6 +211,7 @@
         type="submit"
         :loading="submitting"
         color="primary"
+        class="w-full sm:w-auto"
       >
         {{ isEditMode ? 'Mettre à jour' : 'Créer l\'événement' }}
       </UButton>
@@ -410,60 +403,21 @@ onMounted(() => {
 /* Optimisations pour mobile */
 @media (max-width: 768px) {
   /* Améliorer la réactivité des inputs sur mobile */
-  :deep(.ui-input input),
-  :deep(.ui-textarea textarea),
-  :deep(.ui-select select) {
-    touch-action: manipulation;
-    -webkit-user-select: text;
-    user-select: text;
-    -webkit-tap-highlight-color: transparent;
+  :deep(input),
+  :deep(textarea),
+  :deep(select) {
     font-size: 16px; /* Évite le zoom automatique sur iOS */
+    touch-action: manipulation;
   }
   
   /* Améliorer l'accessibilité des labels */
   label {
     touch-action: manipulation;
-    -webkit-user-select: none;
-    user-select: none;
   }
   
   /* Optimiser les boutons pour le touch */
   :deep(.ui-button) {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
     min-height: 44px; /* Taille minimale recommandée pour le touch */
   }
-  
-  /* Améliorer l'espacement des inputs */
-  .grid > div {
-    margin-bottom: 1rem;
-  }
-  
-  /* Optimiser les modals sur mobile */
-  :deep(.ui-modal) {
-    padding: 1rem;
-  }
-}
-
-/* Styles globaux pour les inputs */
-:deep(.ui-input),
-:deep(.ui-textarea),
-:deep(.ui-select) {
-  position: relative;
-  z-index: 1;
-}
-
-/* Améliorer le focus sur mobile */
-:deep(.ui-input input:focus),
-:deep(.ui-textarea textarea:focus),
-:deep(.ui-select select:focus) {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(147, 58, 255, 0.2);
-}
-
-/* Prévenir les problèmes de z-index avec les overlays */
-.relative {
-  position: relative;
-  z-index: 1;
 }
 </style>

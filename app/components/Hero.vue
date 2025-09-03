@@ -1,7 +1,7 @@
 <template>
   <div>
     <main>
-      <section class="overflow-hidden flex flex-col justify-center items-center min-h-[90dvh]">
+      <section class="overflow-hidden flex flex-col justify-center items-center md:min-h-[90dvh]">
          <!-- Hero Section -->
     <div class="relative">
       <!-- Announcement Banner -->
@@ -25,7 +25,7 @@
             <!-- Titre principal avec animation de frappe -->
             <h1 
               ref="titleRef" 
-              class="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight opacity-0"
+              class="text-4xl  sm:text-5xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight opacity-0"
             >
               <span class="inline-block">Organisez,</span>
               <span class="inline-block ml-2">vendez,</span>
