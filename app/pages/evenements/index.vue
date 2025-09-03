@@ -1,5 +1,5 @@
 <template>
-  <main class="px-4 py-2">
+  <main class=" py-2">
     <div class="mx-auto container">
       <h1 class="text-3xl font-bold mb-2">Événements</h1>
 
