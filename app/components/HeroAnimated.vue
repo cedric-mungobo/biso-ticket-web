@@ -18,7 +18,7 @@
         :style="{
           transform: `scale(${section2Scale}) rotate(${section2Rotate}deg)`,
         }"
-        class="relative min-h-[90dvh] bg-gradient-to-t to-[#1a1919] from-[#06060e] text-white"
+        class="relative min-h-[80dvh] bg-gradient-to-t to-[#1a1919] from-[#06060e] text-white"
       >
         <!-- Grid Pattern Overlay -->
         <div class="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:54px_54px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
@@ -28,19 +28,21 @@
             Découvrez nos événements <br /> exceptionnels
           </h1> 
           
-          <!-- Grille des cartes d'événements -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <EventCard
-              v-for="(event, index) in displayedEvents"
-              :key="event.id || index"
-              :event-id="event.id"
-              :title="event.title"
-              :image="event.imageUrl"
-              :date="event.startsAt"
-              :location="event.location"
-              :categories="event.settings?.categories || []"
-              class="transform transition-all duration-300 hover:scale-105"
-            />
+          <!-- Carousel des cartes d'événements -->
+          <EventsCarousel
+            v-if="displayedEvents.length > 0"
+            :events="displayedEvents"
+            :max-events="props.maxEvents"
+            title="Découvrez nos événements exceptionnels"
+            subtitle="Concerts, festivals, mariages, événements corporate..."
+            :autoplay-interval="3000"
+          />
+          
+          <!-- Message si aucun événement -->
+          <div v-else class="text-center py-12">
+            <p class="text-gray-300 text-lg">
+              Aucun événement disponible pour le moment
+            </p>
           </div>
           
           <!-- Description -->
@@ -125,6 +127,8 @@
   const handleScroll = () => {
     scrollY.value = window.scrollY
   }
+  
+
   
   onMounted(() => {
     window.addEventListener('scroll', handleScroll)

@@ -20,10 +20,7 @@ const { data, pending: loading, error, refresh } = await useAsyncData('featured:
 }, { server: false })
 
 const events = computed(() => {
-  console.log('[DEBUG] data.value:', data.value)
-  console.log('[DEBUG] data.value?.items:', data.value?.items)
   const result = Array.isArray(data.value?.items) ? data.value!.items : []
-  console.log('[DEBUG] events computed result:', result)
   return result
 })
 </script>
