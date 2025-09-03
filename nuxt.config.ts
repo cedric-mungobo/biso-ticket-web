@@ -9,7 +9,6 @@ export default defineNuxtConfig({
   css: ['~/assets/index.css'],
   plugins: [
     '~/plugins/preline.client.ts',
-    '~/plugins/mobileOptimization.client.ts'
   ],
   vite: {
     plugins: [
