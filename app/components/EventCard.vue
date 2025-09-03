@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink :to="`/evenements/${eventId}`"> 
+  <NuxtLink :to="`/evenements/${slug}`"> 
     <article 
       ref="cardRef"
       class="rounded-xl border bg-white transition-all hover:shadow-lg border-primary-400 hover:border-primary-300 group event-card-animated"
@@ -76,6 +76,7 @@ interface Props {
   description?: string
   location?: string
   eventId?: number | string
+  slug: string
 }
 
 const props = withDefaults(defineProps<Props>(), {

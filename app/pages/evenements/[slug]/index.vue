@@ -92,46 +92,94 @@
               </div>
             </div>
             <!-- Tickets à droite sur desktop -->
-            <div class="hidden lg:block lg:col-span-1 overflow-hidden">
-              <UCard class="p-6">
-                <div class="text-xl font-semibold text-gray-900 mb-4">Billets disponibles</div>
-                <div v-if="ticketsLoading" class="text-sm text-gray-500">Chargement des billets...</div>
-                <div v-else-if="ticketsError" class="text-sm text-red-600">Erreur: {{ ticketsError }}</div>
-                <div v-else-if="tickets.length" class="space-y-3">
-                  <div v-for="ticket in tickets" :key="ticket.id" class="rounded-lg p-4 border border-gray-200">
-                    <div class="flex justify-between items-start mb-2">
-                      <h4 class="font-semibold text-gray-900">{{ ticket.name }}</h4>
-                      <span class="text-lg font-bold text-primary-600">{{ ticket.price }} {{ ticket.currency }}</span>
+            <div class="hidden lg:block lg:col-span-1">
+              <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-6 max-h-[80vh] flex flex-col">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Billets</h3>
+                
+                <!-- Loading State -->
+                <div v-if="ticketsLoading" class="text-center py-8">
+                  <div class="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                  <p class="text-sm text-gray-500">Chargement...</p>
+                </div>
+                
+                <!-- Error State -->
+                <div v-else-if="ticketsError" class="text-center py-8">
+                  <p class="text-sm text-red-500">{{ ticketsError }}</p>
+                </div>
+                
+                <!-- Indicateur de scroll pour beaucoup de tickets -->
+                <div v-else-if="tickets.length > 3" class="text-center text-xs text-gray-400 pb-2 border-b border-gray-100 mb-4">
+                  <span class="inline-flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                    </svg>
+                    Faites défiler pour voir tous les billets
+                  </span>
+                </div>
+                
+                <!-- Tickets List -->
+                <div v-if="tickets.length" class="flex-1 overflow-y-auto space-y-1 sm:space-y-4">
+                  <div v-for="ticket in tickets" :key="ticket.id" class="group bg-gray-50 rounded-lg p-2 sm:p-4">
+                    <!-- Ticket Header -->
+                    <div class="flex justify-between items-start mb-1 sm:mb-3">
+                      <h4 class="font-medium text-gray-900 text-xs sm:text-base pr-1">{{ ticket.name }}</h4>
+                      <span class="text-xs sm:text-lg font-semibold text-gray-900 flex-shrink-0">{{ ticket.price }} {{ ticket.currency }}</span>
                     </div>
-                    <div class="text-sm text-gray-600 mb-3">Stock: {{ ticket.quantity }}</div>
-                    <div class="flex items-center gap-2">
-                      <button
-                        class="px-3 py-1.5 rounded-md border text-sm hover:bg-neutral-50"
-                        :disabled="getQuantity(ticket.id) <= 1"
-                        @click="decrementQuantity(ticket.id)"
-                      >−</button>
-                      <input
-                        type="number"
-                        class="w-16 text-center border rounded-md py-1.5 text-sm"
-                        :min="1"
-                        :max="ticket.quantity"
-                        :value="getQuantity(ticket.id)"
-                        @input="(e: any) => setQuantity(ticket.id, Number(e.target.value), ticket.quantity)"
-                      />
-                      <button
-                        class="px-3 py-1.5 rounded-md border text-sm hover:bg-neutral-50"
-                        :disabled="getQuantity(ticket.id) >= ticket.quantity"
-                        @click="incrementQuantity(ticket.id, ticket.quantity)"
-                      >+</button>
+                    
+                    <!-- Quantity Selector -->
+                    <div class="flex items-center justify-between mb-1 sm:mb-4">
+                      <span class="text-xs sm:text-sm text-gray-500">Qté</span>
+                      <div class="flex items-center gap-1 sm:gap-3">
+                        <button
+                          class="w-5 h-5 sm:w-8 sm:h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+                          :disabled="getQuantity(ticket.id) <= 1"
+                          @click="decrementQuantity(ticket.id)"
+                        >
+                          <svg class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                          </svg>
+                        </button>
+                        <span class="w-5 sm:w-8 text-center font-medium text-xs sm:text-sm">{{ getQuantity(ticket.id) }}</span>
+                        <button
+                          class="w-5 h-5 sm:w-8 sm:h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+                          :disabled="getQuantity(ticket.id) >= ticket.quantity"
+                          @click="incrementQuantity(ticket.id, ticket.quantity)"
+                        >
+                          <svg class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
-                    <div class="mt-2 text-sm font-medium text-gray-900">
-                      Total: {{ formatCurrency(ticketTotal(ticket), ticket.currency) }}
+                    
+                    <!-- Total & Reserve Button -->
+                    <div class="flex justify-between items-center pt-1 sm:pt-3 border-t border-gray-200">
+                      <div>
+                        <p class="text-xs sm:text-sm text-gray-500">Total</p>
+                        <p class="font-semibold text-gray-900 text-xs sm:text-base">{{ formatCurrency(ticketTotal(ticket), ticket.currency) }}</p>
+                      </div>
+                      <UButton 
+                        color="primary" 
+                        size="xs"
+                        @click="onReserve(ticket)"
+                        class="px-2 sm:px-6 text-xs sm:text-sm py-1 sm:py-2"
+                      >
+                        Réserver
+                      </UButton>
                     </div>
-                    <UButton class="mt-3" color="primary" block size="sm" @click="onReserve(ticket)">Réserver</UButton>
                   </div>
                 </div>
-                <div v-else class="text-center text-gray-500 py-2">Aucun billet disponible pour le moment</div>
-              </UCard>
+                
+                <!-- Empty State -->
+                <div v-else class="text-center py-8">
+                  <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                    </svg>
+                  </div>
+                  <p class="text-sm text-gray-500">Aucun billet disponible</p>
+                </div>
+              </div>
             </div>
           </div>
 

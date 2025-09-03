@@ -62,29 +62,35 @@
       
       <!-- Sélection de la méthode -->
       <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-3">
-          Choisissez votre méthode de paiement
-        </label>
-        <div class="flex gap-4">
-          <label class="flex items-center">
-            <input
-              v-model="paymentMethod"
-              type="radio"
-              value="mobile_money"
-              class="mr-2"
-            />
-            Mobile Money
-          </label>
-          <label class="flex items-center">
-            <input
-              v-model="paymentMethod"
-              type="radio"
-              value="card"
-              class="mr-2"
-            />
-            Carte bancaire
-          </label>
-        </div>
+        <h3 class="mb-4 font-semibold text-gray-900 dark:text-white">Choisissez votre méthode de paiement</h3>
+        <ul class="items-center w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg sm:flex dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          <li class="w-full border-b border-gray-200 sm:border-b-0 sm:border-r dark:border-gray-600">
+            <div class="flex items-center ps-3">
+              <input 
+                id="payment-mobile-money" 
+                v-model="paymentMethod"
+                type="radio" 
+                value="mobile_money" 
+                name="payment-method" 
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+              >
+              <label for="payment-mobile-money" class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Mobile Money</label>
+            </div>
+          </li>
+          <li class="w-full dark:border-gray-600">
+            <div class="flex items-center ps-3">
+              <input 
+                id="payment-card" 
+                v-model="paymentMethod"
+                type="radio" 
+                value="card" 
+                name="payment-method" 
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+              >
+              <label for="payment-card" class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Carte bancaire</label>
+            </div>
+          </li>
+        </ul>
       </div>
 
       <!-- Sélection de la devise -->

@@ -15,6 +15,7 @@
         :date="event.startsAt"
         :location="event.location"
         :categories="event.settings?.categories || []"
+        :slug="event.slug"
         class="transform transition-all duration-300 hover:scale-105"
         :class="{ 'animate-fade-in': index >= visibleEventsCount }"
       />
@@ -93,6 +94,7 @@ interface Event {
   imageUrl?: string
   startsAt: string
   location?: string
+  slug: string
   settings?: {
     categories?: string[]
   }

@@ -30,15 +30,7 @@ const events = computed(() => {
     <main id="content">
       <HeroAnimated :events="events" :max-events="4" />
 
-      <!-- Discover Section -->
-       <section class=" mt-10   ">
-      <EventsSection 
-        :events="events"
-        :loading="loading"
-        :error="error?.message || null"
-        @retry="refresh"
-      />
-      </section>
+      
       <!-- Our Approach Section -->
       <div class="w-full container mx-auto px-1 sm:px-0 lg:px-8">
         <OurApproach class="my-10" />

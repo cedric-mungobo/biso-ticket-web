@@ -24,6 +24,7 @@
               :date="event.startsAt"
               :location="event.location"
               :categories="event.settings?.categories || []"
+              :slug="event.slug"
               class="carousel-card"
             />
           </div>
@@ -43,6 +44,7 @@ interface Event {
   imageUrl?: string
   startsAt: string
   location?: string
+  slug: string
   settings?: {
     categories?: string[]
   }

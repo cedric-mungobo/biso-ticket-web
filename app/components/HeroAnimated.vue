@@ -69,6 +69,7 @@
     imageUrl?: string
     startsAt: string
     location?: string
+    slug: string
     settings?: {
       categories?: string[]
     }
