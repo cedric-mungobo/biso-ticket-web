@@ -222,7 +222,6 @@ const emit = defineEmits<{
 
 // Composables
 const { fetchEventCategories } = useOrganizerEvents()
-const { initMobileOptimizations, isMobile } = useMobileOptimization()
 
 // État du formulaire selon la documentation API
 const formData = ref<EventFormData>({
@@ -377,28 +376,6 @@ watch(formData, (newValue) => {
 // Charger les données au montage
 onMounted(() => {
   loadCategories()
-  
-  // Initialiser les optimisations mobiles
-  if (isMobile.value) {
-    initMobileOptimizations()
-  }
 })
 </script>
 
-<style scoped>
-/* Optimisations mobiles minimales */
-@media (max-width: 768px) {
-  input, textarea, select {
-    font-size: 16px; /* Évite le zoom automatique sur iOS */
-    min-height: 44px;
-  }
-  
-  button {
-    min-height: 44px;
-  }
-  
-  .grid {
-    gap: 1rem;
-  }
-}
-</style>
