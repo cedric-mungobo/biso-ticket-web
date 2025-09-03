@@ -33,7 +33,7 @@ const events = computed(() => {
       
       <!-- Our Approach Section -->
       <div class="w-full container mx-auto px-1 sm:px-0 lg:px-8">
-        <OurApproach class="my-10" />
+        <OurApproach class="" />
       </div>
 
       <!-- Services Section -->

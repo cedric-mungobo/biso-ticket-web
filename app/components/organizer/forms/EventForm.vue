@@ -1,171 +1,139 @@
 <template>
-  <div class="">
-  <UForm :state="formData" @submit="handleSubmit" class="space-y-4">
-    <!-- Message d'erreur général -->
-    <UAlert
-      v-if="formErrors.general"
-      icon="i-heroicons-exclamation-triangle"
-      color="error"
-      variant="soft"
-      :title="formErrors.general"
-    />
+  <div class="max-w-2xl mx-auto">
+    <form @submit.prevent="handleSubmit" class="space-y-6">
+      <!-- Message d'erreur général -->
+      <div v-if="formErrors.general" class="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-sm text-red-600">{{ formErrors.general }}</p>
+      </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Titre de l'événement -->
-      <div>
-        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
-          Titre de l'événement <span class="text-red-500">*</span>
-        </label>
-        <UInput
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Titre de l'événement -->
+        <FormInput
           v-model="formData.title"
+          label="Titre de l'événement"
           placeholder="Ex: Concert de Jazz"
           :error="formErrors.title"
           id="title"
-          class="w-full"
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="off"
-          spellcheck="false"
+          required
         />
-      </div>
 
-      <!-- Lieu -->
-      <div>
-        <label for="location" class="block text-sm font-medium text-gray-700 mb-2">
-          Lieu de l'événement
-        </label>
-        <UInput
-          v-model="formData.location"
+        <!-- Lieu -->
+        <FormInput
+          v-model="locationValue"
+          label="Lieu de l'événement"
           placeholder="Ex: Salle des fêtes, Stade, Théâtre"
           :error="formErrors.location"
           id="location"
-          class="w-full"
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="off"
-          spellcheck="false"
         />
-      </div>
 
-      <!-- Date et heure de début -->
-      <div>
-        <label for="starts_at" class="block text-sm font-medium text-gray-700 mb-2">
-          Date et heure de début <span class="text-red-500">*</span>
-        </label>
-        <UInput
+        <!-- Date et heure de début -->
+        <FormInput
           v-model="formData.starts_at"
-          id="starts_at"
-          class="w-full"
+          label="Date et heure de début"
           type="datetime-local"
           :error="formErrors.starts_at"
+          id="starts_at"
+          required
         />
-      </div>
 
-      <!-- Date et heure de fin -->
-      <div>
-        <label for="ends_at" class="block text-sm font-medium text-gray-700 mb-2">
-          Date et heure de fin
-        </label>
-        <UInput
-          v-model="formData.ends_at"
+        <!-- Date et heure de fin -->
+        <FormInput
+          v-model="endsAtValue"
+          label="Date et heure de fin"
           type="datetime-local"
           :error="formErrors.ends_at"
           id="ends_at"
-          class="w-full"
         />
-      </div>
 
-      <!-- Description -->
-      <div class="md:col-span-2">
-        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
-          Description
-        </label>
-        <UTextarea
-          v-model="formData.description"
-          placeholder="Décrivez votre événement en détail..."
-          :rows="4"
-          :error="formErrors.description"
-          id="description"
-          class="w-full"
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="off"
-          spellcheck="false"
-        />
-      </div>
-
-      <!-- Tags -->
-      <div>
-        <label for="tags" class="block text-sm font-medium text-gray-700 mb-2">
-          Tags
-        </label>
-        <UInputTags
-          v-model="formData.settings!.tags"
-          placeholder="Ajouter un tag et appuyer Entrée"
-          :max="10"
-          id="tags"
-          class="w-full"
-        />
-      </div>
-
-      <!-- Catégories -->
-      <div>
-        <label for="categories" class="block text-sm font-medium text-gray-700 mb-2">
-          Catégories
-        </label>
-        <USelect
-          v-model="formData.settings!.categories"
-          :items="presetsCategories"
-          multiple
-          id="categories"
-          class="w-full"
-          :error="formErrors.categories"
-        />
-        <p v-if="formErrors.categories" class="mt-1 text-sm text-red-600">{{ formErrors.categories }}</p>
-      </div>
-
-      <!-- Statut -->
-      <div>
-        <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
-          Statut
-        </label>
-        <USelect
-          v-model="formData.status"
-          :items="[
-            { label: 'Brouillon', value: 'draft' },
-            { label: 'Actif', value: 'active' },
-            { label: 'Terminé', value: 'ended' },
-            { label: 'Annulé', value: 'cancelled' },
-            { label: 'Suspendu', value: 'suspended' }
-          ]"
-          id="status"
-          class="w-full"
-          :error="formErrors.status"
-        />
-      </div>
-
-      <!-- Options d'événement -->
-      <div class="md:col-span-2 space-y-4">
-        <!-- Événement public -->
-        <div class="flex items-center gap-2">
-          <UCheckbox
-            v-model="formData.is_public"
-            id="is_public"
+        <!-- Description -->
+        <div class="md:col-span-2">
+          <FormTextarea
+            v-model="descriptionValue"
+            label="Description"
+            placeholder="Décrivez votre événement en détail..."
+            :rows="4"
+            :error="formErrors.description"
+            id="description"
           />
-          <label for="is_public" class="text-sm font-medium text-gray-700">
-            Événement public
-          </label>
         </div>
 
-        <!-- Scan QR activé -->
-        <div class="flex items-center gap-2">
-          <UCheckbox
-            v-model="formData.settings!.scan_enabled"
-            id="scan_enabled"
-          />
-          <label for="scan_enabled" class="text-sm font-medium text-gray-700">
-            Activer le scan QR pour l'accès
+        <!-- Tags -->
+        <div>
+          <label for="tags" class="block text-sm font-medium text-gray-700 mb-2">
+            Tags
           </label>
+          <UInputTags
+            v-model="formData.settings!.tags"
+            placeholder="Ajouter un tag et appuyer Entrée"
+            :max="10"
+            id="tags"
+            class="w-full"
+          />
+        </div>
+
+        <!-- Catégories -->
+        <div>
+          <label for="categories" class="block text-sm font-medium text-gray-700 mb-2">
+            Catégories
+          </label>
+          <USelect
+            v-model="formData.settings!.categories"
+            :items="presetsCategories"
+            multiple
+            id="categories"
+            class="w-full"
+            :error="formErrors.categories"
+          />
+          <p v-if="formErrors.categories" class="mt-1 text-sm text-red-600">{{ formErrors.categories }}</p>
+        </div>
+
+        <!-- Statut -->
+        <div>
+          <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+            Statut
+          </label>
+          <USelect
+            v-model="formData.status"
+            :items="[
+              { label: 'Brouillon', value: 'draft' },
+              { label: 'Actif', value: 'active' },
+              { label: 'Terminé', value: 'ended' },
+              { label: 'Annulé', value: 'cancelled' },
+              { label: 'Suspendu', value: 'suspended' }
+            ]"
+            id="status"
+            class="w-full"
+            :error="formErrors.status"
+          />
+        </div>
+
+        <!-- Options d'événement -->
+        <div class="md:col-span-2 space-y-4">
+          <!-- Événement public -->
+          <div class="flex items-center gap-3">
+            <input
+              v-model="formData.is_public"
+              type="checkbox"
+              id="is_public"
+              class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+            />
+            <label for="is_public" class="text-sm font-medium text-gray-700">
+              Événement public
+            </label>
+          </div>
+
+          <!-- Scan QR activé -->
+          <div class="flex items-center gap-3">
+            <input
+              v-model="formData.settings!.scan_enabled"
+              type="checkbox"
+              id="scan_enabled"
+              class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+            />
+            <label for="scan_enabled" class="text-sm font-medium text-gray-700">
+              Activer le scan QR pour l'accès
+            </label>
+          </div>
         </div>
       </div>
 
@@ -189,34 +157,30 @@
           type="file"
           accept="image/*"
           @change="handleImageChange"
-          class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 relative disabled:cursor-not-allowed disabled:opacity-75"
-          autocomplete="off"
+          class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
         />
         <p class="text-xs text-gray-500 mt-1">Formats acceptés: JPG, PNG, GIF. Taille max: 5 MB</p>
         <p v-if="formErrors.image" class="mt-1 text-sm text-red-600">{{ formErrors.image }}</p>
       </div>
-    </div>
 
-    <!-- Boutons d'action -->
-    <div class="flex flex-col sm:flex-row gap-3 sm:justify-end mt-8 pt-6 border-t border-gray-200">
-      <UButton
-        variant="ghost"
-        color="neutral"
-        @click="handleCancel"
-        class="w-full sm:w-auto"
-      >
-        Annuler
-      </UButton>
-      <UButton
-        type="submit"
-        :loading="submitting"
-        color="primary"
-        class="w-full sm:w-auto"
-      >
-        {{ isEditMode ? 'Mettre à jour' : 'Créer l\'événement' }}
-      </UButton>
-    </div>
-  </UForm>
+      <!-- Boutons d'action -->
+      <div class="md:col-span-2 flex flex-col sm:flex-row gap-3 sm:justify-end pt-6 border-t border-gray-200">
+        <button
+          type="button"
+          @click="handleCancel"
+          class="w-full sm:w-auto px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          :disabled="submitting"
+          class="w-full sm:w-auto px-6 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ submitting ? 'En cours...' : (isEditMode ? 'Mettre à jour' : 'Créer l\'événement') }}
+        </button>
+      </div>
+    </form>
   </div>
 </template>
 
@@ -277,6 +241,28 @@ const formErrors = ref<Record<string, string>>({})
 const imageFiles = ref<File[]>([])
 
 const presetsCategories = ref<string[]>([])
+
+// Computed properties pour gérer les valeurs undefined
+const locationValue = computed({
+  get: () => formData.value.location || '',
+  set: (value: string) => {
+    formData.value.location = value || undefined
+  }
+})
+
+const endsAtValue = computed({
+  get: () => formData.value.ends_at || '',
+  set: (value: string) => {
+    formData.value.ends_at = value || undefined
+  }
+})
+
+const descriptionValue = computed({
+  get: () => formData.value.description || '',
+  set: (value: string) => {
+    formData.value.description = value || undefined
+  }
+})
 
 // Charger les catégories prédéfinies
 const loadCategories = async () => {
@@ -400,24 +386,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Optimisations pour mobile */
+/* Optimisations mobiles minimales */
 @media (max-width: 768px) {
-  /* Améliorer la réactivité des inputs sur mobile */
-  :deep(input),
-  :deep(textarea),
-  :deep(select) {
+  input, textarea, select {
     font-size: 16px; /* Évite le zoom automatique sur iOS */
-    touch-action: manipulation;
+    min-height: 44px;
   }
   
-  /* Améliorer l'accessibilité des labels */
-  label {
-    touch-action: manipulation;
+  button {
+    min-height: 44px;
   }
   
-  /* Optimiser les boutons pour le touch */
-  :deep(.ui-button) {
-    min-height: 44px; /* Taille minimale recommandée pour le touch */
+  .grid {
+    gap: 1rem;
   }
 }
 </style>

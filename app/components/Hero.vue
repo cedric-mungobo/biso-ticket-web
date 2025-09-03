@@ -1,7 +1,7 @@
 <template>
   <div>
     <main>
-      <section class="overflow-hidden flex flex-col justify-center items-center md:min-h-[90dvh]">
+      <section class="overflow-hidden flex flex-col justify-center items-center max-sm:py-16 md:min-h-[90dvh]">
          <!-- Hero Section -->
     <div class="relative">
       <!-- Announcement Banner -->
