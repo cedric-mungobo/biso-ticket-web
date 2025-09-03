@@ -32,7 +32,7 @@
               v-model="formData.title"
               required
               placeholder="Ex: Concert de Jazz"
-              class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500"
             />
           </div>
 
@@ -44,7 +44,7 @@
               type="text"
               v-model="formData.location"
               placeholder="Ex: Kinshasa, Salle des fêtes"
-              class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500"
             />
           </div>
 
@@ -56,7 +56,7 @@
               v-model="formData.description"
               rows="4"
               placeholder="Description de l'événement"
-              class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500"
             />
           </div>
 
@@ -69,7 +69,7 @@
                 type="datetime-local"
                 v-model="formData.starts_at"
                 required
-                class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500"
               />
             </div>
 
@@ -80,7 +80,7 @@
                 id="ends_at"
                 type="datetime-local"
                 v-model="formData.ends_at"
-                class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500"
               />
             </div>
           </div>
@@ -92,7 +92,7 @@
               <select
                 id="status"
                 v-model="formData.status"
-                class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500"
               >
                 <option value="draft">Brouillon</option>
                 <option value="active">Actif</option>
@@ -124,7 +124,7 @@
                 type="text"
                 v-model="tagsText"
                 placeholder="ex: music, live, 2025"
-                class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500"
               />
             </div>
             <div>
@@ -134,7 +134,7 @@
                 type="text"
                 v-model="categoriesText"
                 placeholder="ex: concert, vip"
-                class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500"
               />
             </div>
           </div>
@@ -147,7 +147,7 @@
               type="file"
               accept="image/*"
               @change="onFileChange"
-              class="mt-1 block w-full rounded-lg border border-gray-300 text-sm text-gray-700"
+              class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 text-sm text-gray-700"
             />
           </div>
 
