@@ -24,95 +24,100 @@
           </div>
           
           <!-- Boutons d'action responsive -->
-          <div class="space-y-3 sm:space-y-0">
-            <!-- Actions principales (toujours visibles) -->
-            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <UButton 
-                @click="showTicketsList = true" 
-                variant="solid" 
-                size="md" 
-                color="primary" 
-                class="shadow-sm flex-1 sm:flex-none"
-                :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-              >
-                <UIcon name="i-heroicons-ticket" class="w-4 h-4 mr-2" /> 
-                <span class="hidden sm:inline">Voir les tickets</span>
-                <span class="sm:hidden">Tickets</span>
-              </UButton>
-              
-              <UButton 
-                @click="openCreateTicket()" 
-                variant="solid" 
-                size="md" 
-                color="success" 
-                class="shadow-sm flex-1 sm:flex-none"
-                :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-              >
-                <UIcon name="i-heroicons-plus" class="w-4 h-4 mr-2" /> 
-                <span class="hidden sm:inline">Ajouter un ticket</span>
-                <span class="sm:hidden">Ajouter</span>
-              </UButton>
-            </div>
-            
-            <!-- Actions secondaires (menu déroulant sur mobile) -->
-            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <UButton 
-                :to="reportsUrl" 
-                variant="solid" 
-                size="md" 
-                color="neutral" 
-                class="shadow-sm flex-1 sm:flex-none"
-                :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-              >
-                <UIcon name="i-heroicons-chart-bar" class="w-4 h-4 mr-2" /> 
-                <span class="hidden sm:inline">Rapports</span>
-                <span class="sm:hidden">Stats</span>
-              </UButton>
-              
-              <UButton 
-                @click="openEditEvent()" 
-                variant="solid" 
-                size="md" 
-                color="warning" 
-                class="shadow-sm flex-1 sm:flex-none"
-                :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-              >
-                <UIcon name="i-heroicons-pencil-square" class="w-4 h-4 mr-2" /> 
-                <span class="hidden sm:inline">Éditer</span>
-                <span class="sm:hidden">Modifier</span>
-              </UButton>
-              
-              <UButton 
-                @click="onDelete" 
-                variant="solid" 
-                size="md" 
-                color="error" 
-                class="shadow-sm flex-1 sm:flex-none"
-                :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-              >
-                <UIcon name="i-heroicons-trash" class="w-4 h-4 mr-2" /> 
-                <span class="hidden sm:inline">Supprimer</span>
-                <span class="sm:hidden">Suppr.</span>
-              </UButton>
-            </div>
+          <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3">
+            <UButton 
+              @click="showTicketsList = true" 
+              variant="solid" 
+              size="md" 
+              color="primary" 
+              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+            >
+              <UIcon name="i-heroicons-ticket" class="w-4 h-4 mr-2" /> 
+              <span class="hidden sm:inline">Voir les tickets</span>
+              <span class="sm:hidden">Tickets</span>
+            </UButton>
+
+            <UButton 
+              @click="openCreateTicket()" 
+              variant="solid" 
+              size="md" 
+              color="success" 
+              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+            >
+              <UIcon name="i-heroicons-plus" class="w-4 h-4 mr-2" /> 
+              <span class="hidden sm:inline">Ajouter un ticket</span>
+              <span class="sm:hidden">Ajouter</span>
+            </UButton>
+
+            <UButton 
+              :to="reportsUrl" 
+              variant="solid" 
+              size="md" 
+              color="neutral" 
+              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+            >
+              <UIcon name="i-heroicons-chart-bar" class="w-4 h-4 mr-2" /> 
+              <span class="hidden sm:inline">Rapports</span>
+              <span class="sm:hidden">Stats</span>
+            </UButton>
+
+            <UButton 
+              @click="openOrders" 
+              variant="solid" 
+              size="md" 
+              color="neutral" 
+              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+            >
+              <UIcon name="i-heroicons-clipboard-document-list" class="w-4 h-4 mr-2" /> 
+              <span class="hidden sm:inline">Commandes</span>
+              <span class="sm:hidden">Cmd</span>
+            </UButton>
+
+            <UButton 
+              @click="openEditEvent()" 
+              variant="solid" 
+              size="md" 
+              color="warning" 
+              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+            >
+              <UIcon name="i-heroicons-pencil-square" class="w-4 h-4 mr-2" /> 
+              <span class="hidden sm:inline">Éditer</span>
+              <span class="sm:hidden">Modifier</span>
+            </UButton>
+
+            <UButton 
+              @click="openDeleteConfirm" 
+              variant="solid" 
+              size="md" 
+              color="error" 
+              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+            >
+              <UIcon name="i-heroicons-trash" class="w-4 h-4 mr-2" /> 
+              <span class="hidden sm:inline">Supprimer</span>
+              <span class="sm:hidden">Suppr.</span>
+            </UButton>
           </div>
         </div>
         
-        <div v-if="pageLoading" class="space-y-4">
-          <USkeleton class="h-48 w-full" />
-          <USkeleton class="h-6 w-1/2" />
-          <USkeleton class="h-4 w-1/3" />
-            </div>
+        <LoadingOverlay
+          :show="pageLoading"
+          title="Chargement de l'événement..."
+          description="Veuillez patienter"
+          color="primary"
+          :size="48"
+        />
             
-        <div v-else-if="error" class="p-4 rounded-md bg-red-50 border border-red-200 text-red-800">
+        <div v-if="error" class="p-4 rounded-md bg-red-50 border border-red-200 text-red-800">
           {{ error }}
       </div>
 
-        <div v-else-if="!event" class="p-4 rounded-md bg-amber-50 border border-amber-200 text-amber-800">
-          Événement introuvable ou indisponible.
-      </div>
-
-        <div v-else class="space-y-6">
+        <div v-else-if="event" class="space-y-6">
           <UCard class="overflow-hidden">
             <img
               v-if="event?.image_url || event?.image"
@@ -224,6 +229,7 @@
           </UCard>
                   </div>
                 </div>
+        
 
       <!-- Modals -->
       <Modal v-model="showTicketsList" title="Liste des tickets" class="modal-mobile-optimized">
@@ -325,6 +331,19 @@
           />
         </div>
       </Modal>
+
+      <!-- Confirmation suppression événement (Modal custom) -->
+      <Modal v-model="showEventDeleteConfirm" title="Supprimer l'événement ?">
+        <div class="modal-content-mobile">
+          <p class="text-sm text-gray-600">
+            Cette action est irréversible. Confirmez-vous la suppression de cet événement ?
+          </p>
+        </div>
+        <template #footer>
+          <UButton variant="ghost" @click="showEventDeleteConfirm=false">Annuler</UButton>
+          <UButton color="error" :loading="eventDeleting" @click="confirmDeleteEvent">Supprimer</UButton>
+        </template>
+      </Modal>
     </div>
   </OrganizerNavigation>
 </template>
@@ -358,15 +377,21 @@ const statusColor = computed(() => {
 const publicUrl = computed(() => `/evenements/${event.value?.slug || eventId}`)
 const editUrl = computed(() => `/organisateur/events/${eventId}?mode=edit`)
 const reportsUrl = computed(() => `/organisateur/events/${eventId}?section=stats`)
+const ordersUrl = computed(() => `/organisateur/events/${eventId}/orders`)
 
 
 
-const { pending } = await useAsyncData('organizer-event', () => fetchEventWithState(eventId))
+const { pending } = await useAsyncData(`organizer-event-${eventId}`, async () => {
+  await fetchEventWithState(eventId)
+  return currentEvent.value
+})
 const pageLoading = computed(() => loading.value || pending.value)
 
 const tickets = ref<any[]>([])
-const { pending: ticketsPending, refresh: refreshTickets } = await useAsyncData('organizer-event-tickets', async () => {
-  tickets.value = await fetchEventTickets(eventId)
+const { pending: ticketsPending, refresh: refreshTickets } = await useAsyncData(`organizer-event-tickets-${eventId}`, async () => {
+  const list = await fetchEventTickets(eventId)
+  tickets.value = list
+  return list
 })
 const ticketsLoading = computed(() => ticketsPending.value)
 
@@ -376,6 +401,8 @@ const showTicketEdit = ref(false)
 const showTicketDelete = ref(false)
 const showEventEdit = ref(false)
 const showTicketsList = ref(false)
+const showEventDeleteConfirm = ref(false)
+const eventDeleting = ref(false)
 
 const currentTicket = ref<any>(null)
 const ticketForm = ref<any>({ type: '', price: 0, quantity: 1, devise: 'USD' })
@@ -438,6 +465,10 @@ const openEditEvent = () => {
     image: null // Initialiser le champ image pour l'upload
   }
   showEventEdit.value = true
+}
+
+const openOrders = () => {
+  navigateTo(ordersUrl.value)
 }
 
 const ticketSubmitting = ref(false)
@@ -530,16 +561,22 @@ const handleUpdateEvent = preventMultipleSubmissions(async (data: any) => {
   })
 })
 
-const onDelete = async () => {
+const openDeleteConfirm = () => {
+  showEventDeleteConfirm.value = true
+}
+
+const confirmDeleteEvent = async () => {
   if (!eventId) return
-  if (confirm('Supprimer cet événement ? Cette action est irréversible.')) {
-    try {
-      await deleteEvent(eventId)
-      toast.add({ title: 'Événement supprimé', description: 'L’événement a été supprimé.', color: 'success' })
-      await router.push('/organisateur/my-events')
-    } catch (e) {
-      toast.add({ title: 'Erreur lors de la suppression', description: getApiErrorMessage(e), color: 'error' })
-    }
+  try {
+    eventDeleting.value = true
+    await deleteEvent(eventId)
+    showEventDeleteConfirm.value = false
+    toast.add({ title: 'Événement supprimé', description: 'L’événement a été supprimé.', color: 'success' })
+    await router.push('/organisateur/my-events')
+  } catch (e) {
+    toast.add({ title: 'Erreur lors de la suppression', description: getApiErrorMessage(e), color: 'error' })
+  } finally {
+    eventDeleting.value = false
   }
 }
 </script>

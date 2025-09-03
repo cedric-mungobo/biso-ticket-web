@@ -115,8 +115,28 @@
             <label for="scan_enabled" class="text-sm text-gray-700">Activer le scan à l'entrée</label>
           </div>
 
-          <!-- Tags & Catégories -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Catégories prédéfinies (presets) -->
+          <div>
+            <label for="presetCategories" class="block text-sm font-medium text-gray-700">Catégories prédéfinies</label>
+            <div class="mt-2">
+              <div v-if="presetLoading" class="text-sm text-gray-500">Chargement des catégories…</div>
+              <div v-else-if="presetCategories.length === 0" class="text-sm text-gray-500">Aucune catégorie prédéfinie</div>
+              <select
+                v-else
+                id="presetCategories"
+                multiple
+                size="6"
+                v-model="formData.settings.categories"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500"
+              >
+                <option v-for="cat in presetCategories" :key="cat" :value="cat">{{ cat }}</option>
+              </select>
+              <p class="mt-1 text-xs text-gray-500">Astuce: Maintenez Cmd/Ctrl pour sélectionner plusieurs catégories.</p>
+            </div>
+          </div>
+
+          <!-- Tags -->
+          <div class="grid grid-cols-1 gap-4">
             <div>
               <label for="tags" class="block text-sm font-medium text-gray-700">Tags (séparés par des virgules)</label>
               <input
@@ -124,16 +144,6 @@
                 type="text"
                 v-model="tagsText"
                 placeholder="ex: music, live, 2025"
-                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500"
-              />
-            </div>
-            <div>
-              <label for="categories" class="block text-sm font-medium text-gray-700">Catégories (séparées par des virgules)</label>
-              <input
-                id="categories"
-                type="text"
-                v-model="categoriesText"
-                placeholder="ex: concert, vip"
                 class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500"
               />
             </div>
@@ -173,7 +183,7 @@ definePageMeta({
 })
 
 // Composables
-const { createEvent } = useOrganizerEvents()
+const { createEvent, fetchEventCategories } = useOrganizerEvents()
 const router = useRouter()
 const toast = useToast()
 const { isLoading, withLoading, preventMultipleSubmissions } = useLoading()
@@ -197,7 +207,20 @@ const formData = reactive({
 
 // Champs texte pour tags & catégories
 const tagsText = ref('')
-const categoriesText = ref('')
+// plus de champ texte catégories; tout passe par le multi-select
+
+// Presets de catégories
+const presetCategories = ref<string[]>([])
+const presetLoading = ref(false)
+
+onMounted(async () => {
+  try {
+    presetLoading.value = true
+    presetCategories.value = await fetchEventCategories()
+  } finally {
+    presetLoading.value = false
+  }
+})
 
 // Utilisation du loading du composable
 const loading = isLoading
@@ -246,10 +269,9 @@ const submitForm = () => {
     .split(',')
     .map((t) => t.trim())
     .filter((t) => t.length > 0)
-  formData.settings.categories = categoriesText.value
-    .split(',')
-    .map((c) => c.trim())
-    .filter((c) => c.length > 0)
+  // Catégories: uniquement depuis le multi-select
+  const preselected = Array.isArray(formData.settings.categories) ? formData.settings.categories : []
+  formData.settings.categories = Array.from(new Set(preselected))
   handleSubmit(formData)
 }
 

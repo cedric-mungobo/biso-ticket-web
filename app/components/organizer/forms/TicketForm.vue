@@ -3,15 +3,15 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <div>
         <label for="ticket-type" class="block text-sm font-medium text-gray-700 mb-1">Type du ticket</label>
-        <UInput id="ticket-type" v-model="form.type" placeholder="Ex: VIP" required />
+        <UInput id="ticket-type" class="w-full" v-model="form.type" placeholder="Ex: VIP" required />
       </div>
       <div>
         <label for="ticket-price" class="block text-sm font-medium text-gray-700 mb-1">Prix</label>
-        <UInput id="ticket-price" v-model.number="form.price" type="number" min="0" step="0.01" required />
+        <UInput id="ticket-price" class="w-full" v-model.number="form.price" type="number" min="0" step="0.01" required />
       </div>
       <div>
         <label for="ticket-quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantité</label>
-        <UInput id="ticket-quantity" v-model.number="form.quantity" type="number" min="1" required />
+        <UInput id="ticket-quantity" class="w-full" v-model.number="form.quantity" type="number" min="1" required />
       </div>
       <div class="relative z-[70]">
         <label for="ticket-devise" class="block text-sm font-medium text-gray-700 mb-1">Devise</label>
