@@ -22,14 +22,145 @@
           :size="48"
         />
 
-        <input type="text" v-model="formData.title" placeholder="Ex: Concert de Jazz"  id="title" required>
-        <EventForm
-          v-model="formData"
-          :submitting="loading"
-          :is-edit-mode="false"
-          @submit="handleSubmit"
-          @cancel="handleCancel"
-        />
+        <form class="space-y-6" @submit.prevent="submitForm">
+          <!-- Titre -->
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700">Titre</label>
+            <input
+              id="title"
+              type="text"
+              v-model="formData.title"
+              required
+              placeholder="Ex: Concert de Jazz"
+              class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+            />
+          </div>
+
+          <!-- Lieu -->
+          <div>
+            <label for="location" class="block text-sm font-medium text-gray-700">Lieu</label>
+            <input
+              id="location"
+              type="text"
+              v-model="formData.location"
+              placeholder="Ex: Kinshasa, Salle des fêtes"
+              class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+            />
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea
+              id="description"
+              v-model="formData.description"
+              rows="4"
+              placeholder="Description de l'événement"
+              class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Début -->
+            <div>
+              <label for="starts_at" class="block text-sm font-medium text-gray-700">Date/heure de début</label>
+              <input
+                id="starts_at"
+                type="datetime-local"
+                v-model="formData.starts_at"
+                required
+                class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              />
+            </div>
+
+            <!-- Fin -->
+            <div>
+              <label for="ends_at" class="block text-sm font-medium text-gray-700">Date/heure de fin (optionnel)</label>
+              <input
+                id="ends_at"
+                type="datetime-local"
+                v-model="formData.ends_at"
+                class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Statut -->
+            <div>
+              <label for="status" class="block text-sm font-medium text-gray-700">Statut</label>
+              <select
+                id="status"
+                v-model="formData.status"
+                class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              >
+                <option value="draft">Brouillon</option>
+                <option value="active">Actif</option>
+                <option value="ended">Terminé</option>
+                <option value="cancelled">Annulé</option>
+                <option value="suspended">Suspendu</option>
+              </select>
+            </div>
+
+            <!-- Public -->
+            <div class="flex items-center gap-3 mt-6">
+              <input id="is_public" type="checkbox" v-model="formData.is_public" class="rounded border border-gray-300 text-primary-600 focus:ring-primary-500" />
+              <label for="is_public" class="text-sm text-gray-700">Rendre l'événement public</label>
+            </div>
+          </div>
+
+          <!-- Scan activé -->
+          <div class="flex items-center gap-3">
+            <input id="scan_enabled" type="checkbox" v-model="formData.settings.scan_enabled" class="rounded border border-gray-300 text-primary-600 focus:ring-primary-500" />
+            <label for="scan_enabled" class="text-sm text-gray-700">Activer le scan à l'entrée</label>
+          </div>
+
+          <!-- Tags & Catégories -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="tags" class="block text-sm font-medium text-gray-700">Tags (séparés par des virgules)</label>
+              <input
+                id="tags"
+                type="text"
+                v-model="tagsText"
+                placeholder="ex: music, live, 2025"
+                class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              />
+            </div>
+            <div>
+              <label for="categories" class="block text-sm font-medium text-gray-700">Catégories (séparées par des virgules)</label>
+              <input
+                id="categories"
+                type="text"
+                v-model="categoriesText"
+                placeholder="ex: concert, vip"
+                class="mt-1 block w-full rounded-lg border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              />
+            </div>
+          </div>
+
+          <!-- Image -->
+          <div>
+            <label for="image" class="block text-sm font-medium text-gray-700">Image de couverture (≤ 5MB)</label>
+            <input
+              id="image"
+              type="file"
+              accept="image/*"
+              @change="onFileChange"
+              class="mt-1 block w-full rounded-lg border border-gray-300 text-sm text-gray-700"
+            />
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button type="submit" :disabled="loading" class="inline-flex items-center rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 disabled:opacity-50">
+              <LoadingSpinner v-if="loading" class="mr-2 h-4 w-4" />
+              Créer l'événement
+            </button>
+            <button type="button" @click="handleCancel" :disabled="loading" class="inline-flex items-center rounded-lg border px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+              Annuler
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </OrganizerNavigation>
@@ -41,27 +172,32 @@ definePageMeta({
   middleware: 'authenticated'
 })
 
-// Import explicite du composant
-import EventForm from '~/components/organizer/forms/EventForm.vue'
-
 // Composables
-const { createEvent, error: apiError } = useOrganizerEvents()
+const { createEvent } = useOrganizerEvents()
 const router = useRouter()
 const toast = useToast()
 const { isLoading, withLoading, preventMultipleSubmissions } = useLoading()
 
 // État du formulaire selon la documentation API
-const formData = ref({
+const formData = reactive({
   title: '',
+  location: '',
+  description: '',
   starts_at: '',
+  ends_at: '',
   status: 'draft' as const,
   is_public: true,
+  image: null as File | null,
   settings: {
     scan_enabled: true,
     tags: [] as string[],
     categories: [] as string[]
   }
 })
+
+// Champs texte pour tags & catégories
+const tagsText = ref('')
+const categoriesText = ref('')
 
 // Utilisation du loading du composable
 const loading = isLoading
@@ -103,6 +239,26 @@ const handleSubmit = preventMultipleSubmissions(async (data: any) => {
     // Les toasts d'erreur sont maintenant gérés automatiquement par myFetch
   })
 })
+
+// Soumission via formulaire natif
+const submitForm = () => {
+  formData.settings.tags = tagsText.value
+    .split(',')
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0)
+  formData.settings.categories = categoriesText.value
+    .split(',')
+    .map((c) => c.trim())
+    .filter((c) => c.length > 0)
+  handleSubmit(formData)
+}
+
+// Gestion du fichier image
+const onFileChange = (e: Event) => {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0] || null
+  formData.image = file
+}
 
 // Gestion de l'annulation
 const handleCancel = () => {
