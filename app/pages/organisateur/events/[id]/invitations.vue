@@ -10,11 +10,12 @@
         </NuxtLink>
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Invitations</h1>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap gap-2 w-full sm:w-auto sm:justify-end">
             <UButton size="sm" color="primary" @click="showAddGuest=true"><UIcon name="i-heroicons-user-plus" class="w-4 h-4 mr-1" /> Ajouter invité</UButton>
             <UButton size="sm" color="neutral" @click="showImport=true"><UIcon name="i-heroicons-arrow-up-tray" class="w-4 h-4 mr-1" /> Importer</UButton>
             <UButton size="sm" color="warning" @click="showTemplate=true"><UIcon name="i-heroicons-swatch" class="w-4 h-4 mr-1" /> Template</UButton>
             <UButton size="sm" color="neutral" @click="showMessage=true"><UIcon name="i-heroicons-cog-6-tooth" class="w-4 h-4 mr-1" /> Message</UButton>
+            <UButton size="sm" color="success" @click="openBuyCredits"><UIcon name="i-heroicons-credit-card" class="w-4 h-4 mr-1" /> Acheter crédits</UButton>
           </div>
         </div>
       </div>
@@ -72,8 +73,7 @@
               <thead>
                 <tr class="text-left text-gray-600 border-b">
                   <th class="py-2 pr-4">Nom</th>
-                  <th class="py-2 pr-4">Email</th>
-                  <th class="py-2 pr-4">Téléphone</th>
+                 
                   <th class="py-2 pr-4">Table</th>
                   <th class="py-2 pr-4">Statut</th>
                   <th class="py-2 pr-4">Actions</th>
@@ -83,12 +83,11 @@
                 <tr v-for="inv in filtered" :key="inv.id" class="border-b last:border-0">
                 
                   <td class="py-2 pr-4">{{ inv.guestName || '—' }}</td>
-                  <td class="py-2 pr-4">{{ inv.guestEmail || '—' }}</td>
-                  <td class="py-2 pr-4">{{ inv.guestPhone || '—' }}</td>
+
                   <td class="py-2 pr-4">{{ inv.guestTableName || '—' }}</td>
                   <td class="py-2 pr-4 capitalize">{{ statusLabel(inv.status) }}</td>
                   <td class="py-2 pr-4">
-                    <UButton size="xs" variant="ghost" color="primary"><UIcon name="i-heroicons-paper-airplane" class="w-4 h-4 mr-1" /> Envoyer</UButton>
+                    <UButton size="xs" variant="ghost" color="primary" :loading="sendingIds.has(inv.id)" @click="onShare(inv)"><UIcon name="i-heroicons-paper-airplane" class="w-4 h-4 mr-1" /> Envoyer</UButton>
                   </td>
                 </tr>
               </tbody>
@@ -168,6 +167,57 @@
         </template>
       </Modal>
 
+      <!-- Acheter des crédits -->
+      <Modal v-model="showBuyCredits" title="Acheter des crédits d'invitation">
+        <div class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Crédits</label>
+              <input v-model.number="buy.credits" type="number" min="1" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-700 mb-1">Devise</label>
+              <select v-model="buy.currency" class="rounded-lg border border-gray-300 px-3 py-1 w-full">
+                <option value="CDF">CDF</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+            <div class>
+              <label class="block text-sm text-gray-700 mb-1">Téléphone (E.164)</label>
+              <input v-model="buy.phone" type="tel" placeholder="2438XXXXXXXX" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
+            </div>
+          </div>
+
+          <!-- Prix -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="rounded-lg border border-gray-200 p-3 bg-gray-50">
+              <div class="text-xs text-gray-500">Prix unitaire (USD)</div>
+              <div class="text-lg font-semibold text-gray-900">
+                <template v-if="pricePending"><USkeleton class="h-6 w-24" /></template>
+                <template v-else>{{ unitPriceUsd }}</template>
+              </div>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-3 bg-gray-50">
+              <div class="text-xs text-gray-500">Total (USD)</div>
+              <div class="text-lg font-semibold text-gray-900">
+                <template v-if="pricePending"><USkeleton class="h-6 w-28" /></template>
+                <template v-else>{{ totalUsd }}</template>
+              </div>
+              <div v-if="buy.currency==='CDF'" class="mt-1 text-xs text-gray-500">Le montant en CDF sera calculé lors du paiement.</div>
+            </div>
+          </div>
+
+          <div v-if="paymentNoticeActive" class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+            Une notification de paiement a été envoyée au {{ buy.phone }}. Veuillez confirmer.
+            <div class="mt-1 text-xs text-amber-700">Expiration dans {{ countdown }}s…</div>
+          </div>
+        </div>
+        <template #footer>
+          <UButton variant="ghost" :disabled="buySubmitting" @click="closeBuyCredits">Fermer</UButton>
+          <UButton color="primary" :loading="buySubmitting" :disabled="paymentNoticeActive" @click="submitBuyCredits">Payer</UButton>
+        </template>
+      </Modal>
+
      
     </div>
   </OrganizerNavigation>
@@ -181,7 +231,7 @@ const route = useRoute()
 const eventId = Number(route.params.id)
 const backUrl = computed(() => `/organisateur/events/${eventId}`)
 
-const { fetchEventInvitations, fetchInvitationTemplates, createInvitation } = useInvitations()
+const { fetchEventInvitations, fetchInvitationTemplates, createInvitation, createInvitationsBatch, shareInvitation } = useInvitations()
 const toast = useToast()
 
 const statusFilter = ref<'all'|'pending'|'sent'|'confirmed'|'cancelled'>('all')
@@ -216,6 +266,24 @@ const filtered = computed<any[]>(() => {
   })
 })
 
+const sendingIds = reactive(new Set<number>())
+const onShare = async (inv: any) => {
+  try {
+    sendingIds.add(inv.id)
+    await shareInvitation(eventId, inv.id)
+    toast.add({ title: 'Invitation envoyée', description: `Partage effectué pour ${inv.guestName || 'invité'}.`, color: 'success' })
+    await refresh()
+  } catch (_e) {
+    const e: any = _e
+    const resp = e?.response
+    const data = resp?._data || resp?.data || {}
+    const msg = data?.message || e?.message || 'Une erreur est survenue.'
+    toast.add({ title: 'Erreur', description: String(msg), color: 'error' })
+  } finally {
+    sendingIds.delete(inv.id)
+  }
+}
+
 const statusLabel = (s?: string) => {
   const k = String(s || 'pending').toLowerCase()
   if (k === 'pending') return 'en attente'
@@ -239,10 +307,65 @@ const { fetchCreditBalance } = useCredits()
 const { pending: creditsPending, data: creditsData } = await useAsyncData(`invitations-credits`, () => fetchCreditBalance(), { server: false })
 const credits = computed(() => creditsData.value || { balance: 0 })
 
+// Prix crédits
+const { fetchCreditPrice } = useCredits()
+const { pending: pricePending, data: priceData } = await useAsyncData(`invitations-credit-price`, () => fetchCreditPrice(), { server: false })
+const unitPriceUsd = computed(() => (priceData.value?.unitPriceUsd ?? 0).toFixed(2))
+const totalUsd = computed(() => (Number(priceData.value?.unitPriceUsd || 0) * Math.max(0, Number(buy?.credits || 0))).toFixed(2))
+
 // Message config (local UI state)
 const showMessage = ref(false)
 const message = reactive({ subject: '', body: '' })
 const saveMessage = () => { showMessage.value = false }
+
+// Acheter crédits
+const showBuyCredits = ref(false)
+const buySubmitting = ref(false)
+const paymentNoticeActive = ref(false)
+const countdown = ref(60)
+let countdownTimer: any = null
+const buy = reactive({ credits: 10, currency: 'CDF', phone: '' })
+const { purchaseAndPayCredits } = useCredits()
+const openBuyCredits = () => { showBuyCredits.value = true }
+const closeBuyCredits = () => {
+  showBuyCredits.value = false
+  paymentNoticeActive.value = false
+  clearInterval(countdownTimer)
+  countdown.value = 60
+}
+const startCountdown = () => {
+  paymentNoticeActive.value = true
+  countdown.value = 60
+  clearInterval(countdownTimer)
+  countdownTimer = setInterval(() => {
+    if (countdown.value > 0) countdown.value--
+    else clearInterval(countdownTimer)
+  }, 1000)
+}
+const submitBuyCredits = async () => {
+  if (!buy.phone || !/^\d{12}$/.test(buy.phone)) {
+    toast.add({ title: 'Téléphone invalide', description: 'Format attendu: 243XXXXXXXXX', color: 'warning' })
+    return
+  }
+  if (!buy.credits || buy.credits < 1) {
+    toast.add({ title: 'Crédits invalides', description: 'Saisissez un nombre de crédits ≥ 1.', color: 'warning' })
+    return
+  }
+  try {
+    buySubmitting.value = true
+    await purchaseAndPayCredits({ credits: buy.credits as any, currency: buy.currency as any, phone: buy.phone })
+    toast.add({ title: 'Paiement initié', description: 'Une notification de paiement a été envoyée. Veuillez confirmer.', color: 'success' })
+    startCountdown()
+  } catch (_e) {
+    const e: any = _e
+    const resp = e?.response
+    const data = resp?._data || resp?.data || {}
+    const msg = data?.message || e?.message || 'Une erreur est survenue.'
+    toast.add({ title: 'Erreur', description: String(msg), color: 'error' })
+  } finally {
+    buySubmitting.value = false
+  }
+}
 
 // Add guest modal
 const showAddGuest = ref(false)
@@ -280,7 +403,34 @@ const addGuest = async () => {
 const showImport = ref(false)
 const onImportFile = (e: Event) => {
   const file = (e.target as HTMLInputElement).files?.[0]
-  // TODO: parse CSV côté client si nécessaire
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = async () => {
+    try {
+      const text = String(reader.result || '')
+      // CSV très simple: name,email,phone,table (ligne d'entête optionnelle)
+      const rows = text.split(/\r?\n/).map(r => r.trim()).filter(Boolean)
+      const [maybeHeader, ...dataRows] = rows
+      const hasHeader = /name|nom|email|phone|téléphone|table/i.test(maybeHeader)
+      const lines = hasHeader ? dataRows : rows
+      const batch = lines.map((line) => {
+        const [name, email, phone, table] = line.split(',').map((s) => (s || '').trim())
+        return { guestName: name, guestEmail: email || undefined, guestPhone: phone || undefined, guestTableName: table || undefined }
+      }).filter(i => i.guestName)
+      if (batch.length === 0) {
+        toast.add({ title: 'Fichier vide', description: 'Aucune ligne valide détectée.', color: 'warning' })
+        return
+      }
+      await createInvitationsBatch(eventId, batch)
+      toast.add({ title: 'Import réussi', description: `${batch.length} invités importés.`, color: 'success' })
+      showImport.value = false
+      await refresh()
+    } catch (_e) {
+      const e: any = _e
+      toast.add({ title: 'Erreur import', description: e?.message || 'Impossible de traiter le CSV.', color: 'error' })
+    }
+  }
+  reader.readAsText(file)
 }
 </script>
 

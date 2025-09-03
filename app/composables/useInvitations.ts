@@ -37,15 +37,85 @@ export const useInvitations = () => {
     if (invitationData.invitationTemplateId !== undefined) body.invitation_template_id = invitationData.invitationTemplateId
     if (invitationData.metadata !== undefined) body.metadata = invitationData.metadata
 
+    if (process.dev) {
+      // Log du payload simple (objet)
+      // eslint-disable-next-line no-console
+      console.log('[Invitations] Payload simple → POST /events/' + eventId + '/invitations', body)
+    }
+
+    // Essayer d'abord le format batch (plus tolérant côté backend)
+    try {
+      const payload = { invitations: [body] }
+      if (process.dev) {
+        // eslint-disable-next-line no-console
+        console.log('[Invitations] Preferred batch payload → POST /events/' + eventId + '/invitations', payload)
+      }
+      const batchRes = await $myFetch<any>(`/events/${eventId}/invitations`, {
+        method: 'POST',
+        body: payload
+      })
+      const list = unwrapList(batchRes) as Invitation[]
+      if (Array.isArray(list) && list.length > 0) return list[0] as Invitation
+      // si la réponse batch n'est pas la liste attendue, tenter la création simple
+      if (process.dev) {
+        // eslint-disable-next-line no-console
+        console.warn('[Invitations] Réponse batch inattendue, tentative en simple…')
+      }
+    } catch (_e) {
+      // si batch échoue pour une autre raison qu'une 422 (crédits) on tentera simple ci-dessous
+      const status = (_e as any)?.response?.status
+      if (status && status !== 422) {
+        if (process.dev) {
+          // eslint-disable-next-line no-console
+          console.warn('[Invitations] Batch failed with status', status, '→ fallback simple')
+        }
+      } else {
+        // 422 ou pas de status: remonter l'erreur, inutile d'essayer simple
+        throw _e
+      }
+    }
+
+    // Tentative en format simple (objet)
     const response = await $myFetch<any>(`/events/${eventId}/invitations`, {
       method: 'POST',
       body
     })
-    // Envoyer aussi en camelCase pour compatibilité backend si nécessaire
-    // (certains endpoints peuvent accepter l'un ou l'autre)
     if (!response || typeof response !== 'object') return response as Invitation
     const unwrapped = unwrap(response)
     return (unwrapped?.invitation ?? unwrapped) as Invitation
+  }
+
+  const createInvitationsBatch = async (eventId: number, invitations: Array<{
+    guestName: string
+    guestEmail?: string
+    guestPhone?: string
+    guestTableName?: string
+    invitationTemplateId?: number
+    metadata?: Record<string, any>
+  }>): Promise<Invitation[]> => {
+    const payload = {
+      invitations: invitations.map((i) => ({
+        guest_name: i.guestName,
+        guest_email: i.guestEmail,
+        guest_phone: i.guestPhone,
+        guest_table_name: i.guestTableName,
+        invitation_template_id: i.invitationTemplateId,
+        metadata: i.metadata
+      }))
+    }
+    if (process.dev) {
+      // Log du payload batch
+      // eslint-disable-next-line no-console
+      console.log('[Invitations] Payload batch → POST /events/' + eventId + '/invitations', {
+        count: payload.invitations.length,
+        preview: payload.invitations[0]
+      })
+    }
+    const response = await $myFetch<any>(`/events/${eventId}/invitations`, {
+      method: 'POST',
+      body: payload
+    })
+    return unwrapList(response) as Invitation[]
   }
 
   const updateInvitation = async (
@@ -90,12 +160,21 @@ export const useInvitations = () => {
     return response.template
   }
 
+  const shareInvitation = async (eventId: number, invitationId: number): Promise<Invitation> => {
+    const response = await $myFetch<any>(`/events/${eventId}/invitations/${invitationId}/share`, {
+      method: 'POST'
+    })
+    return unwrap(response) as Invitation
+  }
+
   return {
     fetchEventInvitations,
     createInvitation,
+    createInvitationsBatch,
     updateInvitation,
     deleteInvitation,
     fetchInvitationTemplates,
-    fetchInvitationTemplate
+    fetchInvitationTemplate,
+    shareInvitation
   }
 }
