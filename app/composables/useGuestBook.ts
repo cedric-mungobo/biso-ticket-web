@@ -19,6 +19,7 @@ export const useGuestBook = ({ slug, eventId, token }: UseGuestBookOptions) => {
 
   const loadRandomMessage = async (): Promise<void> => {
     randomMessageLoading.value = true
+    randomMessageContent.value = ''
     try {
       if (slug.value) {
         const res = await $myFetch<any>(`/public/events/${encodeURIComponent(slug.value)}/messages/random`)

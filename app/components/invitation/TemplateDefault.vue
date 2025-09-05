@@ -1,5 +1,5 @@
 <template>
-   <div class="min-h- bg-gray-50">
+  <div class="min-h-screen bg-gray-50">
     <!-- Hero Section with Parallax -->
     <section class="relative h-screen overflow-hidden"
       :style="{
@@ -11,7 +11,7 @@
         class="absolute inset-0 bg-gradient-to-br from-purple-100/20 to-indigo-200/30"
         :style="{
           transform: `translateY(${scrollY * 0.5}px)`,
-          backgroundImage: `url('${eventImage || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'}')`,
+          backgroundImage: `url('${eventImage }')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }"
@@ -20,15 +20,21 @@
       <!-- Overlay -->
       <div class="absolute inset-0 bg-black/40" />
 
-      <!-- Hero Content -->
-      <div class="relative z-10 flex items-center justify-center h-full text-center text-white px-4">
-        <div :class="`max-w-4xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`">
-          <h1 class="text-5xl md:text-7xl font-bold mb-2">{{ eventTitle }}</h1>
-          <p v-if="eventDateText" class="text-lg md:text-xl mb-1 opacity-90">{{ eventDateText }}</p>
-          <p v-if="eventLocation" class="text-base md:text-lg mb-6 opacity-80">{{ eventLocation }}</p>
-        
-      
-        </div>
+      <!-- Hero Content (animation & texte inspirés de HeroAnimated.vue) -->
+      <div class="relative z-10 h-full flex items-center">
+        <article class="container mx-auto px-4 sm:px-6 lg:px-8 text-white">
+          <div :class="`transition-all duration-700 text-center ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`">
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl leading-[100%] pt-24 sm:pt-36 font-semibold tracking-tight">
+              {{ eventTitle }}
+            </h1>
+            <p v-if="eventDateText || eventLocation" class="text-lg sm:text-xl opacity-90 mt-4">
+              <span v-if="eventDateText">{{ eventDateText }}</span>
+              <span v-if="eventDateText && eventLocation"> • </span>
+              <span v-if="eventLocation">{{ eventLocation }}</span>
+            </p>
+          
+          </div>
+        </article>
       </div>
     </section>
 
@@ -243,7 +249,7 @@ const handleCancelInvitation = () => {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
-  loadRandomMessage
+  loadRandomMessage()
   // Trigger animations on mount
   setTimeout(() => {
     isVisible.value = true
