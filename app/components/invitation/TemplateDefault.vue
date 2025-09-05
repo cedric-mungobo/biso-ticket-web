@@ -1,5 +1,5 @@
 <template>
-   <div class="min-h-screen bg-gray-50">
+   <div class="min-h- bg-gray-50">
     <!-- Hero Section with Parallax -->
     <section class="relative h-screen overflow-hidden"
       :style="{
@@ -26,10 +26,7 @@
           <h1 class="text-5xl md:text-7xl font-bold mb-2">{{ eventTitle }}</h1>
           <p v-if="eventDateText" class="text-lg md:text-xl mb-1 opacity-90">{{ eventDateText }}</p>
           <p v-if="eventLocation" class="text-base md:text-lg mb-6 opacity-80">{{ eventLocation }}</p>
-          <p class="text-lg mb-12 opacity-80 max-w-2xl mx-auto">
-            Rejoignez-nous pour une expérience exceptionnelle alliant raffinement, gastronomie et divertissement dans
-            un cadre prestigieux.
-          </p>
+        
       
         </div>
       </div>
@@ -167,7 +164,7 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12 px-4">
+    <footer class="bg-primary-900 text-white py-12 px-4">
       <div class="max-w-4xl mx-auto text-center space-y-4">
         <h3 class="text-2xl font-bold">Organisez votre événement avec Biso Ticket</h3>
         <p class="opacity-90 max-w-2xl mx-auto">
@@ -246,6 +243,7 @@ const handleCancelInvitation = () => {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+  loadRandomMessage
   // Trigger animations on mount
   setTimeout(() => {
     isVisible.value = true
@@ -340,64 +338,19 @@ const cardRotate = computed(() => {
   return 5 - (progress * 5)
 })
 
-// Guest book (public API)
-const guestBookContent = ref('')
-const submittingMessage = ref(false)
-const canSubmitMessage = computed(() => guestBookContent.value.trim().length > 0 && guestBookContent.value.length <= 2000)
-const randomMessageContent = ref('')
-const randomMessageLoading = ref(false)
-const loadRandomMessage = async () => {
-  const { $myFetch } = useNuxtApp()
-  randomMessageLoading.value = true
-  const slug = props.event?.slug || props.invitation?.event?.slug
-  const eventId = props.event?.id || props.invitation?.event?.id
-  try {
-    if (slug) {
-      const res = await $myFetch<any>(`/public/events/${encodeURIComponent(slug)}/messages/random`)
-      const data = res?.data || res
-      randomMessageContent.value = data?.content || data?.message || ''
-      return
-    }
-  } catch (e: any) {
-    const status = e?.response?.status
-    if (status !== 404) return
-    // fallback below
-  }
-  try {
-    if (eventId) {
-      const res2 = await $myFetch<any>(`/public/events/${eventId}/messages/random`)
-      const data2 = res2?.data || res2
-      randomMessageContent.value = data2?.content || data2?.message || ''
-    }
-  } catch (_) {
-    // ignore silently
-  } finally {
-    randomMessageLoading.value = false
-  }
-}
-onMounted(() => { loadRandomMessage() })
-
-const submitGuestBookMessage = async () => {
-  if (!canSubmitMessage.value) return
-  try {
-    submittingMessage.value = true
-    const token = props.invitation?.token
-    if (!token) throw new Error('Token manquant')
-    const { $myFetch } = useNuxtApp()
-    await $myFetch(`/public/invitations/messages`, {
-      method: 'POST',
-      body: { token, content: guestBookContent.value.trim() }
-    })
-    useToast().add({ title: 'Merci', description: 'Votre message a été enregistré.', color: 'success' })
-    guestBookContent.value = ''
-    await loadRandomMessage()
-  } catch (_e) {
-    const e: any = _e
-    useToast().add({ title: 'Erreur', description: String(e?.message || 'Impossible d\'envoyer.'), color: 'error' })
-  } finally {
-    submittingMessage.value = false
-  }
-}
+// Guest book (public API) via composable
+const slugRef = computed(() => props.event?.slug || props.invitation?.event?.slug)
+const eventIdRef = computed(() => props.event?.id || props.invitation?.event?.id)
+const tokenRef = computed(() => props.invitation?.token)
+const {
+  randomMessageContent,
+  randomMessageLoading,
+  guestBookContent,
+  submittingMessage,
+  canSubmitMessage,
+  loadRandomMessage,
+  submitGuestBookMessage
+} = useGuestBook({ slug: slugRef, eventId: eventIdRef, token: tokenRef })
 
 const currentYear = computed(() => new Date().getFullYear())
 </script>
