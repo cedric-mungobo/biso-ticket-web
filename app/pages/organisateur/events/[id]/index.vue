@@ -1,6 +1,8 @@
 <template>
   <OrganizerNavigation>
     <div class="">
+
+   
      
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <!-- En-tête responsive -->
@@ -34,8 +36,8 @@
               :ui="{ base: 'min-h-[44px] touch-manipulation' }"
             >
               <UIcon name="i-heroicons-ticket" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Voir les tickets</span>
-              <span class="sm:hidden">Tickets</span>
+              <span class="hidden sm:inline">Mes tickets</span>
+              <span class="sm:hidden">Mes tickets</span>
             </UButton>
 
             <UButton 
@@ -48,7 +50,7 @@
             >
               <UIcon name="i-heroicons-plus" class="w-4 h-4 mr-2" /> 
               <span class="hidden sm:inline">Ajouter un ticket</span>
-              <span class="sm:hidden">Ajouter</span>
+              <span class="sm:hidden">Ajouter un ticket</span>
             </UButton>
 
 
@@ -56,14 +58,62 @@
               @click="openOrders" 
               variant="solid" 
               size="md" 
-              color="neutral" 
+              color="secondary" 
               class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
               :ui="{ base: 'min-h-[44px] touch-manipulation' }"
             >
               <UIcon name="i-heroicons-clipboard-document-list" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Commandes</span>
-              <span class="sm:hidden">Cmd</span>
+              <span class="hidden sm:inline">Rapports de ventes</span>
+              <span class="sm:hidden">Rapports de ventes</span>
             </UButton>
+
+            <UButton 
+              :to="reportsUrl" 
+              variant="solid" 
+              size="md" 
+              color="neutral" 
+              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+            >
+              <UIcon name="i-heroicons-chart-bar" class="w-4 h-4 mr-2" /> 
+              <span class="hidden sm:inline">Rapport de l'événement</span>
+              <span class="sm:hidden">Rapport</span>
+            </UButton>
+
+            <UButton 
+              :to="scansUrl" 
+              variant="solid" 
+              size="md" 
+              color="warning" 
+              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
+              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
+            >
+              <UIcon name="i-heroicons-qr-code" class="w-4 h-4 mr-2" /> 
+              <span class="hidden sm:inline">Logs de scan</span>
+              <span class="sm:hidden">Scans</span>
+            </UButton>
+
+            <!-- Clé de scan (inline dans la barre d'actions) -->
+            <div v-if="event?.settings?.scanSecret" class="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none w-full sm:w-auto">
+              <span class="text-sm text-gray-700 whitespace-nowrap">Clé de scan:</span>
+              <input
+                :value="displayedScanSecret"
+                class="rounded-lg border border-gray-300 px-3 py-1 w-full sm:w-48 bg-white text-gray-900"
+                readonly
+              />
+              <UButton
+                variant="ghost"
+                size="md"
+                @click="showScanSecret = !showScanSecret"
+                :title="showScanSecret ? 'Masquer' : 'Afficher'"
+                :ui="{ base: 'min-h-[36px]' }"
+              >
+                <UIcon :name="showScanSecret ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-5 h-5" />
+              </UButton>
+              <UButton variant="ghost" size="md" @click="copyScanSecret" title="Copier" :ui="{ base: 'min-h-[36px]' }">
+                <UIcon name="i-heroicons-clipboard" class="w-5 h-5" />
+              </UButton>
+            </div>
 
             <UButton 
               :to="invitationsUrl" 
@@ -74,8 +124,8 @@
               :ui="{ base: 'min-h-[44px] touch-manipulation' }"
             >
               <UIcon name="i-heroicons-envelope" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Invitation électronique</span>
-              <span class="sm:hidden">Invitations</span>
+              <span class="hidden sm:inline">Mes invités</span>
+              <span class="sm:hidden"> Mes invités</span>
             </UButton>
 
             <UButton 
@@ -114,7 +164,7 @@
             >
               <UIcon name="i-heroicons-banknotes" class="w-4 h-4 mr-2" /> 
               <span class="hidden sm:inline">Acheter des crédits</span>
-              <span class="sm:hidden">Crédits</span>
+              <span class="sm:hidden">Acheter des crédits</span>
             </UButton>
           </div>
         </div>
@@ -169,6 +219,8 @@
               </div>
             </div>
           </UCard>
+
+          
 
           <!-- Tickets -->
           <UCard id="tickets">
@@ -417,8 +469,9 @@ const statusColor = computed(() => {
 
 const publicUrl = computed(() => `/evenements/${event.value?.slug || eventId}`)
 const editUrl = computed(() => `/organisateur/events/${eventId}?mode=edit`)
-// const reportsUrl = computed(() => `/organisateur/events/${eventId}?section=stats`)
 const ordersUrl = computed(() => `/organisateur/events/${eventId}/orders`)
+const reportsUrl = computed(() => `/organisateur/events/${eventId}/reports`)
+const scansUrl = computed(() => `/organisateur/events/${eventId}/scans`)
 const invitationsUrl = computed(() => `/organisateur/events/${eventId}/invitations`)
 
 
@@ -446,6 +499,7 @@ const showTicketsList = ref(false)
 const showEventDeleteConfirm = ref(false)
 const eventDeleting = ref(false)
 const showCredits = ref(false)
+const showScanSecret = ref(false)
 
 const currentTicket = ref<any>(null)
 const ticketForm = ref<any>({ type: '', price: 0, quantity: 1, devise: 'USD' })
@@ -465,6 +519,26 @@ const getApiErrorMessage = (err: any): string => {
     if (flat.length) return String(flat[0])
   }
   return String(err?.message || 'Erreur inattendue')
+}
+
+const displayedScanSecret = computed(() => {
+  const raw = event.value?.settings?.scanSecret || ''
+  if (showScanSecret.value) return raw
+  if (!raw) return ''
+  // masquer tout sauf les 2 dernières chars
+  const maskLen = Math.max(0, raw.length - 2)
+  return `${'•'.repeat(maskLen)}${raw.slice(-2)}`
+})
+
+const copyScanSecret = async () => {
+  try {
+    const raw = String(event.value?.settings?.scanSecret || '')
+    if (!raw) return
+    await navigator.clipboard.writeText(raw)
+    useToast().add({ title: 'Copié', description: 'Clé de scan copiée.', color: 'success' })
+  } catch {
+    useToast().add({ title: 'Impossible de copier', color: 'error' })
+  }
 }
 
 const openViewTicket = (t: any) => {

@@ -8,7 +8,7 @@
           </svg>
           Retour à l'évènement
         </NuxtLink>
-        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Commandes & paiements</h1>
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Rapports de ventes</h1>
       </div>
 
       <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-6 space-y-4">

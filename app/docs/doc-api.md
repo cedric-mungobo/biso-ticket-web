@@ -71,6 +71,14 @@ Base URL: `http://api.bisoticket.com/api	`
   - GET `/api/public/events?per_page=15&q=` → liste d'événements publics actifs
   - GET `/api/public/events/{slug}` → détail d'événement (par slug ou id)
   - GET `/api/public/events/{slug}/tickets?per_page=15` → billets disponibles
+  - GET `/api/public/events/{slug}/messages/random` → un message aléatoire du livre d'or
+
+  - Livre d'or (invitation publique)
+    - GET `/api/public/invitations/{token}` → détail invitation publique (affichage)
+    - POST `/api/public/invitations/{token}/confirm` → confirmer la présence
+    - POST `/api/public/invitations/messages`
+      - body: `{ "token": string, "content": string (≤2000) }`
+      - 201: `{ status, message, data: { id } }`
 
 - Auth (client)
   - POST `/api/client/events/{event}/orders` → créer commande (pending)
@@ -452,6 +460,22 @@ Exemple d’erreur 422 (changement de devise avec réservations)
 - PUT/PATCH `/api/events/{event}/invitations/{invitation}` → `Invitation`
 - DELETE `/api/events/{event}/invitations/{invitation}` → `{ status, message }`
 
+Notes (création et crédits)
+- Création simple: POST `/api/events/{event}/invitations` avec un objet
+```json
+{ "guest_name": "Alice", "guest_email": "alice@example.com" }
+```
+- Création en batch: POST `/api/events/{event}/invitations` avec un tableau
+```json
+{ "invitations": [ { "guest_name": "Alice" }, { "guest_name": "Bob", "guest_email": "bob@example.com" } ] }
+```
+- Validation: `guest_name` requis; `guest_email` optionnel (email si présent)
+- Crédits: 1 crédit consommé par invitation créée
+  - Si batch et solde insuffisant, 422 “Crédits insuffisants” et aucun crédit n’est consommé
+- Statut par défaut: `pending`
+- Partage/envoi: POST `/api/events/{event}/invitations/{invitation}/share`
+  - Consomme 1 crédit, met `status=sent` et `sentAt`
+
 Note: si `invitation_template_id` n’est pas fourni lors de la création, l’API applique automatiquement `settings.default_invitation_template_id` de l’événement.
 
 Invitation (resource)
@@ -586,6 +610,107 @@ Payment (resource)
 
 ### Divers
 - GET `/api/health` → `{ status: "ok" }`
+
+### Rapports (auth)
+- GET `/api/reports/summary`
+  - Query params: `period=day|7d|30d|custom`, `currency=USD|CDF` (3 lettres), si `period=custom` alors `from`, `to` (dates ISO)
+  - 200:
+```json
+{
+  "status": true,
+  "message": "Rapport global",
+  "data": {
+    "kpis": {
+      "users_total": 10,
+      "events_total": 5,
+      "payments_paid_total": 20,
+      "revenue_period": 1500,
+      "tickets_sold_total": 300,
+      "tickets_sold_period": 120,
+      "tickets_paid_period": 120,
+      "tickets_failed_period": 4
+    },
+    "recent": { "events": [ ... ], "payments": [ ... ] },
+    "trend7d": [ { "date": "2025-02-01", "total": 200 }, ... ],
+    "topEvents": [ { "id": 1, "title": "Concert", "revenue": 500 } ],
+    "credits": { "credits_purchased": 100, "credits_consumed": 80, "credit_revenue_period": 50, "total_credits_balance": 500 },
+    "invitations": {
+      "total": 120,
+      "pending": 20,
+      "sent": 80,
+      "viewed": 60,
+      "confirmed": 45,
+      "created_period": 30,
+      "confirmed_period": 12,
+      "conversion_rate": 37.5,
+      "view_rate": 75
+    },
+    "scans": {
+      "total": 520,
+      "valid_period": 430,
+      "duplicate_period": 12,
+      "invalid_period": 5,
+      "attempts_period": 447
+    },
+    "commissions": {
+      "commission_revenue_period": 125.50
+    },
+    "filters": { "period": "7d", "currency": "CDF", "from": null, "to": null }
+  }
+}
+```
+
+- GET `/api/events/{event}/reports/summary`
+  - Accès: uniquement l’organisateur de l’événement
+  - Query params: idem ci-dessus
+  - 200:
+```json
+{
+  "status": true,
+  "message": "Rapport événement",
+  "data": {
+    "kpis": {
+      "payments_paid_total": 12,
+      "revenue_period": 850,
+      "tickets_sold_total": 220,
+      "tickets_sold_period": 90,
+      "tickets_paid_period": 90,
+      "tickets_failed_period": 2
+    },
+    "recent": { "payments": [ ... ] },
+    "trend7d": [ { "date": "2025-02-01", "total": 120 }, ... ],
+    "invitations": {
+      "total": 80,
+      "pending": 10,
+      "sent": 55,
+      "viewed": 40,
+      "confirmed": 30,
+      "created_period": 18,
+      "confirmed_period": 7,
+      "conversion_rate": 37.5,
+      "view_rate": 72.73
+    },
+    "scans": {
+      "total": 210,
+      "valid_period": 170,
+      "duplicate_period": 8,
+      "invalid_period": 3,
+      "attempts_period": 181
+    },
+    "commissions": {
+      "commission_revenue_period": 75.00
+    },
+    "filters": { "event_id": 123, "period": "7d", "currency": "CDF", "from": null, "to": null }
+  }
+}
+```
+
+Notes:
+- `period` par défaut: `7d`. `currency` par défaut: `CDF`.
+- Si `period=custom`, fournir `from` et `to` (inclusifs; `to` ≥ `from`).
+- Les réponses sont mises en cache côté serveur pour de brèves durées (30–60s) pour de meilleures performances.
+- Les montants de `revenue_period`, `trend7d`, `topEvents`, `tickets_*_period` et `commissions.commission_revenue_period` sont filtrés par `currency` et ne sont pas convertis entre devises.
+- Les KPIs `scans.*` et `invitations.*` ne dépendent pas de la devise.
 
 ### Presets (administration)
 - GET `/api/presets/event-categories` → `{ status, data: { categories: string[] } }`

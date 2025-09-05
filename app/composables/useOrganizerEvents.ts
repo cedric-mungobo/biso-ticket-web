@@ -45,10 +45,7 @@ export const useOrganizerEvents = () => {
       image_url: apiEvent.imageUrl,
       status: apiEvent.status,
       is_public: apiEvent.isPublic,
-      settings: {
-        tags: apiEvent.settings?.tags || [],
-        categories: apiEvent.settings?.categories || []
-      }
+      settings: apiEvent.settings || {}
     }
   }
 
@@ -405,6 +402,23 @@ export const useOrganizerEvents = () => {
     return unwrap<PaginatedResponse<any>>(res)
   }
 
+  // Rapports d'un événement (summary)
+  const fetchEventReportSummary = async (
+    eventId: number,
+    params: { period?: 'day' | '7d' | '30d' | 'custom'; currency?: 'USD' | 'CDF'; from?: string; to?: string } = {}
+  ) => {
+    const res = await $myFetch<any>(`/events/${eventId}/reports/summary`, { method: 'GET', params })
+    return unwrap<any>(res)
+  }
+
+  // Rapport global (summary)
+  const fetchGlobalReportSummary = async (
+    params: { period?: 'day' | '7d' | '30d' | 'custom'; currency?: 'USD' | 'CDF'; from?: string; to?: string } = {}
+  ) => {
+    const res = await $myFetch<any>('/reports/summary', { method: 'GET', params })
+    return unwrap<any>(res)
+  }
+
   return {
     // low-level
     fetchEvents,
@@ -435,6 +449,9 @@ export const useOrganizerEvents = () => {
     getPayoutBalance,
     createPayout,
     getPayouts,
+    // reports
+    fetchEventReportSummary,
+    fetchGlobalReportSummary,
     async fetchMyEvents(params: { per_page?: number; page?: number; status?: string } = {}, opts: { force?: boolean } = {}) {
       try {
         const now = Date.now()
