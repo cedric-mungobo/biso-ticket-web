@@ -1,7 +1,11 @@
 <template>
    <div class="min-h-screen bg-gray-50">
     <!-- Hero Section with Parallax -->
-    <section class="relative h-screen overflow-hidden">
+    <section class="relative h-screen overflow-hidden"
+      :style="{
+        transform: `scale(${heroScale}) rotate(${heroRotate}deg)`
+      }"
+    >
       <!-- Background Image with Parallax Effect -->
       <div
         class="absolute inset-0 bg-gradient-to-br from-purple-100/20 to-indigo-200/30"
@@ -32,7 +36,11 @@
     </section>
 
     <!-- Personal Invitation Card -->
-    <section class="py-20 px-1">
+    <section class="py-20 px-1"
+      :style="{
+        transform: `scale(${cardScale}) rotate(${cardRotate}deg)`
+      }"
+    >
       <div class="max-w-4xl mx-auto">
         <div :class="`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`">
           <div class=" border border-primary-500 rounded-xl">
@@ -145,7 +153,11 @@
       <div class="max-w-3xl mx-auto">
         <h2 class="text-3xl font-bold text-center mb-8">Livre d'or</h2>
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-          <p v-if="randomMessageContent" class="text-gray-800 whitespace-pre-line">“{{ randomMessageContent }}”</p>
+          <div v-if="randomMessageLoading" class="space-y-2">
+            <div class="h-4 w-3/4 bg-gray-200 animate-pulse rounded" />
+            <div class="h-4 w-1/2 bg-gray-200 animate-pulse rounded" />
+          </div>
+          <p v-else-if="randomMessageContent" class="text-gray-800 whitespace-pre-line">“{{ randomMessageContent }}”</p>
           <p v-else class="text-gray-500">Aucun message pour l'instant.</p>
           <div class="text-right mt-4">
             <UButton size="xs" variant="ghost" @click="loadRandomMessage">Voir un autre message</UButton>
@@ -156,20 +168,16 @@
 
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-12 px-4">
-      <div class="max-w-4xl mx-auto text-center">
-        <h3 class="text-2xl font-bold mb-4">Soirée Élégance</h3>
-        <p class="mb-6 opacity-90">Pour toute question, contactez-nous à elegance@evenement.fr</p>
-
-        <div class="mb-6">
-          <button
-            @click="handleCancelInvitation"
-            class="border border-white/30 text-white hover:bg-white hover:text-gray-900 bg-transparent px-6 py-2 rounded-lg transition-colors"
-          >
-            Annuler l'invitation
-          </button>
+      <div class="max-w-4xl mx-auto text-center space-y-4">
+        <h3 class="text-2xl font-bold">Organisez votre événement avec Biso Ticket</h3>
+        <p class="opacity-90 max-w-2xl mx-auto">
+          Créez des invitations élégantes, partagez-les en un clic et suivez les confirmations en temps réel.
+        </p>
+        <div class="flex items-center justify-center gap-3">
+          <UButton color="primary" :to="'/organisateur/create-event'">Organiser mon événement</UButton>
+          <UButton variant="outline" color="neutral" :to="'/contact'">Nous contacter</UButton>
         </div>
-
-        <p class="text-sm opacity-75">© 2025 Soirée Élégance. Tous droits réservés.</p>
+        <p class="text-sm opacity-75">© {{ currentYear }} Biso Ticket. Tous droits réservés.</p>
       </div>
     </footer>
   </div>
@@ -182,7 +190,6 @@ import { Star, Heart, Download } from 'lucide-vue-next'
 
 const scrollY = ref(0)
 const isVisible = ref(false)
-
 const handleScroll = () => {
   scrollY.value = window.scrollY
 }
@@ -316,20 +323,57 @@ const shareLink = async () => {
   }
 }
 
+const scrollProgress = computed(() => {
+  const windowHeight = window.innerHeight
+  const containerHeight = windowHeight * 2
+  const maxScroll = Math.max(containerHeight - windowHeight, 1)
+  return Math.min(Math.max(scrollY.value / maxScroll, 0), 1)
+})
+const heroScale = computed(() => 1 - (scrollProgress.value * 0.2))
+const heroRotate = computed(() => scrollProgress.value * -5)
+const cardScale = computed(() => {
+  const progress = Math.min(scrollProgress.value / 0.8, 1)
+  return 0.8 + (progress * 0.2)
+})
+const cardRotate = computed(() => {
+  const progress = Math.min(scrollProgress.value / 0.8, 1)
+  return 5 - (progress * 5)
+})
+
 // Guest book (public API)
 const guestBookContent = ref('')
 const submittingMessage = ref(false)
 const canSubmitMessage = computed(() => guestBookContent.value.trim().length > 0 && guestBookContent.value.length <= 2000)
 const randomMessageContent = ref('')
+const randomMessageLoading = ref(false)
 const loadRandomMessage = async () => {
+  const { $myFetch } = useNuxtApp()
+  randomMessageLoading.value = true
+  const slug = props.event?.slug || props.invitation?.event?.slug
+  const eventId = props.event?.id || props.invitation?.event?.id
   try {
-    const slug = props.event?.slug || props.invitation?.event?.slug
-    if (!slug) return
-    const { $myFetch } = useNuxtApp()
-    const res = await $myFetch<any>(`/public/events/${slug}/messages/random`)
-    const data = res?.data || res
-    randomMessageContent.value = data?.content || data?.message || ''
-  } catch (_) {}
+    if (slug) {
+      const res = await $myFetch<any>(`/public/events/${encodeURIComponent(slug)}/messages/random`)
+      const data = res?.data || res
+      randomMessageContent.value = data?.content || data?.message || ''
+      return
+    }
+  } catch (e: any) {
+    const status = e?.response?.status
+    if (status !== 404) return
+    // fallback below
+  }
+  try {
+    if (eventId) {
+      const res2 = await $myFetch<any>(`/public/events/${eventId}/messages/random`)
+      const data2 = res2?.data || res2
+      randomMessageContent.value = data2?.content || data2?.message || ''
+    }
+  } catch (_) {
+    // ignore silently
+  } finally {
+    randomMessageLoading.value = false
+  }
 }
 onMounted(() => { loadRandomMessage() })
 
@@ -354,6 +398,8 @@ const submitGuestBookMessage = async () => {
     submittingMessage.value = false
   }
 }
+
+const currentYear = computed(() => new Date().getFullYear())
 </script>
 
 
