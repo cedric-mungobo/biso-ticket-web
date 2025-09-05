@@ -43,46 +43,13 @@ export const useInvitations = () => {
       console.log('[Invitations] Payload simple → POST /events/' + eventId + '/invitations', body)
     }
 
-    // Essayer d'abord le format batch (plus tolérant côté backend)
-    try {
-      const payload = { invitations: [body] }
-      if (process.dev) {
-        // eslint-disable-next-line no-console
-        console.log('[Invitations] Preferred batch payload → POST /events/' + eventId + '/invitations', payload)
-      }
-      const batchRes = await $myFetch<any>(`/events/${eventId}/invitations`, {
-        method: 'POST',
-        body: payload
-      })
-      const list = unwrapList(batchRes) as Invitation[]
-      if (Array.isArray(list) && list.length > 0) return list[0] as Invitation
-      // si la réponse batch n'est pas la liste attendue, tenter la création simple
-      if (process.dev) {
-        // eslint-disable-next-line no-console
-        console.warn('[Invitations] Réponse batch inattendue, tentative en simple…')
-      }
-    } catch (_e) {
-      // si batch échoue pour une autre raison qu'une 422 (crédits) on tentera simple ci-dessous
-      const status = (_e as any)?.response?.status
-      if (status && status !== 422) {
-        if (process.dev) {
-          // eslint-disable-next-line no-console
-          console.warn('[Invitations] Batch failed with status', status, '→ fallback simple')
-        }
-      } else {
-        // 422 ou pas de status: remonter l'erreur, inutile d'essayer simple
-        throw _e
-      }
-    }
-
-    // Tentative en format simple (objet)
+    // Création simple (objet)
     const response = await $myFetch<any>(`/events/${eventId}/invitations`, {
       method: 'POST',
       body
     })
-    if (!response || typeof response !== 'object') return response as Invitation
     const unwrapped = unwrap(response)
-    return (unwrapped?.invitation ?? unwrapped) as Invitation
+    return unwrapped as Invitation
   }
 
   const createInvitationsBatch = async (eventId: number, invitations: Array<{
@@ -130,11 +97,20 @@ export const useInvitations = () => {
       metadata: Record<string, any>
     }>
   ): Promise<Invitation> => {
-    const response = await $myFetch<{ invitation: Invitation }>(`/events/${eventId}/invitations/${invitationId}`, {
+    const body: Record<string, any> = {}
+    if (invitationData.guestName !== undefined) body.guest_name = invitationData.guestName
+    if (invitationData.guestEmail !== undefined) body.guest_email = invitationData.guestEmail
+    if (invitationData.guestPhone !== undefined) body.guest_phone = invitationData.guestPhone
+    if (invitationData.guestTableName !== undefined) body.guest_table_name = invitationData.guestTableName
+    if (invitationData.status !== undefined) body.status = invitationData.status
+    if (invitationData.metadata !== undefined) body.metadata = invitationData.metadata
+
+    const response = await $myFetch<any>(`/events/${eventId}/invitations/${invitationId}`, {
       method: 'PUT',
-      body: invitationData
+      body
     })
-    return response.invitation
+    const unwrapped = unwrap(response)
+    return unwrapped as Invitation
   }
 
   const deleteInvitation = async (eventId: number, invitationId: number): Promise<boolean> => {

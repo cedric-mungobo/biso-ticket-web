@@ -80,14 +80,31 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="inv in filtered" :key="inv.id" class="border-b last:border-0">
+                <tr v-for="inv in filtered" :key="inv.id" class="border-b last:border-0" :class="isConfirmed(inv.status) ? 'text-primary-600' : ''">
                 
                   <td class="py-2 pr-4">{{ inv.guestName || '—' }}</td>
 
                   <td class="py-2 pr-4">{{ inv.guestTableName || '—' }}</td>
-                  <td class="py-2 pr-4 capitalize">{{ statusLabel(inv.status) }}</td>
+                  <td class="py-2 pr-4 capitalize" :class="{ 'text-primary-600 font-medium': isConfirmed(inv.status) }">{{ statusLabel(inv.status) }}</td>
                   <td class="py-2 pr-4">
-                    <UButton size="xs" variant="ghost" color="primary" :loading="sendingIds.has(inv.id)" @click="onShare(inv)"><UIcon name="i-heroicons-paper-airplane" class="w-4 h-4 mr-1" /> Envoyer</UButton>
+                    <div class="flex items-center gap-1">
+                      <UTooltip text="Voir">
+                        <UButton size="xs" variant="ghost" color="neutral" aria-label="Voir" @click="openView(inv)">
+                          <UIcon name="i-heroicons-eye" class="w-4 h-4" />
+                        </UButton>
+                      </UTooltip>
+                      <UDropdownMenu
+                        :items="shareItems(inv)"
+                        :content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
+                        :ui="{ content: 'w-56' }"
+                      >
+                        <UButton size="xs" variant="ghost" color="primary" :loading="sendingIds.has(inv.id)" aria-label="Envoyer">
+                          <UIcon name="i-heroicons-paper-airplane" class="w-4 h-4 mr-1" />
+                          Envoyer
+                          <UIcon name="i-heroicons-chevron-down-20-solid" class="w-4 h-4 ml-1" />
+                        </UButton>
+                      </UDropdownMenu>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -131,16 +148,32 @@
         </template>
       </Modal>
 
-      <Modal v-model="showMessage" title="Configurer le message">
+      <Modal v-model="showMessage" title="Message invité (évènement)">
         <div class="space-y-3">
-          <label class="block text-sm text-gray-700">Sujet</label>
-          <input v-model="message.subject" type="text" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
           <label class="block text-sm text-gray-700">Message</label>
-          <textarea v-model="message.body" rows="5" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
+          <textarea v-model="guestMessage" rows="6" placeholder="Message destiné aux invités (affiché sur l'invitation)" class="rounded-lg border border-gray-300 px-3 py-2 w-full" />
+          <div class="text-xs text-gray-500">Ce contenu mettra à jour <code>settings.guest_message</code> de l'évènement.</div>
         </div>
         <template #footer>
           <UButton variant="ghost" @click="showMessage=false">Fermer</UButton>
-          <UButton color="primary" @click="saveMessage">Enregistrer</UButton>
+          <UButton color="primary" @click="saveGuestMessage">Enregistrer</UButton>
+        </template>
+      </Modal>
+
+      <!-- View invitation modal -->
+      <Modal v-model="showView" title="Détails de l'invitation">
+        <div v-if="currentView" class="space-y-2 text-sm">
+          <div><span class="text-gray-600">Nom:</span> <span class="font-medium">{{ currentView.guestName || '—' }}</span></div>
+          <div><span class="text-gray-600">Email:</span> <span class="font-medium">{{ currentView.guestEmail || '—' }}</span></div>
+          <div><span class="text-gray-600">Téléphone:</span> <span class="font-medium">{{ currentView.guestPhone || '—' }}</span></div>
+          <div><span class="text-gray-600">Table:</span> <span class="font-medium">{{ currentView.guestTableName || '—' }}</span></div>
+          <div><span class="text-gray-600">Statut:</span> <span class="font-medium capitalize">{{ statusLabel(currentView.status) }}</span></div>
+          <div v-if="currentView.token"><span class="text-gray-600">Token:</span> <span class="font-mono break-all">{{ currentView.token }}</span></div>
+          <div v-if="currentView.sentAt"><span class="text-gray-600">Envoyé le:</span> <span>{{ currentView.sentAt }}</span></div>
+          <div v-if="currentView.confirmedAt"><span class="text-gray-600">Confirmé le:</span> <span>{{ currentView.confirmedAt }}</span></div>
+        </div>
+        <template #footer>
+          <UButton variant="ghost" @click="showView=false">Fermer</UButton>
         </template>
       </Modal>
 
@@ -159,11 +192,23 @@
 
       <Modal v-model="showImport" title="Importer des invités (CSV)">
         <div class="space-y-3">
-          <input type="file" accept=".csv" @change="onImportFile" class="w-full text-sm" />
+          <label for="csvFile" class="block text-sm text-gray-700">Fichier CSV</label>
+          <input
+            id="csvFile"
+            type="file"
+            accept=".csv"
+            @change="onImportFile"
+            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+          />
+          <div class="text-xs text-gray-600">Format attendu: <code>name,table_name,phone,email</code> (séparateur "," ou ";"). Seul <strong>name</strong> est requis.</div>
+          <div v-if="parsedBatch.length" class="text-xs text-gray-700">Lignes détectées: {{ parsedBatch.length }}</div>
+          <div>
+            <UButton size="xs" color="neutral" variant="ghost" @click="downloadSampleCsv">Télécharger exemple CSV</UButton>
+          </div>
         </div>
         <template #footer>
           <UButton variant="ghost" @click="showImport=false">Fermer</UButton>
-          <UButton color="primary">Importer</UButton>
+          <UButton color="primary" :loading="importSubmitting" :disabled="!parsedBatch.length || importSubmitting" @click="importParsedBatch">Importer</UButton>
         </template>
       </Modal>
 
@@ -267,12 +312,54 @@ const filtered = computed<any[]>(() => {
 })
 
 const sendingIds = reactive(new Set<number>())
+const showView = ref(false)
+const currentView = ref<any | null>(null)
+const openView = (inv: any) => { currentView.value = inv; showView.value = true }
+
+import type { DropdownMenuItem } from '@nuxt/ui'
+const shareItems = (inv?: any): DropdownMenuItem[] => [
+  {
+    label: 'Partager le lien',
+    icon: 'i-heroicons-link',
+    kbds: ['meta','l'],
+    onSelect: async () => {
+      try {
+        const url = `${location.origin}/invitation/${inv?.token || inv?.id}`
+        await navigator.clipboard.writeText(url)
+        toast.add({ title: 'Lien copié', description: 'Le lien a été copié dans le presse-papiers.', color: 'success' })
+      } catch (_) {
+        toast.add({ title: 'Impossible de copier', description: 'Copiez manuellement le lien.', color: 'warning' })
+      }
+    }
+  },
+  {
+    label: 'Envoyer par WhatsApp',
+    icon: 'i-simple-icons-whatsapp',
+    kbds: ['meta','w'],
+    onSelect: () => {
+      const url = `${location.origin}/invitation/${inv?.token || inv?.id}`
+      const text = encodeURIComponent(`Votre invitation: ${url}`)
+      const phone = (inv?.guestPhone || '').replace(/\D/g, '')
+      const wa = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`
+      window.open(wa, '_blank')
+    }
+  },
+  {
+    label: 'Envoyer via système (email/sms)',
+    icon: 'i-heroicons-paper-airplane',
+    kbds: ['meta','s'],
+    onSelect: () => onShare(inv)
+  }
+]
+
+// Shortcuts are defined by the dropdown component when open, we keep logic in onSelect of items
 const onShare = async (inv: any) => {
   try {
     sendingIds.add(inv.id)
     await shareInvitation(eventId, inv.id)
     toast.add({ title: 'Invitation envoyée', description: `Partage effectué pour ${inv.guestName || 'invité'}.`, color: 'success' })
     await refresh()
+    await refreshCredits()
   } catch (_e) {
     const e: any = _e
     const resp = e?.response
@@ -293,6 +380,8 @@ const statusLabel = (s?: string) => {
   return k
 }
 
+const isConfirmed = (s?: string) => String(s || '').toLowerCase() === 'confirmed'
+
 // Templates
 const showTemplate = ref(false)
 const { pending: templatesPending, data: templatesData } = await useAsyncData<{ items: any[]; meta: any }>(
@@ -304,7 +393,7 @@ const templates = computed<any[]>(() => Array.isArray((templatesData.value as an
 
 // Credits
 const { fetchCreditBalance } = useCredits()
-const { pending: creditsPending, data: creditsData } = await useAsyncData(`invitations-credits`, () => fetchCreditBalance(), { server: false })
+const { pending: creditsPending, data: creditsData, refresh: refreshCredits } = await useAsyncData(`invitations-credits`, () => fetchCreditBalance(), { server: false })
 const credits = computed(() => creditsData.value || { balance: 0 })
 
 // Prix crédits
@@ -315,8 +404,32 @@ const totalUsd = computed(() => (Number(priceData.value?.unitPriceUsd || 0) * Ma
 
 // Message config (local UI state)
 const showMessage = ref(false)
-const message = reactive({ subject: '', body: '' })
-const saveMessage = () => { showMessage.value = false }
+const guestMessage = ref<string>('')
+const { $myFetch } = useNuxtApp()
+onMounted(async () => {
+  try {
+    const res = await $myFetch<any>(`/events/${eventId}`)
+    const ev = res?.data || res
+    const settings = ev?.settings || {}
+    guestMessage.value = settings?.guestMessage || settings?.guest_message || ''
+  } catch (_) {}
+})
+const saveGuestMessage = async () => {
+  try {
+    await $myFetch<any>(`/events/${eventId}`, {
+      method: 'PUT',
+      body: { settings: { guest_message: guestMessage.value } }
+    })
+    toast.add({ title: 'Message enregistré', description: 'Le message invité a été mis à jour.', color: 'success' })
+    showMessage.value = false
+  } catch (_e) {
+    const e: any = _e
+    const resp = e?.response
+    const data = resp?._data || resp?.data || {}
+    const msg = data?.message || e?.message || 'Impossible d\'enregistrer.'
+    toast.add({ title: 'Erreur', description: String(msg), color: 'error' })
+  }
+}
 
 // Acheter crédits
 const showBuyCredits = ref(false)
@@ -388,6 +501,7 @@ const addGuest = async () => {
     showAddGuest.value = false
     newGuest.name = ''; newGuest.email = ''; newGuest.phone = ''; newGuest.table = ''
     await refresh()
+    await refreshCredits()
   } catch (_e) {
     const e: any = _e
     const resp = e?.response
@@ -408,29 +522,123 @@ const onImportFile = (e: Event) => {
   reader.onload = async () => {
     try {
       const text = String(reader.result || '')
-      // CSV très simple: name,email,phone,table (ligne d'entête optionnelle)
-      const rows = text.split(/\r?\n/).map(r => r.trim()).filter(Boolean)
-      const [maybeHeader, ...dataRows] = rows
-      const hasHeader = /name|nom|email|phone|téléphone|table/i.test(maybeHeader)
-      const lines = hasHeader ? dataRows : rows
-      const batch = lines.map((line) => {
-        const [name, email, phone, table] = line.split(',').map((s) => (s || '').trim())
-        return { guestName: name, guestEmail: email || undefined, guestPhone: phone || undefined, guestTableName: table || undefined }
-      }).filter(i => i.guestName)
-      if (batch.length === 0) {
-        toast.add({ title: 'Fichier vide', description: 'Aucune ligne valide détectée.', color: 'warning' })
-        return
+      // Normaliser les retours à la ligne
+      const rows = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').map(r => r.trim()).filter(Boolean)
+      if (rows.length === 0) throw new Error('Fichier vide')
+
+      // Détecter le séparateur ("," vs ";")
+      const headerLine = rows[0]
+      const commaCount = (headerLine.match(/,/g) || []).length
+      const semicolonCount = (headerLine.match(/;/g) || []).length
+      const delim = semicolonCount > commaCount ? ';' : ','
+
+      // Parser simple respectant les guillemets
+      const parseCSVLine = (line: string): string[] => {
+        const out: string[] = []
+        let cur = ''
+        let inQuotes = false
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i]
+          if (ch === '"') {
+            if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; continue }
+            inQuotes = !inQuotes
+            continue
+          }
+          if (ch === delim && !inQuotes) { out.push(cur.trim()); cur = ''; continue }
+          cur += ch
+        }
+        out.push(cur.trim())
+        return out.map(v => v.replace(/^\uFEFF/, ''))
       }
-      await createInvitationsBatch(eventId, batch)
-      toast.add({ title: 'Import réussi', description: `${batch.length} invités importés.`, color: 'success' })
-      showImport.value = false
-      await refresh()
+
+      const headersRaw = parseCSVLine(headerLine).map(h => h.trim().toLowerCase())
+      const hasHeader = headersRaw.some(h => ['name','nom','email','e-mail','phone','telephone','téléphone','tel','table_name','table'].includes(h))
+
+      const headerIdx: Record<string, number> = {}
+      if (hasHeader) headersRaw.forEach((h, idx) => { headerIdx[h] = idx })
+      const dataLines = hasHeader ? rows.slice(1) : rows
+
+      const getBy = (names: string[], parts: string[]): string => {
+        for (const n of names) {
+          const idx = headerIdx[n]
+          if (idx !== undefined) return (parts[idx] || '').trim()
+        }
+        return ''
+      }
+
+      const batch = dataLines.map((line) => {
+        const parts = parseCSVLine(line)
+        const name = hasHeader ? getBy(['name','nom'], parts) : (parts[0] || '')
+        const tableName = hasHeader ? getBy(['table_name','table'], parts) : (parts[1] || '')
+        const phone = hasHeader ? getBy(['phone','telephone','téléphone','tel'], parts) : (parts[2] || '')
+        const email = hasHeader ? getBy(['email','e-mail'], parts) : (parts[3] || '')
+        return { guestName: name, guestEmail: email || undefined, guestPhone: phone || undefined, guestTableName: tableName || undefined }
+      }).filter(i => i.guestName)
+      parsedBatch.splice(0, parsedBatch.length, ...batch)
+      if (parsedBatch.length === 0) {
+        toast.add({ title: 'Fichier vide', description: 'Aucune ligne valide détectée.', color: 'warning' })
+      } else {
+        toast.add({ title: 'Fichier analysé', description: `${parsedBatch.length} lignes détectées. Cliquez Importer.`, color: 'success' })
+      }
     } catch (_e) {
       const e: any = _e
       toast.add({ title: 'Erreur import', description: e?.message || 'Impossible de traiter le CSV.', color: 'error' })
     }
   }
   reader.readAsText(file)
+}
+
+const importSubmitting = ref(false)
+const parsedBatch = reactive<Array<{ guestName: string; guestEmail?: string; guestPhone?: string; guestTableName?: string }>>([])
+const importParsedBatch = async () => {
+  if (!parsedBatch.length) return
+  try {
+    importSubmitting.value = true
+    if (process.dev) {
+      const payload = {
+        invitations: parsedBatch.map(i => ({
+          guest_name: i.guestName,
+          guest_email: i.guestEmail,
+          guest_phone: i.guestPhone,
+          guest_table_name: i.guestTableName
+        }))
+      }
+      // eslint-disable-next-line no-console
+      console.log('[Invitations] Payload batch → POST /events/' + eventId + '/invitations', payload)
+    }
+    await createInvitationsBatch(eventId, parsedBatch as any)
+    toast.add({ title: 'Import réussi', description: `${parsedBatch.length} invités importés.`, color: 'success' })
+    parsedBatch.splice(0, parsedBatch.length)
+    showImport.value = false
+    await refresh()
+    await refreshCredits()
+  } catch (_e) {
+    const e: any = _e
+    const resp = e?.response
+    const data = resp?._data || resp?.data || {}
+    const msg = data?.message || e?.message || 'Une erreur est survenue.'
+    toast.add({ title: 'Erreur import', description: String(msg), color: 'error' })
+  } finally {
+    importSubmitting.value = false
+  }
+}
+
+const downloadSampleCsv = () => {
+  const rows = [
+    ['name','table_name','phone','email'],
+    ['Alice','Table A','243812345678','alice@example.com'],
+    ['Bob','','','']
+  ]
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/\"/g, '""')}"`).join(',')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `invitations-example.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 </script>
 

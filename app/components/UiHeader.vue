@@ -1,7 +1,7 @@
 <template>
   <div class="fixed top-0 left-0 right-0 z-50 w-full">
     <div class="container mx-auto rounded-2xl p-2">
-      <header class="bg-white/10 backdrop-blur-xl rounded-2xl  border  border-primary-100">
+      <header class="bg-white/10 backdrop-blur-xl rounded-2xl  border  border-primary-200">
       <div class="flex items-center justify-between px-4 py-1.5 md:py-3">
         <!-- Logo -->
       <NuxtLink to="/" aria-label="Biso Ticket" class="inline-flex items-center gap-2">
