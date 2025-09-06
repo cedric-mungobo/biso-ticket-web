@@ -660,6 +660,18 @@ Payment (resource)
 }
 ```
 
+### Scan agents (public via X-Scan-Secret)
+- Header obligatoire: `X-Scan-Secret: {SECRET}` (lié à l’événement; expire à `ends_at`).
+- GET `/api/public/events/{event}/scan-registry?updated_since=ISO8601`
+  - 200:
+```json
+{ "status": true, "message": "Scan registry", "data": { "items": [ { "order_item_id": 10, "qr_code": "TOKEN_CHIFFRE", "ticket_name": "VIP", "updated_at": "2025-09-05T11:00:00Z" } ] } }
+```
+- POST `/api/public/events/{event}/scans/qr`
+  - body: `{ "qr_code": "TOKEN_CHIFFRE", "location": "Gate A" }`
+- POST `/api/public/events/{event}/scans/sync`
+  - body: `{ "items": [ { "qr_code": "TOKEN_CHIFFRE", "scanned_at": "2025-09-05T12:00:00Z", "location": "Gate A", "device_id": "phone-1" } ] }`
+
 - GET `/api/events/{event}/reports/summary`
   - Accès: uniquement l’organisateur de l’événement
   - Query params: idem ci-dessus

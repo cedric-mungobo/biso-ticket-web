@@ -19,11 +19,11 @@ export interface GuestData {
 export const useOrganizerEvents = () => {
   const { $myFetch } = useNuxtApp()
   
-  // Etat minimal pour les écrans organisateur
-  const events = ref<any[]>([])
-  const currentEvent = ref<any | null>(null)
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+  // Etat minimal pour les écrans organisateur (persisté via useState pour survivre au refresh/SSR)
+  const events = useState<any[]>('organizer/events', () => [])
+  const currentEvent = useState<any | null>('organizer/currentEvent', () => null)
+  const loading = useState<boolean>('organizer/loading', () => false)
+  const error = useState<string | null>('organizer/error', () => null)
   const lastFetchedAt = useState<number>('organizer/events/lastFetchedAt', () => 0)
   const FETCH_TTL_MS = 3000
   const eventCategories = useState<string[]>('organizer/presets/eventCategories', () => [])
@@ -34,6 +34,7 @@ export const useOrganizerEvents = () => {
   const toUiEvent = (apiEvent: Event) => {
     return {
       id: apiEvent.id,
+      publicId: apiEvent.publicId,
       slug: apiEvent.slug,
       name: apiEvent.title,
       description: apiEvent.description,

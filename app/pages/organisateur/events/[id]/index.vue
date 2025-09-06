@@ -93,6 +93,8 @@
               <span class="sm:hidden">Scans</span>
             </UButton>
 
+           
+
             <!-- Clé de scan (inline dans la barre d'actions) -->
             <div v-if="event?.settings?.scanSecret" class="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none w-full sm:w-auto">
               <span class="text-sm text-gray-700 whitespace-nowrap">Clé de scan:</span>
@@ -111,6 +113,28 @@
                 <UIcon :name="showScanSecret ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-5 h-5" />
               </UButton>
               <UButton variant="ghost" size="md" @click="copyScanSecret" title="Copier" :ui="{ base: 'min-h-[36px]' }">
+                <UIcon name="i-heroicons-clipboard" class="w-5 h-5" />
+              </UButton>
+            </div>
+
+            <!-- ID public (à côté de la clé de scan) -->
+            <div v-if="event?.publicId" class="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none w-full sm:w-auto">
+              <span class="text-sm text-gray-700 whitespace-nowrap">ID public:</span>
+              <input
+                :value="displayedPublicId"
+                class="rounded-lg border border-gray-300 px-3 py-1 w-full sm:w-48 bg-white text-gray-900"
+                readonly
+              />
+              <UButton
+                variant="ghost"
+                size="md"
+                @click="showPublicId = !showPublicId"
+                :title="showPublicId ? 'Masquer' : 'Afficher'"
+                :ui="{ base: 'min-h-[36px]' }"
+              >
+                <UIcon :name="showPublicId ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-5 h-5" />
+              </UButton>
+              <UButton variant="ghost" size="md" @click="copyPublicId" title="Copier" :ui="{ base: 'min-h-[36px]' }">
                 <UIcon name="i-heroicons-clipboard" class="w-5 h-5" />
               </UButton>
             </div>
@@ -500,6 +524,7 @@ const showEventDeleteConfirm = ref(false)
 const eventDeleting = ref(false)
 const showCredits = ref(false)
 const showScanSecret = ref(false)
+const showPublicId = ref(false)
 
 const currentTicket = ref<any>(null)
 const ticketForm = ref<any>({ type: '', price: 0, quantity: 1, devise: 'USD' })
@@ -530,12 +555,31 @@ const displayedScanSecret = computed(() => {
   return `${'•'.repeat(maskLen)}${raw.slice(-2)}`
 })
 
+const displayedPublicId = computed(() => {
+  const raw = event.value?.publicId || ''
+  if (showPublicId.value) return raw
+  if (!raw) return ''
+  const maskLen = Math.max(0, raw.length - 2)
+  return `${'•'.repeat(maskLen)}${raw.slice(-2)}`
+})
+
 const copyScanSecret = async () => {
   try {
     const raw = String(event.value?.settings?.scanSecret || '')
     if (!raw) return
     await navigator.clipboard.writeText(raw)
     useToast().add({ title: 'Copié', description: 'Clé de scan copiée.', color: 'success' })
+  } catch {
+    useToast().add({ title: 'Impossible de copier', color: 'error' })
+  }
+}
+
+const copyPublicId = async () => {
+  try {
+    const raw = String(event.value?.publicId || '')
+    if (!raw) return
+    await navigator.clipboard.writeText(raw)
+    useToast().add({ title: 'Copié', description: 'ID public copié.', color: 'success' })
   } catch {
     useToast().add({ title: 'Impossible de copier', color: 'error' })
   }

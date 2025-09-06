@@ -46,7 +46,9 @@ export interface ProfileUpdateRequest {
 
 // Types d'événements
 export interface Event {
+
   id: number
+  publicId : string,
   title: string
   slug: string
   location?: string
@@ -63,6 +65,7 @@ export interface Event {
     priorities: string[]
     featured: boolean
     tags: string[]
+    scanSecret: number,
     defaultInvitationTemplateId?: number
     defaultInvitationTemplate?: InvitationTemplate
   }
