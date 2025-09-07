@@ -392,21 +392,32 @@ const startCountdown = () => {
 }
 
 // Démarrer le polling pour vérifier le statut du paiement
+// Utilise la nouvelle API /api/client/payments/check qui retourne un statut standardisé
 const startPaymentStatusPolling = () => {
   console.log('🔄 Démarrage du polling de vérification du statut de paiement...')
 
   const interpretPaymentStatus = (result: any): 'paid' | 'failed' | 'pending' => {
-    const normalized = String(result?.status || '').toLowerCase()
+    // Utiliser directement le statut de l'API qui est maintenant standardisé
+    const status = String(result?.status || '').toLowerCase()
+    
+    // L'API retourne maintenant directement 'paid', 'pending', ou 'failed'
+    if (status === 'paid') return 'paid'
+    if (status === 'failed') return 'failed'
+    if (status === 'pending') return 'pending'
+    
+    // Fallback pour compatibilité avec l'ancien format
     const code = String(result?.code ?? '')
     const message = String(result?.message ?? '').toLowerCase()
-    // 1) Détection d'échec AVANT tout (ex: "n'a pas réussi" contient "réussi")
+    
+    // Détection d'échec
     const failedHints = ['failed', 'échoué', 'echec', 'refus', "n'a pas réussi", 'pas réussi', 'non confirmé']
-    if (normalized === 'failed' || failedHints.some(h => message.includes(h))) return 'failed'
-    // 2) Succès explicite uniquement
+    if (failedHints.some(h => message.includes(h))) return 'failed'
+    
+    // Détection de succès
     const paidRegex = /(paiement\s+réussi|réussi(\s|$)|confirmé|confirme)/
-    if (normalized === 'paid' || paidRegex.test(message)) return 'paid'
-    // 3) Attente (code 0, pending, attente)
-    if (code === '0' || normalized === 'pending' || message.includes('attente')) return 'pending'
+    if (paidRegex.test(message)) return 'paid'
+    
+    // Par défaut, considérer comme en attente
     return 'pending'
   }
 
@@ -414,71 +425,75 @@ const startPaymentStatusPolling = () => {
     try {
       if (process.dev) console.log('🔍 Vérification du statut de paiement...')
 
-      // Éviter l'erreur 500 côté backend: ne pas interroger par référence sans order_number
-      const orderNoForCheck = localOrderNumber.value || currentOrderNumber?.value
-      if (!orderNoForCheck) {
-        if (process.dev) console.log('⏳ Order number indisponible, attente avant premier check...')
-        return
+      // Priorité: utiliser la référence si disponible, sinon l'order_number
+      // L'API /client/payments/check accepte les deux paramètres
+      let statusResult: any = null
+      
+      if (currentReservationReference.value) {
+        // Vérification par référence (priorité)
+        statusResult = await checkPaymentStatusByReference(currentReservationReference.value)
+        if (process.dev) console.log('📊 Vérification par référence:', statusResult)
       }
-      // Utiliser la référence + order_number dès que possible
-      let statusResult = await checkPaymentStatusByReference(currentReservationReference.value, orderNoForCheck)
+      
+      // Si pas de résultat par référence, essayer par order_number
+      if (!statusResult) {
+        const orderNo = localOrderNumber.value || currentOrderNumber?.value
+        if (orderNo) {
+          statusResult = await checkPaymentStatusByOrderNumber(orderNo)
+          if (process.dev) console.log('📊 Vérification par order_number:', statusResult)
+        }
+      }
 
       if (statusResult) {
-        if (process.dev) console.log('📊 Résultat de la vérification:', statusResult)
-        // Capturer l'orderNumber si le backend le renvoie maintenant
-        const polledOrderNo = (statusResult as any)?.orderNumber || (statusResult as any)?.order_number
-        if (polledOrderNo && !localOrderNumber.value) localOrderNumber.value = String(polledOrderNo)
+        // Capturer l'orderNumber si le backend le renvoie
+        const polledOrderNo = statusResult.orderNumber || statusResult.order_number
+        if (polledOrderNo && !localOrderNumber.value) {
+          localOrderNumber.value = String(polledOrderNo)
+        }
+
         const resolved = interpretPaymentStatus(statusResult)
+        
         if (resolved === 'paid') {
           // ✅ Paiement réussi
           paymentError.value = ''
-          const successMessage = `🎉 Paiement réussi !\n\n${statusResult.message || ''}`
+          const successMessage = `🎉 Paiement réussi !\n\n${statusResult.message || 'Vos billets sont maintenant disponibles.'}`
           paymentError.value = successMessage
-          try { toast.add({ title: 'Paiement réussi', description: statusResult.message || 'Vos billets sont disponibles.' }) } catch {}
+          try { 
+            toast.add({ 
+              title: 'Paiement réussi', 
+              description: statusResult.message || 'Vos billets sont disponibles.' 
+            }) 
+          } catch {}
           stopCountdown()
           // Nettoyer l'état de panier/réservation après succès
           try { (useTickets() as any).resetCheckoutState?.() } catch {}
           setTimeout(() => { navigateTo('/tickets/my-tickets') }, 2000)
           return
         }
+        
         if (resolved === 'failed') {
+          // ❌ Paiement échoué
           stopCountdown()
-          const errMsg = `Paiement échoué: ${statusResult.message || ''}`
+          const errMsg = `Paiement échoué: ${statusResult.message || 'Transaction non confirmée.'}`
           paymentError.value = errMsg
-          try { toast.add({ title: 'Paiement échoué', description: statusResult.message || 'Veuillez réessayer.', color: 'error' }) } catch {}
+          try { 
+            toast.add({ 
+              title: 'Paiement échoué', 
+              description: statusResult.message || 'Veuillez réessayer.', 
+              color: 'error' 
+            }) 
+          } catch {}
           return
         }
-        // Sinon, status null => en attente; on continue le polling
+        
+        // Sinon, status 'pending' => on continue le polling
+        if (process.dev) console.log('⏳ Paiement en cours, continuation du polling...')
       } else {
-        // Si la vérification combinée échoue, tenter via order_number seul si disponible
-        const orderNo = localOrderNumber.value || currentOrderNumber?.value
-        if (orderNo) {
-          statusResult = await checkPaymentStatusByOrderNumber(orderNo)
-          if (statusResult) {
-            if (process.dev) console.log('📊 Vérification via order_number:', statusResult)
-            const resolved = interpretPaymentStatus(statusResult)
-            if (resolved === 'paid') {
-              paymentError.value = ''
-              const successMessage = `🎉 Paiement réussi !\n\n${statusResult.message || ''}`
-              paymentError.value = successMessage
-              try { toast.add({ title: 'Paiement réussi', description: statusResult.message || 'Vos billets sont disponibles.' }) } catch {}
-              stopCountdown()
-              try { (useTickets() as any).resetCheckoutState?.() } catch {}
-              setTimeout(() => { navigateTo('/tickets/my-tickets') }, 2000)
-              return
-            }
-            if (resolved === 'failed') {
-              stopCountdown()
-              const errMsg = `Paiement échoué: ${statusResult.message || ''}`
-              paymentError.value = errMsg
-              try { toast.add({ title: 'Paiement échoué', description: statusResult.message || 'Veuillez réessayer.', color: 'error' }) } catch {}
-              return
-            }
-          }
-        }
+        if (process.dev) console.log('⚠️ Aucun résultat de vérification obtenu')
       }
     } catch (error: any) {
       if (process.dev) console.error('❌ Erreur lors de la vérification du statut:', error)
+      // En cas d'erreur, on continue le polling (peut être temporaire)
     }
   }
 
@@ -578,16 +593,26 @@ const processPayment = async () => {
     const result = await confirmReservation(paymentData)
 
     if (result.success && result.data) {
-      const reference = (result.data as any)?.data?.reference || (result.data as any)?.reference || (result.data as any)?.payment?.reference
+      const responseData = (result.data as any)?.data || result.data
+      
+      // Capturer la référence de paiement
+      const reference = responseData?.reference || responseData?.payment?.reference
       if (reference) {
         currentReservationReference.value = reference
       }
+      
+      // Capturer l'orderNumber si disponible
+      const orderNumber = responseData?.orderNumber || responseData?.order_number || responseData?.payment?.orderNumber
+      if (orderNumber) {
+        localOrderNumber.value = String(orderNumber)
+      }
+      
       if (paymentMethod.value === 'mobile_money') {
         setPhoneNumber(phoneNumber.value)
         startCountdown()
       } else if (paymentMethod.value === 'card') {
-        if ((result.data as any).data?.payment_url) {
-          window.open((result.data as any).data.payment_url, '_blank')
+        if (responseData?.payment_url) {
+          window.open(responseData.payment_url, '_blank')
         }
         navigateTo('/tickets/my-tickets')
       }
