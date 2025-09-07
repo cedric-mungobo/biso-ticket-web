@@ -1,23 +1,23 @@
-<template>
-    <main ref="container" class="relative h-[200vh]">
+  <template>
+    <main ref="container" class="relative h-[200vh]" :class="{ 'no-animations': !enableAnimations }">
       <!-- Section 1 - Light Hero Section -->
       <section
         ref="section1"
-        :style="{
+        :style="enableAnimations ? {
           transform: `scale(${section1Scale}) rotate(${section1Rotate}deg)`,
-        }"
+        } : {}"
         class=""
       >
        
-     <Hero />
+     <Hero :enable-animations="enableAnimations" />
       </section>
   
       <!-- Section 2 - Dark Events Section -->
       <section
         ref="section2"
-        :style="{
+        :style="enableAnimations ? {
           transform: `scale(${section2Scale}) rotate(${section2Rotate}deg)`,
-        }"
+        } : {}"
         class="relative h-[100dvh] bg-gradient-to-t to-[#1a1919] from-[#06060e] text-white"
       >
         <!-- Grid Pattern Overlay -->
@@ -36,6 +36,7 @@
             title="Découvrez nos événements exceptionnels"
             subtitle="Concerts, festivals, mariages, événements corporate..."
             :autoplay-interval="3000"
+            :enable-autoplay="props.enableAnimations"
           />
           
           <!-- Message si aucun événement -->
@@ -75,16 +76,18 @@
     }
   }
   
-  // Props
-  interface Props {
-    events?: Event[]
-    maxEvents?: number
-  }
-  
-  const props = withDefaults(defineProps<Props>(), {
-    events: () => [],
-    maxEvents: 4
-  })
+// Props
+interface Props {
+  events?: Event[]
+  maxEvents?: number
+  enableAnimations?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  events: () => [],
+  maxEvents: 4,
+  enableAnimations: false // Désactiver les animations par défaut pour les performances
+})
   
   const container = ref<HTMLElement | null>(null)
   const section1 = ref<HTMLElement | null>(null)
@@ -126,24 +129,33 @@
   })
   
   const handleScroll = () => {
-    scrollY.value = window.scrollY
+    if (props.enableAnimations) {
+      scrollY.value = window.scrollY
+    }
   }
   
-
-  
   onMounted(() => {
-    window.addEventListener('scroll', handleScroll)
-    handleScroll() // Initial call
+    if (props.enableAnimations) {
+      window.addEventListener('scroll', handleScroll, { passive: true })
+      handleScroll() // Initial call
+    }
   })
   
   onUnmounted(() => {
-    window.removeEventListener('scroll', handleScroll)
+    if (props.enableAnimations) {
+      window.removeEventListener('scroll', handleScroll)
+    }
   })
   </script>
   
   <style scoped>
-  /* Smooth transitions for transforms */
+  /* Smooth transitions for transforms - seulement si les animations sont activées */
   section {
     transition: transform 0.1s ease-out;
+  }
+  
+  /* Désactiver les transitions si les animations sont désactivées */
+  .no-animations section {
+    transition: none;
   }
   </style>

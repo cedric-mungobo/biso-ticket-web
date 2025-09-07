@@ -59,6 +59,7 @@ interface Props {
   autoplayInterval?: number
   cardWidth?: number
   gap?: number
+  enableAutoplay?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -68,7 +69,8 @@ const props = withDefaults(defineProps<Props>(), {
   subtitle: '',
   autoplayInterval: 3000,
   cardWidth: 272, // w-64 + gap
-  gap: 16
+  gap: 16,
+  enableAutoplay: false // Désactiver l'autoplay par défaut pour les performances
 })
 
 // Refs
@@ -89,7 +91,7 @@ const totalCardWidth = computed(() => {
 
 // Méthodes du carousel
 const startInfiniteScroll = (): NodeJS.Timeout | null => {
-  if (displayedEvents.value.length <= 1) return null
+  if (!props.enableAutoplay || displayedEvents.value.length <= 1) return null
   
   const interval = setInterval(() => {
     carouselOffset.value -= totalCardWidth.value
@@ -123,7 +125,9 @@ onUnmounted(() => {
 watch(() => displayedEvents.value, () => {
   carouselOffset.value = 0
   stopInfiniteScroll()
-  autoplayInterval.value = startInfiniteScroll()
+  if (props.enableAutoplay) {
+    autoplayInterval.value = startInfiniteScroll()
+  }
 }, { deep: true })
 </script>
 

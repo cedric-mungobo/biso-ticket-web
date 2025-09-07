@@ -75,6 +75,15 @@
 </template>
 
 <script setup lang="ts">
+// Props
+interface Props {
+  enableAnimations?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  enableAnimations: false
+})
+
 // Références pour les éléments à animer
 const announcementRef = ref<HTMLElement>()
 const titleRef = ref<HTMLElement>()
@@ -93,7 +102,7 @@ const {
 
 // Animation principale du Hero
 const animateHeroText = () => {
-  if (!isGSAPAvailable() || prefersReducedMotion()) {
+  if (!props.enableAnimations || !isGSAPAvailable() || prefersReducedMotion()) {
     // Fallback : afficher les éléments sans animation
     if (announcementRef.value) announcementRef.value.style.opacity = '1'
     if (titleRef.value) titleRef.value.style.opacity = '1'
@@ -241,7 +250,7 @@ const animateHeroText = () => {
 
 // Animation au scroll (optionnelle)
 const setupScrollAnimations = () => {
-  if (!isGSAPAvailable() || prefersReducedMotion()) return
+  if (!props.enableAnimations || !isGSAPAvailable() || prefersReducedMotion()) return
 
   // Animation du titre au scroll
   if (titleRef.value) {

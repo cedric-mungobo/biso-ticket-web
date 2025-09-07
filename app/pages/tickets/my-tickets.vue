@@ -159,6 +159,7 @@ const qrCanvasRefs = ref<HTMLCanvasElement[]>([])
 
 const generateQRCode = async (canvas: HTMLCanvasElement, data: string) => {
   try {
+    // Générer le QR code d'abord
     await QRCode.toCanvas(canvas, data, {
       width: 160,
       margin: 2,
@@ -166,8 +167,51 @@ const generateQRCode = async (canvas: HTMLCanvasElement, data: string) => {
         dark: '#000000',
         light: '#FFFFFF'
       },
-      errorCorrectionLevel: 'M'
+      errorCorrectionLevel: 'H' // Niveau élevé pour laisser de la place au logo
     })
+
+    // Ajouter le logo au centre
+    const ctx = canvas.getContext('2d')
+    if (ctx) {
+      // Créer un cercle blanc au centre pour le logo
+      const centerX = canvas.width / 2
+      const centerY = canvas.height / 2
+      const logoSize = 40
+      const padding = 4
+
+      // Cercle de fond blanc
+      ctx.fillStyle = '#FFFFFF'
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, logoSize / 2 + padding, 0, 2 * Math.PI)
+      ctx.fill()
+
+      // Bordure du cercle
+      ctx.strokeStyle = '#E5E7EB'
+      ctx.lineWidth = 2
+      ctx.stroke()
+
+      // Charger et dessiner le logo
+      const logo = new Image()
+      logo.onload = () => {
+        // Dessiner le logo au centre
+        ctx.drawImage(
+          logo,
+          centerX - logoSize / 2,
+          centerY - logoSize / 2,
+          logoSize,
+          logoSize
+        )
+      }
+      logo.onerror = () => {
+        // Si le logo ne charge pas, dessiner un "B" stylisé
+        ctx.fillStyle = '#8B12FF'
+        ctx.font = 'bold 24px Arial'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('B', centerX, centerY)
+      }
+      logo.src = '/logo.png'
+    }
   } catch (error) {
     console.error('Erreur lors de la génération du QR Code:', error)
     // Afficher un message d'erreur sur le canvas
@@ -188,24 +232,81 @@ const downloadQr = async (item: ClientTicketItem) => {
   if (!item.qrCode) return
   
   try {
-    // Générer le QR Code en data URL
-    const dataUrl = await QRCode.toDataURL(item.qrCode, {
+    // Créer un canvas temporaire pour le téléchargement
+    const tempCanvas = document.createElement('canvas')
+    const tempCtx = tempCanvas.getContext('2d')
+    tempCanvas.width = 400
+    tempCanvas.height = 400
+
+    if (!tempCtx) return
+
+    // Générer le QR Code d'abord
+    await QRCode.toCanvas(tempCanvas, item.qrCode, {
       width: 400,
       margin: 2,
       color: {
         dark: '#000000',
         light: '#FFFFFF'
       },
-      errorCorrectionLevel: 'M'
+      errorCorrectionLevel: 'H' // Niveau élevé pour laisser de la place au logo
     })
-    
-    // Créer un lien de téléchargement
-    const link = document.createElement('a')
-    link.href = dataUrl
-    link.download = `ticket-${item.id}-qrcode.png`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+
+    // Ajouter le logo au centre
+    const centerX = tempCanvas.width / 2
+    const centerY = tempCanvas.height / 2
+    const logoSize = 100 // Plus grand pour le téléchargement
+    const padding = 8
+
+    // Cercle de fond blanc
+    tempCtx.fillStyle = '#FFFFFF'
+    tempCtx.beginPath()
+    tempCtx.arc(centerX, centerY, logoSize / 2 + padding, 0, 2 * Math.PI)
+    tempCtx.fill()
+
+    // Bordure du cercle
+    tempCtx.strokeStyle = '#E5E7EB'
+    tempCtx.lineWidth = 4
+    tempCtx.stroke()
+
+    // Charger et dessiner le logo
+    const logo = new Image()
+    logo.onload = () => {
+      // Dessiner le logo au centre
+      tempCtx.drawImage(
+        logo,
+        centerX - logoSize / 2,
+        centerY - logoSize / 2,
+        logoSize,
+        logoSize
+      )
+
+      // Convertir en data URL et télécharger
+      const dataUrl = tempCanvas.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `ticket-${item.id}-qrcode.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+    logo.onerror = () => {
+      // Si le logo ne charge pas, dessiner un "B" stylisé
+      tempCtx.fillStyle = '#8B12FF'
+      tempCtx.font = 'bold 60px Arial'
+      tempCtx.textAlign = 'center'
+      tempCtx.textBaseline = 'middle'
+      tempCtx.fillText('B', centerX, centerY)
+
+      // Télécharger quand même
+      const dataUrl = tempCanvas.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `ticket-${item.id}-qrcode.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+    logo.src = '/logo.png'
   } catch (error) {
     console.error('Erreur lors du téléchargement du QR Code:', error)
   }
@@ -432,29 +533,75 @@ a:focus-visible {
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
-/* Styles pour les QR codes */
+/* Styles pour les QR codes avec logo */
 .qr-code-container {
   position: relative;
   display: inline-block;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.qr-code-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 .qr-code-container canvas {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
   image-rendering: pixelated;
+  display: block;
+  border-radius: 8px;
 }
 
 /* Amélioration de l'affichage des QR codes */
 canvas[data-qr-data] {
   transition: all 0.3s ease;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  border: 3px solid #f3f4f6;
+  border-radius: 12px;
   background: white;
+  position: relative;
 }
 
 canvas[data-qr-data]:hover {
   border-color: #8b12ff;
-  box-shadow: 0 4px 12px rgba(139, 18, 255, 0.15);
+  box-shadow: 0 8px 25px rgba(139, 18, 255, 0.15);
   transform: scale(1.02);
+}
+
+/* Effet de brillance sur le QR code */
+.qr-code-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border-radius: 12px;
+}
+
+.qr-code-container:hover::before {
+  opacity: 1;
+}
+
+/* Animation de pulsation pour le logo au centre */
+@keyframes logoPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Style pour le logo dans le QR code */
+.qr-code-container canvas:hover {
+  animation: logoPulse 2s ease-in-out infinite;
 }
 </style>

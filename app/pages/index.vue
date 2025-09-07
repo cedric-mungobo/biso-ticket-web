@@ -2,22 +2,32 @@
 // Utilisation du composable useEvents
 const { fetchPublicEvents, formatDate } = useEvents()
 
-// Récupération des événements avec useAsyncData
+// Récupération des événements avec useAsyncData optimisé
 const { data, pending: loading, error, refresh } = await useAsyncData('featured:events', async () => {
   try {
-    console.log('[DEBUG] Starting fetchPublicEvents...')
+    if (process.dev) {
+      console.log('[DEBUG] Starting fetchPublicEvents...')
+    }
     const result = await fetchPublicEvents({
       per_page: 6,
       page: 1,
       date_filter: 'all'
     })
-    console.log('[DEBUG] fetchPublicEvents result:', result)
+    if (process.dev) {
+      console.log('[DEBUG] fetchPublicEvents result:', result)
+    }
     return result
   } catch (err) {
-    console.error('[DEBUG] fetchPublicEvents error:', err)
+    if (process.dev) {
+      console.error('[DEBUG] fetchPublicEvents error:', err)
+    }
     throw err
   }
-}, { server: false })
+}, { 
+  server: true, // Activer le SSR pour un chargement plus rapide
+  lazy: true, // Chargement paresseux
+  default: () => ({ items: [] }) // Valeur par défaut
+})
 
 const events = computed(() => {
   const result = Array.isArray(data.value?.items) ? data.value!.items : []
@@ -28,7 +38,7 @@ const events = computed(() => {
 <template>
   <div>
     <main id="content">
-      <HeroAnimated :events="events" :max-events="4" />
+      <HeroAnimated :events="events" :max-events="4" :enable-animations="false" />
 
       
       <!-- Our Approach Section -->

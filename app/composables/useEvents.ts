@@ -17,7 +17,7 @@ export const useEvents = () => {
     })
     // Déballer l'enveloppe standard { status, message, data }
     const payload = (res as any)?.data ?? res
-    if (process.client) {
+    if (process.client && process.dev) {
       console.log('[API] /public/events', { params, raw: res, payload, items: payload?.items?.length })
       console.log('[API] /public/events - payload structure:', JSON.stringify(payload, null, 2))
     }

@@ -16,8 +16,9 @@
         :location="event.location"
         :categories="event.settings?.categories || []"
         :slug="event.slug"
+        :enable-animations="props.enableAnimations"
         class="transform transition-all duration-300 hover:scale-105"
-        :class="{ 'animate-fade-in': index >= visibleEventsCount }"
+        :class="{ 'animate-fade-in': props.enableAnimations && index >= visibleEventsCount }"
       />
     </div>
 
@@ -122,6 +123,7 @@ interface Props {
   searchQuery?: string
   categories?: string[]
   autoLoad?: boolean
+  enableAnimations?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -129,7 +131,8 @@ const props = withDefaults(defineProps<Props>(), {
   dateFilter: 'all',
   searchQuery: '',
   categories: () => [],
-  autoLoad: true
+  autoLoad: true,
+  enableAnimations: true
 })
 
 // Émissions
@@ -237,7 +240,7 @@ const animateNewEvents = (count: number) => {
   }, 100)
 }
 
-// Configuration de l'Intersection Observer
+// Configuration de l'Intersection Observer optimisée
 const setupIntersectionObserver = () => {
   if (!triggerRef.value) return
 
@@ -250,7 +253,7 @@ const setupIntersectionObserver = () => {
     },
     {
       root: null,
-      rootMargin: '100px',
+      rootMargin: '200px', // Augmenter la marge pour un chargement plus fluide
       threshold: 0.1
     }
   )
@@ -333,6 +336,12 @@ defineExpose({
   will-change: transform, opacity;
 }
 
+/* Optimisations pour les images */
+img {
+  content-visibility: auto;
+  contain-intrinsic-size: 300px;
+}
+
 /* Réduction de mouvement pour l'accessibilité */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in {
@@ -342,5 +351,18 @@ defineExpose({
   * {
     will-change: auto;
   }
+}
+
+/* Optimisations pour les cartes */
+.event-card {
+  contain: layout style paint;
+  transform: translateZ(0); /* Force l'accélération matérielle */
+}
+
+/* Optimisations pour les animations */
+.animate-fade-in {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 </style>

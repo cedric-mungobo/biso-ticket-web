@@ -1,8 +1,8 @@
 <template>
-  <main class=" py-2 md:px-2 ">
-    <div class="mx-auto container ">
+  <main class="py-2 md:px-2">
+    <div class="mx-auto container">
       <h1 class="text-3xl font-bold mb-2">Événements</h1>
-      <p class="text-sm text-neutral-600 mb-2">Retrouvez  les  meilleurs événements  sur Biso Ticket.</p>
+      <p class="text-sm text-neutral-600 mb-2">Retrouvez les meilleurs événements sur Biso Ticket.</p>
 
       <div class="mb-6 flex items-center gap-2">
         <UInput
@@ -14,26 +14,34 @@
         <UButton color="primary" @click="applySearch">Rechercher</UButton>
       </div>
 
-      <div v-if="loading" class="text-center py-12 text-neutral-600">
-        Chargement des événements...
+      <!-- État de chargement optimisé -->
+      <div v-if="loading" class="text-center py-12">
+        <div class="inline-flex items-center space-x-2">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+          <span class="text-neutral-600">Chargement des événements...</span>
+        </div>
       </div>
 
+      <!-- Message d'erreur -->
       <div v-else-if="error" class="text-center py-12">
         <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
           <h3 class="text-lg font-medium text-red-800 mb-2">Erreur de chargement</h3>
           <p class="text-red-600 mb-4">{{ error }}</p>
-          <button @click="retry" class="bg-red-600 text-white px-4 py-2 rounded-md">Réessayer</button>
+          <button @click="retry" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
+            Réessayer
+          </button>
         </div>
       </div>
 
+      <!-- Liste des événements optimisée -->
       <div v-else>
-        <!-- Composant Infinite Scroll -->
         <InfiniteScrollEvents
           ref="infiniteScrollRef"
           :per-page="12"
           :date-filter="currentFilters.date_filter"
           :search-query="currentFilters.q"
           :auto-load="true"
+          :enable-animations="false"
           @events-loaded="onEventsLoaded"
           @loading-changed="onLoadingChanged"
           @error="onError"

@@ -45,8 +45,10 @@
             loading="lazy"
             placeholder
             format="webp"
-            quality="80"
+            quality="75"
             sizes="sm:100vw md:50vw lg:400px"
+            :decoding="'async'"
+            :fetchpriority="'low'"
           />
           <div
             v-else
@@ -77,6 +79,7 @@ interface Props {
   location?: string
   eventId?: number | string
   slug: string
+  enableAnimations?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -85,7 +88,8 @@ const props = withDefaults(defineProps<Props>(), {
   description: '',
   location: '',
   eventId: undefined,
-  categories: () => []
+  categories: () => [],
+  enableAnimations: true
 })
 
 // Référence pour l'animation
@@ -181,8 +185,8 @@ const animateCardEnter = () => {
 onMounted(async () => {
   await nextTick()
   
-  // Configuration des animations au scroll
-  if (cardRef.value) {
+  // Configuration des animations au scroll seulement si activées
+  if (props.enableAnimations && cardRef.value) {
     createScrollAnimation(cardRef.value, {
       start: 'top 85%',
       end: 'bottom 15%',
@@ -191,6 +195,10 @@ onMounted(async () => {
         setTimeout(animateCardEnter, 100)
       }
     })
+  } else if (cardRef.value) {
+    // Si les animations sont désactivées, afficher la carte directement
+    cardRef.value.style.opacity = '1'
+    cardRef.value.style.transform = 'translateY(0) scale(1)'
   }
 })
 </script>
@@ -301,5 +309,25 @@ onMounted(async () => {
 /* Optimisations de performance */
 * {
   will-change: transform, opacity;
+}
+
+/* Optimisations pour les images */
+.event-image {
+  content-visibility: auto;
+  contain-intrinsic-size: 300px;
+  transform: translateZ(0); /* Force l'accélération matérielle */
+}
+
+/* Optimisations pour les cartes */
+.event-card-animated {
+  contain: layout style paint;
+  transform: translateZ(0); /* Force l'accélération matérielle */
+}
+
+/* Optimisations pour les animations */
+.animate-fade-in {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 </style>
