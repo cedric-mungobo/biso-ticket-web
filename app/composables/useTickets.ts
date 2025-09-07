@@ -69,6 +69,30 @@ export const useTickets = () => {
     }
   }
 
+  // Fonction pour nettoyer les tickets invalides
+  const cleanupInvalidTickets = (event: UiEvent | null) => {
+    if (!event?.tickets || !selectedTicketsState.value) return
+    
+    const validTicketIds = event.tickets.map(t => t.id)
+    const currentSelected = { ...selectedTicketsState.value }
+    let hasChanges = false
+    
+    // Supprimer les tickets qui n'existent plus dans l'événement actuel
+    Object.keys(currentSelected).forEach(ticketIdStr => {
+      const ticketId = Number(ticketIdStr)
+      if (!validTicketIds.includes(ticketId)) {
+        delete currentSelected[ticketId]
+        hasChanges = true
+        if (process.dev) console.log('🧹 Nettoyage automatique: ticket invalide supprimé', ticketId)
+      }
+    })
+    
+    if (hasChanges) {
+      selectedTicketsState.value = currentSelected
+      if (process.dev) console.log('🧹 Tickets nettoyés:', currentSelected)
+    }
+  }
+
   // Watchers pour persister automatiquement
   watch(selectedTicketsState, (value) => {
     selectedTicketsCookie.value = value
@@ -85,6 +109,13 @@ export const useTickets = () => {
   watch(currentOrderNumberState, (value) => {
     orderNumberCookie.value = value || undefined
   })
+
+  // Nettoyage automatique des tickets invalides quand l'événement change
+  watch(currentEventState, (newEvent) => {
+    if (newEvent) {
+      cleanupInvalidTickets(newEvent)
+    }
+  }, { immediate: true })
 
   // Getters calculés
   const selectedTickets = computed(() => selectedTicketsState.value)
@@ -132,6 +163,12 @@ export const useTickets = () => {
       return price > 0
     })
   })
+
+  // Fonction pour réinitialiser complètement la sélection
+  const resetTicketSelection = () => {
+    selectedTicketsState.value = {}
+    if (process.dev) console.log('🔄 Sélection de tickets réinitialisée')
+  }
 
   const reservationSummary = computed<ReservationSummary | null>(() => {
     const event = currentEvent.value
@@ -245,16 +282,90 @@ export const useTickets = () => {
       if (!event || !event.tickets) {
         return { success: false, error: 'Aucun événement sélectionné' }
       }
+
+      // Nettoyage automatique des tickets invalides avant la confirmation
+      cleanupInvalidTickets(event)
+
       if (!event.id) {
         return { success: false, error: 'Identifiant de l\'événement manquant' }
+      }
+      
+      if (!event.tickets || event.tickets.length === 0) {
+        return { success: false, error: 'Aucun ticket disponible pour cet événement' }
       }
 
       const selectedArray = Object.entries(selectedTickets.value)
         .filter(([, qty]) => (qty || 0) > 0)
-        .map(([ticketIdStr, qty]) => ({ ticket_id: Number(ticketIdStr), quantity: qty || 0 }))
+        .map(([ticketIdStr, qty]) => {
+          const ticketId = Number(ticketIdStr)
+          const quantity = qty || 0
+          
+          // Validation des données
+          if (!ticketId || ticketId <= 0) {
+            console.error('❌ ID de ticket invalide:', ticketIdStr)
+            return null
+          }
+          if (!quantity || quantity <= 0) {
+            console.error('❌ Quantité invalide:', qty)
+            return null
+          }
+          
+          return { ticket_id: ticketId, quantity }
+        })
+        .filter((item): item is { ticket_id: number; quantity: number } => item !== null) // Supprimer les entrées null
 
       if (selectedArray.length === 0) {
         return { success: false, error: 'Aucun ticket sélectionné' }
+      }
+
+      // Debug: Vérifier les données avant envoi
+      if (process.dev) {
+        console.log('🔍 Debug selectedTickets:', selectedTickets.value)
+        console.log('🔍 Debug selectedArray:', selectedArray)
+        console.log('🔍 Debug event.tickets:', event.tickets)
+        
+        // Vérifier que tous les ticket_id existent et nettoyer les invalides
+        const validTicketIds = event.tickets?.map(t => t.id) || []
+        const invalidTickets = selectedArray.filter(item => !validTicketIds.includes(item.ticket_id))
+        
+        if (invalidTickets.length > 0) {
+          console.warn('⚠️ Tickets invalides détectés, nettoyage automatique:', invalidTickets)
+          console.log('✅ Tickets valides disponibles:', validTicketIds)
+          
+          // Nettoyer automatiquement les tickets invalides du state
+          const cleanedSelectedTickets = { ...selectedTickets.value }
+          invalidTickets.forEach(invalidTicket => {
+            delete cleanedSelectedTickets[invalidTicket.ticket_id]
+          })
+          selectedTicketsState.value = cleanedSelectedTickets
+          
+          // Reconstruire selectedArray avec seulement les tickets valides
+          const validSelectedArray = selectedArray.filter(item => validTicketIds.includes(item.ticket_id))
+          
+          if (validSelectedArray.length === 0) {
+            return { success: false, error: 'Aucun ticket valide sélectionné après nettoyage' }
+          }
+          
+          // Utiliser les tickets valides pour la suite
+          selectedArray.length = 0
+          selectedArray.push(...validSelectedArray)
+          
+          console.log('✅ Tickets valides après nettoyage:', validSelectedArray)
+          
+          // Notifier l'utilisateur du nettoyage (optionnel)
+          if (process.client) {
+            const toast = useToast()
+            try {
+              toast.add({
+                title: 'Tickets mis à jour',
+                description: `Certains tickets n'étaient plus disponibles et ont été retirés de votre sélection.`,
+                color: 'warning'
+              })
+            } catch (e) {
+              // Toast non disponible, ignorer
+            }
+          }
+        }
       }
 
       const { $customFetch, $myFetch, $api } = useNuxtApp() as any
@@ -340,6 +451,7 @@ export const useTickets = () => {
     calculateTicketTotal,
     clearSelection,
     resetCheckoutState,
+    resetTicketSelection,
     startReservation,
     startReservationWithId,
     confirmReservation

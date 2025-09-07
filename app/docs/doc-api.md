@@ -130,10 +130,64 @@ Notes FlexPay:
 - Le serveur génère `reference`/`amount` et calcule le total depuis les items (conversion devise si nécessaire).
 - Le push STK/USSD peut prendre 30–90s selon l’opérateur. Les métadonnées incluent `metadata.flexpay.orderNumber`.
 
-### Vérifier le statut d’un paiement (client)
+### Vérifier le statut d'un paiement (client)
 - GET `/api/client/payments/check?reference=...` ou `/api/client/payments/check?order_number=...`
-  - 200: `{ status, message, data: { code, message, status: 'paid'|'failed'|null, orderNumber, reference } }`
-  - Notes: appelle FlexPay `check`, et si succès (`status=paid`), met à jour `payments.status=paid` et `orders.status=paid`.
+  - 200: `{ status, message, data: { code, message, status: 'paid'|'pending'|'failed'|null, orderNumber, reference } }`
+  - Notes: 
+    - Appelle FlexPay `check` pour vérifier le statut réel de la transaction
+    - `status: 'paid'` = paiement finalisé avec succès
+    - `status: 'pending'` = paiement en cours (transaction trouvée mais pas encore finalisée)
+    - `status: 'failed'` = paiement échoué ou transaction non trouvée
+    - Si `status=paid`, met automatiquement à jour `payments.status=paid` et `orders.status=paid`
+
+Exemple cURL:
+```bash
+curl -X GET 'https://api.bisoticket.com/api/client/payments/check?reference=deaa2f78-04ee-453b-bf06-9b719d65a02c' \
+  -H 'Authorization: Bearer {TOKEN}' \
+  -H 'Accept: application/json'
+```
+
+Exemple de réponses:
+```json
+// Paiement en cours
+{
+  "status": true,
+  "message": "Statut paiement",
+  "data": {
+    "code": "0",
+    "message": "Transaction trouvée",
+    "status": "pending",
+    "orderNumber": "9bsTX7qXdpQe243815877848",
+    "reference": "deaa2f78-04ee-453b-bf06-9b719d65a02c"
+  }
+}
+
+// Paiement finalisé
+{
+  "status": true,
+  "message": "Statut paiement",
+  "data": {
+    "code": "0",
+    "message": "Transaction finalisée",
+    "status": "paid",
+    "orderNumber": "9bsTX7qXdpQe243815877848",
+    "reference": "deaa2f78-04ee-453b-bf06-9b719d65a02c"
+  }
+}
+
+// Paiement échoué
+{
+  "status": true,
+  "message": "Statut paiement",
+  "data": {
+    "code": "2",
+    "message": "Transaction échouée",
+    "status": "failed",
+    "orderNumber": "9bsTX7qXdpQe243815877848",
+    "reference": "deaa2f78-04ee-453b-bf06-9b719d65a02c"
+  }
+}
+```
 
 ### Mes tickets (client)
 - GET `/api/client/tickets?per_page=15`
@@ -662,14 +716,14 @@ Payment (resource)
 
 ### Scan agents (public via X-Scan-Secret)
 - Header obligatoire: `X-Scan-Secret: {SECRET}` (lié à l’événement; expire à `ends_at`).
-- GET `/api/public/events/{event}/scan-registry?updated_since=ISO8601`
+- GET `/api/public/events/{eventPublicId}/scan-registry?updated_since=ISO8601`
   - 200:
 ```json
 { "status": true, "message": "Scan registry", "data": { "items": [ { "order_item_id": 10, "qr_code": "TOKEN_CHIFFRE", "ticket_name": "VIP", "updated_at": "2025-09-05T11:00:00Z" } ] } }
 ```
-- POST `/api/public/events/{event}/scans/qr`
+- POST `/api/public/events/{eventPublicId}/scans/qr`
   - body: `{ "qr_code": "TOKEN_CHIFFRE", "location": "Gate A" }`
-- POST `/api/public/events/{event}/scans/sync`
+- POST `/api/public/events/{eventPublicId}/scans/sync`
   - body: `{ "items": [ { "qr_code": "TOKEN_CHIFFRE", "scanned_at": "2025-09-05T12:00:00Z", "location": "Gate A", "device_id": "phone-1" } ] }`
 
 - GET `/api/events/{event}/reports/summary`
@@ -733,6 +787,7 @@ Notes:
 Notes
 - Toutes les routes (hors health et FlexPay) nécessitent Sanctum.
 - Paramètre `per_page` gère la pagination (par défaut 15).
-- Les identifiants `{event}`, `{order}`, etc. sont des IDs numériques.
+- Les identifiants `{event}`, `{order}`, etc. sont des IDs numériques côté endpoints privés. Pour les endpoints publics de scan, utilisez de préférence `{eventPublicId}` (ULID opaque). L’URL des endpoints publics accepte `id`, `slug` ou `public_id`.
 
 
+s

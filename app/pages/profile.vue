@@ -1,4 +1,5 @@
 <template>
+  <div>
     <div>
       <div class="">
         <div class="max-w-5xl mx-auto px-4">
@@ -327,7 +328,9 @@
         </div>
       </template>
     </Modal>
-  </template>
+    </div>
+
+</template>
   
   <script setup lang="ts">
   import { ref, watch } from 'vue'

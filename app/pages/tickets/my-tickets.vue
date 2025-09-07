@@ -1,8 +1,6 @@
 <template>
   <div class="px-1  md:px-8  lg:px-12 max-w-5xl mx-auto">
     <!-- En-tête de la page -->
-
-    
     <div class="mb-8 text-center">
       <h1 class="text-4xl font-bold text-gray-900 mb-3">Mes Billets</h1>
       <p class="text-lg text-gray-600 max-w-2xl mx-auto">Consultez et gérez vos réservations de tickets en toute simplicité</p>
@@ -74,12 +72,15 @@
           </div>
           <div class="flex md:justify-end">
             <div class="flex flex-col items-center gap-2">
-              <img v-if="getQrImageSrc(item.qrCode)" :src="getQrImageSrc(item.qrCode)" alt="QR Code" class="w-40 h-40 object-contain border rounded" />
+              <div v-if="item.qrCode" class="qr-code-container">
+                <canvas ref="qrCanvas" :data-qr-data="item.qrCode" class="w-40 h-40 border rounded bg-white"></canvas>
+              </div>
               <template v-else>
-                <div class="text-xs text-gray-500">QR code indisponible</div>
-                <div v-if="item.qrCode" class="text-[10px] text-gray-600 break-all max-w-[240px]">{{ item.qrCode }}</div>
+                <div class="w-40 h-40 border rounded bg-gray-100 flex items-center justify-center">
+                  <div class="text-xs text-gray-500 text-center">QR code indisponible</div>
+                </div>
               </template>
-              <UButton v-if="getQrImageSrc(item.qrCode)" size="xs" color="neutral" variant="soft" @click="() => downloadQr(item)">Télécharger</UButton>
+              <UButton v-if="item.qrCode" size="xs" color="neutral" variant="soft" @click="() => downloadQr(item)">Télécharger</UButton>
             </div>
           </div>
         </div>
@@ -96,6 +97,7 @@
 
 <script setup lang="ts">
 import { useClientTickets, type ClientTicketItem } from '~/composables/useClientTickets'
+import QRCode from 'qrcode'
 
 
 definePageMeta({
@@ -152,48 +154,61 @@ const handleViewTicketDetails = (item: ClientTicketItem) => {
   console.log('Voir billet', item)
 }
 
-// QR helpers
-const getQrImageSrc = (qr: string | null | undefined) => {
-  if (!qr) return ''
-  // Si c'est déjà une data URL
-  if (qr.startsWith('data:image')) return qr
-  // Si c'est du base64 sans prefix
-  const isBase64 = /^[A-Za-z0-9+/=\n\r]+$/.test(qr)
-  if (isBase64) return `data:image/png;base64,${qr}`
-  // Si c'est une URL http(s)
+// QR Code helpers avec la librairie qrcode
+const qrCanvasRefs = ref<HTMLCanvasElement[]>([])
+
+const generateQRCode = async (canvas: HTMLCanvasElement, data: string) => {
   try {
-    const u = new URL(qr)
-    if (u.protocol === 'http:' || u.protocol === 'https:') return qr
-  } catch {}
-  // Fallback: générer un QR image via un service public
-  const size = 200
-  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(qr)}`
+    await QRCode.toCanvas(canvas, data, {
+      width: 160,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      },
+      errorCorrectionLevel: 'M'
+    })
+  } catch (error) {
+    console.error('Erreur lors de la génération du QR Code:', error)
+    // Afficher un message d'erreur sur le canvas
+    const ctx = canvas.getContext('2d')
+    if (ctx) {
+      ctx.fillStyle = '#f3f4f6'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = '#6b7280'
+      ctx.font = '12px Arial'
+      ctx.textAlign = 'center'
+      ctx.fillText('Erreur QR', canvas.width / 2, canvas.height / 2 - 6)
+      ctx.fillText('Code', canvas.width / 2, canvas.height / 2 + 6)
+    }
+  }
 }
 
-const downloadQr = (item: ClientTicketItem) => {
-  const src = getQrImageSrc(item.qrCode)
-  if (!src) return
-  // Forcer le download proprement même si c'est une URL distante
-  fetch(src)
-    .then(r => r.blob())
-    .then(blob => {
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `ticket-${item.id}-qrcode.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+const downloadQr = async (item: ClientTicketItem) => {
+  if (!item.qrCode) return
+  
+  try {
+    // Générer le QR Code en data URL
+    const dataUrl = await QRCode.toDataURL(item.qrCode, {
+      width: 400,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      },
+      errorCorrectionLevel: 'M'
     })
-    .catch(() => {
-      const link = document.createElement('a')
-      link.href = src
-      link.download = `ticket-${item.id}-qrcode.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    })
+    
+    // Créer un lien de téléchargement
+    const link = document.createElement('a')
+    link.href = dataUrl
+    link.download = `ticket-${item.id}-qrcode.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  } catch (error) {
+    console.error('Erreur lors du téléchargement du QR Code:', error)
+  }
 }
 
 const formatDate = (dateString: string) => {
@@ -216,10 +231,34 @@ const changePage = async (page: number) => {
   await fetchMyTickets(safe)
 }
 
+// Fonction pour générer tous les QR codes
+const generateAllQRCodes = async () => {
+  await nextTick()
+  const canvasElements = document.querySelectorAll('canvas[data-qr-data]') as NodeListOf<HTMLCanvasElement>
+  
+  for (const canvas of canvasElements) {
+    const qrData = canvas.getAttribute('data-qr-data')
+    if (qrData) {
+      await generateQRCode(canvas, qrData)
+    }
+  }
+}
+
 // Chargement initial (middleware authenticated protège déjà la page)
 onMounted(async () => {
-  await fetchMyTickets()
+  // nextTick
+  nextTick(async () => {
+    await fetchMyTickets()
+    // Générer les QR codes après le chargement des tickets
+    await generateAllQRCodes()
+  })
 })
+
+// Regénérer les QR codes quand les tickets changent
+watch(tickets, async () => {
+  await nextTick()
+  await generateAllQRCodes()
+}, { deep: true })
 </script>
 
 <style scoped>
@@ -391,5 +430,31 @@ a:focus-visible {
 
 .hover\:shadow-lg:hover {
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Styles pour les QR codes */
+.qr-code-container {
+  position: relative;
+  display: inline-block;
+}
+
+.qr-code-container canvas {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+/* Amélioration de l'affichage des QR codes */
+canvas[data-qr-data] {
+  transition: all 0.3s ease;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+}
+
+canvas[data-qr-data]:hover {
+  border-color: #8b12ff;
+  box-shadow: 0 4px 12px rgba(139, 18, 255, 0.15);
+  transform: scale(1.02);
 }
 </style>

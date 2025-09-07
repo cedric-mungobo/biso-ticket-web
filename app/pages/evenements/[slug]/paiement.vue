@@ -1,5 +1,6 @@
 <template>
-  <div class="px-4 py-8 md:px-8  lg:px-12 container mx-auto">
+  <div>
+    <div class="px-4 py-8 md:px-8  lg:px-12 container mx-auto">
     <!-- En-tête de la page -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Paiement</h1>
@@ -278,6 +279,7 @@
       </button>
     </template>
   </Modal>
+  </div>
 </template>
 
 <script setup lang="ts">
