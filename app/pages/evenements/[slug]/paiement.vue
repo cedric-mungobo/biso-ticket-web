@@ -396,29 +396,39 @@ const startCountdown = () => {
 const startPaymentStatusPolling = () => {
   console.log('🔄 Démarrage du polling de vérification du statut de paiement...')
 
-  const interpretPaymentStatus = (result: any): 'paid' | 'failed' | 'pending' => {
-    // Utiliser directement le statut de l'API qui est maintenant standardisé
-    const status = String(result?.status || '').toLowerCase()
-    
-    // L'API retourne maintenant directement 'paid', 'pending', ou 'failed'
-    if (status === 'paid') return 'paid'
-    if (status === 'failed') return 'failed'
-    if (status === 'pending') return 'pending'
-    
-    // Fallback pour compatibilité avec l'ancien format
-    const code = String(result?.code ?? '')
-    const message = String(result?.message ?? '').toLowerCase()
-    
-    // Détection d'échec
-    const failedHints = ['failed', 'échoué', 'echec', 'refus', "n'a pas réussi", 'pas réussi', 'non confirmé']
-    if (failedHints.some(h => message.includes(h))) return 'failed'
-    
-    // Détection de succès
-    const paidRegex = /(paiement\s+réussi|réussi(\s|$)|confirmé|confirme)/
-    if (paidRegex.test(message)) return 'paid'
-    
-    // Par défaut, considérer comme en attente
-    return 'pending'
+  // L'API retourne maintenant directement 'paid', 'pending', ou 'failed'
+  // Plus besoin de fonction intermédiaire - utilisation directe du statut
+
+  // Fonctions helper pour gérer les différents statuts de paiement
+  const handlePaymentSuccess = (statusResult: any) => {
+    // ✅ Paiement réussi
+    paymentError.value = ''
+    const successMessage = `🎉 Paiement réussi !\n\n${statusResult.message || 'Vos billets sont maintenant disponibles.'}`
+    paymentError.value = successMessage
+    try { 
+      toast.add({ 
+        title: 'Paiement réussi', 
+        description: statusResult.message || 'Vos billets sont disponibles.' 
+      }) 
+    } catch {}
+    stopCountdown()
+    // Nettoyer l'état de panier/réservation après succès
+    try { (useTickets() as any).resetCheckoutState?.() } catch {}
+    setTimeout(() => { navigateTo('/tickets/my-tickets') }, 2000)
+  }
+
+  const handlePaymentFailure = (statusResult: any) => {
+    // ❌ Paiement échoué
+    stopCountdown()
+    const errMsg = `Paiement échoué: ${statusResult.message || 'Transaction non confirmée.'}`
+    paymentError.value = errMsg
+    try { 
+      toast.add({ 
+        title: 'Paiement échoué', 
+        description: statusResult.message || 'Veuillez réessayer.', 
+        color: 'error' 
+      }) 
+    } catch {}
   }
 
   const doCheck = async () => {
@@ -451,43 +461,33 @@ const startPaymentStatusPolling = () => {
           localOrderNumber.value = String(polledOrderNo)
         }
 
-        const resolved = interpretPaymentStatus(statusResult)
+        // ✅ L'API retourne directement le statut standardisé
+        const status = String(statusResult?.status || '').toLowerCase()
         
-        if (resolved === 'paid') {
-          // ✅ Paiement réussi
-          paymentError.value = ''
-          const successMessage = `🎉 Paiement réussi !\n\n${statusResult.message || 'Vos billets sont maintenant disponibles.'}`
-          paymentError.value = successMessage
-          try { 
-            toast.add({ 
-              title: 'Paiement réussi', 
-              description: statusResult.message || 'Vos billets sont disponibles.' 
-            }) 
-          } catch {}
-          stopCountdown()
-          // Nettoyer l'état de panier/réservation après succès
-          try { (useTickets() as any).resetCheckoutState?.() } catch {}
-          setTimeout(() => { navigateTo('/tickets/my-tickets') }, 2000)
-          return
+        // Traitement direct avec switch - plus simple et plus clair
+        switch (status) {
+          case 'paid':
+            // Paiement finalisé - rediriger vers succès
+            handlePaymentSuccess(statusResult)
+            return
+            
+          case 'failed':
+            // Paiement échoué - afficher erreur
+            handlePaymentFailure(statusResult)
+            return
+            
+          case 'pending':
+            // Paiement en cours - continuer à vérifier
+            if (process.dev) console.log('⏳ Paiement en cours, continuation du polling...')
+            break
+            
+          default:
+            // Statut inconnu - fallback pour compatibilité avec ancien format
+            if (process.dev) console.log('⚠️ Statut inconnu, fallback vers pending...')
+            // Traiter comme pending par sécurité
+            if (process.dev) console.log('⏳ Paiement en cours (fallback), continuation du polling...')
+            break
         }
-        
-        if (resolved === 'failed') {
-          // ❌ Paiement échoué
-          stopCountdown()
-          const errMsg = `Paiement échoué: ${statusResult.message || 'Transaction non confirmée.'}`
-          paymentError.value = errMsg
-          try { 
-            toast.add({ 
-              title: 'Paiement échoué', 
-              description: statusResult.message || 'Veuillez réessayer.', 
-              color: 'error' 
-            }) 
-          } catch {}
-          return
-        }
-        
-        // Sinon, status 'pending' => on continue le polling
-        if (process.dev) console.log('⏳ Paiement en cours, continuation du polling...')
       } else {
         if (process.dev) console.log('⚠️ Aucun résultat de vérification obtenu')
       }
