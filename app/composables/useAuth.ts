@@ -9,7 +9,10 @@ export const useAuth = () => {
       method: 'POST',
       body: userData
     })
-    const token = useCookie('auth_token', { path: '/' })
+    const token = useCookie('auth_token', { 
+      path: '/', 
+      maxAge: 30 * 24 * 60 * 60 // 30 jours (1 mois) en secondes
+    })
     token.value = (response as any)?.token ?? (response as any)?.data?.token ?? null
     return response as AuthResponse
   }
@@ -19,7 +22,10 @@ export const useAuth = () => {
       method: 'POST',
       body: credentials
     })
-    const token = useCookie('auth_token', { path: '/' })
+    const token = useCookie('auth_token', { 
+      path: '/', 
+      maxAge: 30 * 24 * 60 * 60 // 30 jours (1 mois) en secondes
+    })
     token.value = (response as any)?.token ?? (response as any)?.data?.token ?? null
     return response as AuthResponse
   }

@@ -39,7 +39,23 @@
           <!-- Mot de passe -->
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-            <UInput id="password" v-model="form.password" type="password" required placeholder="Créez un mot de passe sécurisé" class="w-full    rounded-md " />
+            <div class="relative">
+              <UInput 
+                id="password" 
+                v-model="form.password" 
+                :type="showPassword ? 'text' : 'password'" 
+                required 
+                placeholder="Créez un mot de passe sécurisé" 
+                class="w-full rounded-md pr-10" 
+              />
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+              >
+                <Icon :name="showPassword ? 'heroicons:eye-slash' : 'heroicons:eye'" class="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           
@@ -93,6 +109,7 @@ const form = reactive({
 
 const success = ref('')
 const isLoading = ref(false)
+const showPassword = ref(false)
 
 // Composables
 const { register } = useAuth()

@@ -25,6 +25,7 @@
             <UInput
               id="identifier"
               v-model="identifier"
+              autocomplete="email|phone"
               type="text"
               required
               placeholder="Email ou téléphone"

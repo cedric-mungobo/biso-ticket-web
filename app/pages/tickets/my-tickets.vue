@@ -73,7 +73,14 @@
           <div class="flex md:justify-end">
             <div class="flex flex-col items-center gap-2">
               <div v-if="item.qrCode" class="qr-code-container">
-                <canvas ref="qrCanvas" :data-qr-data="item.qrCode" class="w-40 h-40 border rounded bg-white"></canvas>
+                <Qrcode 
+                  :value="item.qrCode" 
+                  :size="160"
+                  :margin="2"
+                  :color="{ dark: '#000000', light: '#FFFFFF' }"
+                  :error-correction-level="'H'"
+                  class="w-40 h-40 border rounded bg-white"
+                />
               </div>
               <template v-else>
                 <div class="w-40 h-40 border rounded bg-gray-100 flex items-center justify-center">
@@ -154,159 +161,30 @@ const handleViewTicketDetails = (item: ClientTicketItem) => {
   console.log('Voir billet', item)
 }
 
-// QR Code helpers avec la librairie qrcode
-const qrCanvasRefs = ref<HTMLCanvasElement[]>([])
-
-const generateQRCode = async (canvas: HTMLCanvasElement, data: string) => {
-  try {
-    // Générer le QR code d'abord
-    await QRCode.toCanvas(canvas, data, {
-      width: 160,
-      margin: 2,
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      },
-      errorCorrectionLevel: 'H' // Niveau élevé pour laisser de la place au logo
-    })
-
-    // Ajouter le logo au centre
-    const ctx = canvas.getContext('2d')
-    if (ctx) {
-      // Créer un cercle blanc au centre pour le logo
-      const centerX = canvas.width / 2
-      const centerY = canvas.height / 2
-      const logoSize = 40
-      const padding = 4
-
-      // Cercle de fond blanc
-      ctx.fillStyle = '#FFFFFF'
-      ctx.beginPath()
-      ctx.arc(centerX, centerY, logoSize / 2 + padding, 0, 2 * Math.PI)
-      ctx.fill()
-
-      // Bordure du cercle
-      ctx.strokeStyle = '#E5E7EB'
-      ctx.lineWidth = 2
-      ctx.stroke()
-
-      // Charger et dessiner le logo
-      const logo = new Image()
-      logo.onload = () => {
-        // Dessiner le logo au centre
-        ctx.drawImage(
-          logo,
-          centerX - logoSize / 2,
-          centerY - logoSize / 2,
-          logoSize,
-          logoSize
-        )
-      }
-      logo.onerror = () => {
-        // Si le logo ne charge pas, dessiner un "B" stylisé
-        ctx.fillStyle = '#8B12FF'
-        ctx.font = 'bold 24px Arial'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillText('B', centerX, centerY)
-      }
-      logo.src = '/logo.png'
-    }
-  } catch (error) {
-    console.error('Erreur lors de la génération du QR Code:', error)
-    // Afficher un message d'erreur sur le canvas
-    const ctx = canvas.getContext('2d')
-    if (ctx) {
-      ctx.fillStyle = '#f3f4f6'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-      ctx.fillStyle = '#6b7280'
-      ctx.font = '12px Arial'
-      ctx.textAlign = 'center'
-      ctx.fillText('Erreur QR', canvas.width / 2, canvas.height / 2 - 6)
-      ctx.fillText('Code', canvas.width / 2, canvas.height / 2 + 6)
-    }
-  }
-}
+// QR Code helpers - maintenant géré par le composant Qrcode de nuxt-qrcode
 
 const downloadQr = async (item: ClientTicketItem) => {
   if (!item.qrCode) return
   
   try {
-    // Créer un canvas temporaire pour le téléchargement
-    const tempCanvas = document.createElement('canvas')
-    const tempCtx = tempCanvas.getContext('2d')
-    tempCanvas.width = 400
-    tempCanvas.height = 400
-
-    if (!tempCtx) return
-
-    // Générer le QR Code d'abord
-    await QRCode.toCanvas(tempCanvas, item.qrCode, {
+    // Utiliser directement la librairie QRCode pour générer le QR code
+    const qrCodeDataUrl = await QRCode.toDataURL(item.qrCode, {
       width: 400,
       margin: 2,
       color: {
         dark: '#000000',
         light: '#FFFFFF'
       },
-      errorCorrectionLevel: 'H' // Niveau élevé pour laisser de la place au logo
+      errorCorrectionLevel: 'H'
     })
 
-    // Ajouter le logo au centre
-    const centerX = tempCanvas.width / 2
-    const centerY = tempCanvas.height / 2
-    const logoSize = 100 // Plus grand pour le téléchargement
-    const padding = 8
-
-    // Cercle de fond blanc
-    tempCtx.fillStyle = '#FFFFFF'
-    tempCtx.beginPath()
-    tempCtx.arc(centerX, centerY, logoSize / 2 + padding, 0, 2 * Math.PI)
-    tempCtx.fill()
-
-    // Bordure du cercle
-    tempCtx.strokeStyle = '#E5E7EB'
-    tempCtx.lineWidth = 4
-    tempCtx.stroke()
-
-    // Charger et dessiner le logo
-    const logo = new Image()
-    logo.onload = () => {
-      // Dessiner le logo au centre
-      tempCtx.drawImage(
-        logo,
-        centerX - logoSize / 2,
-        centerY - logoSize / 2,
-        logoSize,
-        logoSize
-      )
-
-      // Convertir en data URL et télécharger
-      const dataUrl = tempCanvas.toDataURL('image/png')
-      const link = document.createElement('a')
-      link.href = dataUrl
-      link.download = `ticket-${item.id}-qrcode.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    }
-    logo.onerror = () => {
-      // Si le logo ne charge pas, dessiner un "B" stylisé
-      tempCtx.fillStyle = '#8B12FF'
-      tempCtx.font = 'bold 60px Arial'
-      tempCtx.textAlign = 'center'
-      tempCtx.textBaseline = 'middle'
-      tempCtx.fillText('B', centerX, centerY)
-
-      // Télécharger quand même
-      const dataUrl = tempCanvas.toDataURL('image/png')
-      const link = document.createElement('a')
-      link.href = dataUrl
-      link.download = `ticket-${item.id}-qrcode.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    }
-    logo.src = '/logo.png'
+    // Créer un lien de téléchargement
+    const link = document.createElement('a')
+    link.href = qrCodeDataUrl
+    link.download = `billet-${item.event.title}-${item.ticket.name}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   } catch (error) {
     console.error('Erreur lors du téléchargement du QR Code:', error)
   }
@@ -332,34 +210,10 @@ const changePage = async (page: number) => {
   await fetchMyTickets(safe)
 }
 
-// Fonction pour générer tous les QR codes
-const generateAllQRCodes = async () => {
-  await nextTick()
-  const canvasElements = document.querySelectorAll('canvas[data-qr-data]') as NodeListOf<HTMLCanvasElement>
-  
-  for (const canvas of canvasElements) {
-    const qrData = canvas.getAttribute('data-qr-data')
-    if (qrData) {
-      await generateQRCode(canvas, qrData)
-    }
-  }
-}
-
 // Chargement initial (middleware authenticated protège déjà la page)
 onMounted(async () => {
-  // nextTick
-  nextTick(async () => {
-    await fetchMyTickets()
-    // Générer les QR codes après le chargement des tickets
-    await generateAllQRCodes()
-  })
+  await fetchMyTickets()
 })
-
-// Regénérer les QR codes quand les tickets changent
-watch(tickets, async () => {
-  await nextTick()
-  await generateAllQRCodes()
-}, { deep: true })
 </script>
 
 <style scoped>
@@ -533,7 +387,7 @@ a:focus-visible {
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
-/* Styles pour les QR codes avec logo */
+/* Styles pour les QR codes avec le composant Qrcode */
 .qr-code-container {
   position: relative;
   display: inline-block;
@@ -548,24 +402,17 @@ a:focus-visible {
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
-.qr-code-container canvas {
+.qr-code-container img {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
   image-rendering: pixelated;
   display: block;
   border-radius: 8px;
-}
-
-/* Amélioration de l'affichage des QR codes */
-canvas[data-qr-data] {
   transition: all 0.3s ease;
   border: 3px solid #f3f4f6;
-  border-radius: 12px;
-  background: white;
-  position: relative;
 }
 
-canvas[data-qr-data]:hover {
+.qr-code-container img:hover {
   border-color: #8b12ff;
   box-shadow: 0 8px 25px rgba(139, 18, 255, 0.15);
   transform: scale(1.02);
@@ -590,18 +437,17 @@ canvas[data-qr-data]:hover {
   opacity: 1;
 }
 
-/* Animation de pulsation pour le logo au centre */
-@keyframes logoPulse {
+/* Animation de pulsation pour le QR code */
+@keyframes qrPulse {
   0%, 100% {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.02);
   }
 }
 
-/* Style pour le logo dans le QR code */
-.qr-code-container canvas:hover {
-  animation: logoPulse 2s ease-in-out infinite;
+.qr-code-container img:hover {
+  animation: qrPulse 2s ease-in-out infinite;
 }
 </style>
