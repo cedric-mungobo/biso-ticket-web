@@ -39,6 +39,25 @@
         </template>
       </div>
 
+        <!-- Actions Mobile (avant le menu burger) -->
+        <div class="md:hidden flex items-center gap-1">
+          <template v-if="!isAuthenticated">
+            <UButton color="neutral" variant="outline" size="sm" to="/inscription">Inscription</UButton>
+            <UButton color="primary" size="sm" to="/connexion">Connexion</UButton>
+          </template>
+          <template v-else>
+            <UButton color="neutral" variant="subtle" size="sm" to="/profile">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-xs">
+                  {{ userInitials }}
+                </div>
+                <span v-if="(user as any)?.name" class="text-sm">{{ (user as any)?.name }}</span>
+                <span v-else class="text-sm">Profil</span>
+              </div>
+            </UButton>
+          </template>
+        </div>
+
         <!-- Menu Mobile Toggle -->
         <button
           @click="toggleMobileMenu"
@@ -76,16 +95,9 @@
             </NuxtLink>
           </nav>
 
-          <!-- Actions Mobile -->
-          <div class="pt-4 border-t border-white/30 space-y-2">
-          <template v-if="!isAuthenticated">
-              <UButton color="primary" block to="/connexion" @click="closeMobileMenu">Connexion</UButton>
-              <UButton color="neutral" variant="outline" block to="/inscription" @click="closeMobileMenu">Inscription</UButton>
-          </template>
-          <template v-else>
-              <UButton color="neutral" block to="/profile" @click="closeMobileMenu">Mon profil</UButton>
+          <!-- Actions Mobile (déconnexion seulement dans le menu) -->
+          <div v-if="isAuthenticated" class="pt-4 border-t border-white/30 space-y-2">
             <UButton color="neutral" variant="ghost" block @click="handleLogout">Se déconnecter</UButton>
-          </template>
           </div>
         </div>
       </div>
@@ -118,10 +130,47 @@ const items = computed<NavigationMenuItem[]>(() => [
 const { getProfile, logout } = useAuth()
 const authToken = useCookie('auth_token')
 const isAuthenticated = computed(() => !!authToken.value)
-const { data: user } = await useAsyncData('uiheader:profile', () => getProfile(), { server: false, immediate: false })
+
+// Récupérer le profil utilisateur seulement si connecté
+const user = ref(null)
+
+// Fonction pour récupérer le profil
+const fetchUserProfile = async () => {
+  if (!authToken.value) {
+    user.value = null
+    return
+  }
+  try {
+    console.log('Récupération du profil...')
+    const profile = await getProfile()
+    console.log('Profil récupéré:', profile)
+    user.value = profile
+  } catch (error) {
+    console.error('Erreur récupération profil:', error)
+    user.value = null
+  }
+}
+
+// Rafraîchir le profil quand l'utilisateur se connecte
+watch(isAuthenticated, (newValue) => {
+  console.log('Auth state changed:', newValue)
+  if (newValue) {
+    fetchUserProfile()
+  } else {
+    user.value = null
+  }
+})
+
+// Récupérer le profil au montage si déjà connecté
+onMounted(() => {
+  if (isAuthenticated.value) {
+    fetchUserProfile()
+  }
+})
 
 const userInitials = computed(() => {
   const name = (user.value as any)?.name || ''
+  console.log('User data:', user.value, 'Name:', name)
   if (!name) return 'U'
   return name
     .split(' ')

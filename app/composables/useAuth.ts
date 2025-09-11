@@ -41,8 +41,12 @@ export const useAuth = () => {
 
   const getProfile = async (): Promise<User> => {
     const response = await $myFetch<any>('/profile')
+    console.log('API Profile response:', response)
     // L'API renvoie { status, message, data: User }
-    return (response?.data ?? response) as User
+    if (response?.status && response?.data) {
+      return response.data as User
+    }
+    return response as User
   }
 
   const updateProfile = async (profileData: ProfileUpdateRequest): Promise<User> => {
