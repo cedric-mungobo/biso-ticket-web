@@ -138,7 +138,14 @@
               <div class="mt-2 font-medium text-gray-900">{{ t.title }}</div>
               <div class="text-xs text-gray-600">{{ t.designKey }}</div>
               <div class="mt-2 text-right">
-                <UButton size="xs" color="primary">Sélectionner</UButton>
+                <UButton 
+                  size="xs" 
+                  color="primary" 
+                  :loading="templateSubmitting"
+                  @click="selectTemplate(t.id)"
+                >
+                  Sélectionner
+                </UButton>
               </div>
             </div>
           </div>
@@ -384,12 +391,39 @@ const isConfirmed = (s?: string) => String(s || '').toLowerCase() === 'confirmed
 
 // Templates
 const showTemplate = ref(false)
+const templateSubmitting = ref(false)
 const { pending: templatesPending, data: templatesData } = await useAsyncData<{ items: any[]; meta: any }>(
   `invitations-templates`,
   () => fetchInvitationTemplates({ per_page: 50 }),
   { server: false, default: () => ({ items: [], meta: null }) }
 )
 const templates = computed<any[]>(() => Array.isArray((templatesData.value as any)?.items) ? (templatesData.value as any).items : [])
+
+// Fonction pour sélectionner un template
+const { updateEvent } = useOrganizerEvents()
+const selectTemplate = async (templateId: number) => {
+  try {
+    templateSubmitting.value = true
+    await updateEvent(eventId, {
+      settings: { 
+        default_invitation_template_id: templateId 
+      } 
+    })
+    toast.add({ 
+      title: 'Template sélectionné', 
+      description: 'Le template d\'invitation par défaut a été mis à jour.', 
+      color: 'success' 
+    })
+    showTemplate.value = false
+  } catch (e: any) {
+    const resp = e?.response
+    const data = resp?._data || resp?.data || {}
+    const msg = data?.message || e?.message || 'Impossible de sélectionner le template.'
+    toast.add({ title: 'Erreur', description: String(msg), color: 'error' })
+  } finally {
+    templateSubmitting.value = false
+  }
+}
 
 // Credits
 const { fetchCreditBalance } = useCredits()
