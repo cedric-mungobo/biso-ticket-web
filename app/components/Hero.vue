@@ -6,7 +6,11 @@
     <div class="relative">
       <!-- Announcement Banner -->
                     <div class="flex justify-center">
-            <div ref="announcementRef" class="flex items-center gap-2 text-sm text-gray-600 opacity-0">
+        <Transition
+          name="fade-slide-down"
+          appear
+        >
+          <div class="flex items-center gap-2 text-sm text-gray-600">
           <span>Biso Ticket plateforme de billetterie</span>
               <NuxtLink 
                 to="/evenements" 
@@ -18,38 +22,92 @@
             </svg>
               </NuxtLink>
         </div>
+        </Transition>
       </div>
 
       <!-- Main Hero Content -->
       <div class="max-w-4xl mx-auto px-4 sm:px-6 text-left sm:text-center py-8 sm:py-10">
             <!-- Titre principal avec animation de frappe -->
-            <h1 
-              ref="titleRef" 
-              class="text-4xl  sm:text-5xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight opacity-0"
+        <Transition
+          name="fade-slide-up"
+          appear
+        >
+          <h1 class="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 sm:mb-8  leading-relaxed">
+            <Transition
+              name="word-stagger"
+              appear
             >
-              <span class="inline-block">Organisez,</span>
+              <span class="inline-block bg-primary-900 text-white px-3 py-1 rounded-lg transform rotate-[-5deg] shadow-sm border border-primary-200">Organisez,</span>
+            </Transition>
+            <Transition
+              name="word-stagger"
+              appear
+              :style="{ '--delay': '0.2s' }"
+            >
               <span class="inline-block ml-2">vendez,</span>
+            </Transition>
+            <Transition
+              name="word-stagger"
+              appear
+              :style="{ '--delay': '0.4s' }"
+            >
               <span class="inline-block ml-2">contrôlez</span>
+            </Transition>
         </h1>
+        </Transition>
         
             <!-- Sous-titre avec animation de révélation -->
-            <p 
-              ref="subtitleRef" 
-              class="text-base sm:text-lg text-gray-600 mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed opacity-0"
+        <Transition
+          name="fade-slide-up"
+          appear
+          :style="{ '--delay': '0.3s' }"
+        >
+          <p class="text-base sm:text-lg text-gray-600 mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed">
+            <Transition
+              name="fade-slide-up"
+              appear
+              :style="{ '--delay': '0.5s' }"
             >
               <span class="inline-block">Biso Ticket simplifie vos événements.</span>
+            </Transition>
               <br class="hidden sm:block">
+            <Transition
+              name="fade-slide-up"
+              appear
+              :style="{ '--delay': '0.7s' }"
+            >
               <span class="inline-block">Créez vos billets, recevez les paiements mobile money,</span>
+            </Transition>
               <br class="hidden sm:block">
+            <Transition
+              name="fade-slide-up"
+              appear
+              :style="{ '--delay': '0.9s' }"
+            >
               <span class="inline-block">envoyez des invitations électroniques, et gérez l'accès avec des QR codes anti-fraude.</span>
+            </Transition>
               <br class="hidden sm:block">
+            <Transition
+              name="fade-slide-up"
+              appear
+              :style="{ '--delay': '1.1s' }"
+            >
               <span class="inline-block">Concert, Festival, Mariages, soirées privées ou événements pro — tout est là.</span>
+            </Transition>
             </p>
+        </Transition>
 
                         <!-- CTA Buttons avec animation stagger -->
-            <div 
-              ref="buttonsRef" 
-              class="flex flex-col sm:flex-row items-stretch sm:items-center justify-start sm:justify-center gap-3 sm:gap-4 opacity-0"
+        <Transition
+          name="fade-slide-up"
+          appear
+          :style="{ '--delay': '0.6s' }"
+        >
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-start sm:justify-center gap-3 sm:gap-4">
+            <Transition
+              name="button-bounce"
+              appear
+              :style="{ '--delay': '0.8s' }"
             >
               <NuxtLink 
                 to="/organisateur/create-event" 
@@ -57,6 +115,12 @@
               >
             Organiser un événement
               </NuxtLink>
+            </Transition>
+            <Transition
+              name="button-bounce"
+              appear
+              :style="{ '--delay': '1.0s' }"
+            >
               <NuxtLink 
                 to="/evenements" 
                 class="hero-button w-full border rounded-md sm:w-auto flex items-center justify-center gap-2 px-6 py-3 text-primary-700 hover:text-primary-900 transition-all duration-300 transform hover:scale-105"
@@ -66,7 +130,9 @@
             </svg>
             Voir les événements
               </NuxtLink>
+            </Transition>
         </div>
+        </Transition>
       </div>
     </div>
       </section>
@@ -81,230 +147,107 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  enableAnimations: false
-})
-
-// Références pour les éléments à animer
-const announcementRef = ref<HTMLElement>()
-const titleRef = ref<HTMLElement>()
-const subtitleRef = ref<HTMLElement>()
-const buttonsRef = ref<HTMLElement>()
-
-// Composable GSAP
-const { 
-  gsap, 
-  createTimeline, 
-  staggerAnimation, 
-  accessibleAnimation, 
-  prefersReducedMotion,
-  isGSAPAvailable 
-} = useGSAP()
-
-// Animation principale du Hero
-const animateHeroText = () => {
-  if (!props.enableAnimations || !isGSAPAvailable() || prefersReducedMotion()) {
-    // Fallback : afficher les éléments sans animation
-    if (announcementRef.value) announcementRef.value.style.opacity = '1'
-    if (titleRef.value) titleRef.value.style.opacity = '1'
-    if (subtitleRef.value) subtitleRef.value.style.opacity = '1'
-    if (buttonsRef.value) buttonsRef.value.style.opacity = '1'
-    return
-  }
-
-  // Créer une timeline principale
-  const tl = createTimeline({ delay: 0.3 })
-
-  // Animation de l'annonce (entrée par le haut)
-  if (announcementRef.value) {
-    tl.fromTo(announcementRef.value, 
-      { 
-        y: -30, 
-        opacity: 0 
-      },
-      { 
-        y: 0, 
-        opacity: 1, 
-        duration: 0.8, 
-        ease: 'power2.out' 
-      }
-    )
-  }
-
-  // Animation du titre avec effet de frappe
-  if (titleRef.value) {
-    const titleSpans = titleRef.value.querySelectorAll('span')
-    
-    tl.fromTo(titleRef.value,
-      { 
-        y: 50, 
-        opacity: 0, 
-        scale: 0.9 
-      },
-      { 
-        y: 0, 
-        opacity: 1, 
-        scale: 1, 
-        duration: 1.2, 
-        ease: 'power3.out' 
-      },
-      '-=0.4'
-    )
-
-    // Animation des mots du titre avec stagger
-    if (titleSpans.length > 0) {
-      tl.fromTo(titleSpans,
-        { 
-          y: 30, 
-          opacity: 0, 
-          rotationX: 90 
-        },
-        { 
-          y: 0, 
-          opacity: 1, 
-          rotationX: 0, 
-          duration: 0.6, 
-          stagger: 0.2, 
-          ease: 'back.out(1.7)' 
-        },
-        '-=0.8'
-      )
-    }
-  }
-
-  // Animation du sous-titre avec révélation progressive
-  if (subtitleRef.value) {
-    const subtitleSpans = subtitleRef.value.querySelectorAll('span')
-    
-    tl.fromTo(subtitleRef.value,
-      { 
-        y: 40, 
-        opacity: 0 
-      },
-      { 
-        y: 0, 
-        opacity: 1, 
-        duration: 1.0, 
-        ease: 'power2.out' 
-      },
-      '-=0.6'
-    )
-
-    // Animation des phrases du sous-titre
-    if (subtitleSpans.length > 0) {
-      tl.fromTo(subtitleSpans,
-        { 
-          y: 20, 
-          opacity: 0 
-        },
-        { 
-          y: 0, 
-          opacity: 1, 
-          duration: 0.8, 
-          stagger: 0.15, 
-          ease: 'power2.out' 
-        },
-        '-=0.8'
-      )
-    }
-  }
-
-  // Animation des boutons avec effet de rebond
-  if (buttonsRef.value) {
-    const buttons = buttonsRef.value.querySelectorAll('.hero-button')
-    
-    tl.fromTo(buttonsRef.value,
-      { 
-        y: 30, 
-        opacity: 0 
-      },
-      { 
-        y: 0, 
-        opacity: 1, 
-        duration: 0.8, 
-        ease: 'power2.out' 
-      },
-      '-=0.4'
-    )
-
-    // Animation des boutons individuels
-    if (buttons.length > 0) {
-      tl.fromTo(buttons,
-        { 
-          y: 20, 
-          opacity: 0, 
-          scale: 0.8 
-        },
-        { 
-          y: 0, 
-          opacity: 1, 
-          scale: 1, 
-          duration: 0.6, 
-          stagger: 0.1, 
-          ease: 'back.out(1.7)' 
-        },
-        '-=0.6'
-      )
-    }
-  }
-}
-
-// Animation au scroll (optionnelle)
-const setupScrollAnimations = () => {
-  if (!props.enableAnimations || !isGSAPAvailable() || prefersReducedMotion()) return
-
-  // Animation du titre au scroll
-  if (titleRef.value) {
-    gsap.fromTo(titleRef.value,
-      { 
-        y: 100, 
-        opacity: 0 
-      },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 1.5,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: titleRef.value,
-          start: 'top 80%',
-          end: 'bottom 20%',
-          toggleActions: 'play none none reverse'
-        }
-      }
-    )
-  }
-}
-
-// Initialiser les animations au montage du composant
-onMounted(() => {
-  nextTick(() => {
-    accessibleAnimation(
-      'hero-text',
-      () => {
-        animateHeroText()
-        setupScrollAnimations()
-      },
-      () => {
-        // Fallback pour les utilisateurs qui préfèrent moins de mouvement
-        if (announcementRef.value) announcementRef.value.style.opacity = '1'
-        if (titleRef.value) titleRef.value.style.opacity = '1'
-        if (subtitleRef.value) subtitleRef.value.style.opacity = '1'
-        if (buttonsRef.value) buttonsRef.value.style.opacity = '1'
-      }
-    )
-  })
-})
-
-// Nettoyage au démontage
-onUnmounted(() => {
-  if (isGSAPAvailable()) {
-    gsap.killTweensOf([announcementRef.value, titleRef.value, subtitleRef.value, buttonsRef.value])
-  }
+  enableAnimations: true
 })
 </script>
 
-
-
 <style scoped>
+/* Animation fade-slide-down */
+.fade-slide-down-enter-active {
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-delay: calc(var(--delay, 0s));
+}
 
+.fade-slide-down-enter-from {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+.fade-slide-down-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Animation fade-slide-up */
+.fade-slide-up-enter-active {
+  transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-delay: calc(var(--delay, 0s));
+}
+
+.fade-slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(50px) scale(0.9);
+}
+
+.fade-slide-up-enter-to {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Animation word-stagger pour les mots du titre */
+.word-stagger-enter-active {
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition-delay: calc(var(--delay, 0s));
+}
+
+.word-stagger-enter-from {
+  opacity: 0;
+  transform: translateY(30px) rotateX(90deg);
+}
+
+.word-stagger-enter-to {
+  opacity: 1;
+  transform: translateY(0) rotateX(0deg);
+}
+
+/* Animation button-bounce pour les boutons */
+.button-bounce-enter-active {
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition-delay: calc(var(--delay, 0s));
+}
+
+.button-bounce-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.8);
+}
+
+.button-bounce-enter-to {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Animation des phrases du sous-titre */
+.fade-slide-up .fade-slide-up-enter-active {
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-delay: calc(var(--delay, 0s));
+}
+
+.fade-slide-up .fade-slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.fade-slide-up .fade-slide-up-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* Désactiver les animations si l'utilisateur préfère moins de mouvement */
+@media (prefers-reduced-motion: reduce) {
+  .fade-slide-down-enter-active,
+  .fade-slide-up-enter-active,
+  .word-stagger-enter-active,
+  .button-bounce-enter-active {
+    transition: none;
+  }
+  
+  .fade-slide-down-enter-from,
+  .fade-slide-up-enter-from,
+  .word-stagger-enter-from,
+  .button-bounce-enter-from {
+    opacity: 1;
+    transform: none;
+  }
+}
 </style>
