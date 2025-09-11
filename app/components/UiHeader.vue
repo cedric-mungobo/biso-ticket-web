@@ -42,8 +42,8 @@
         <!-- Actions Mobile (avant le menu burger) -->
         <div class="md:hidden flex items-center gap-1">
           <template v-if="!isAuthenticated">
-            <UButton color="neutral" variant="outline" size="sm" to="/inscription">Inscription</UButton>
-            <UButton color="primary" size="sm" to="/connexion">Connexion</UButton>
+            <UButton color="neutral" variant="outline" size="md" to="/inscription">Inscription</UButton>
+            <UButton color="primary" size="md" to="/connexion">Connexion</UButton>
           </template>
           <template v-else>
             <UButton color="neutral" variant="subtle" size="sm" to="/profile">
@@ -107,6 +107,8 @@
 </template>
 
 <script setup lang="ts">
+import type { User } from '~/types/api'
+
 interface NavigationMenuItem {
   label: string
   to: string
@@ -132,7 +134,7 @@ const authToken = useCookie('auth_token')
 const isAuthenticated = computed(() => !!authToken.value)
 
 // Récupérer le profil utilisateur seulement si connecté
-const user = ref(null)
+const user = ref<User | null>(null)
 
 // Fonction pour récupérer le profil
 const fetchUserProfile = async () => {

@@ -28,111 +28,94 @@
       <!-- Main Hero Content -->
       <div class="max-w-4xl mx-auto px-4 sm:px-6 text-left sm:text-center py-8 sm:py-10">
             <!-- Titre principal avec animation de frappe -->
-        <Transition
-          name="fade-slide-up"
-          appear
-        >
-          <h1 class="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 sm:mb-8  leading-relaxed">
-            <Transition
-              name="word-stagger"
-              appear
-            >
-              <span class="inline-block bg-primary-900 text-white px-3 py-1 rounded-lg transform rotate-[-5deg] shadow-sm border border-primary-200">Organisez,</span>
-            </Transition>
-            <Transition
-              name="word-stagger"
-              appear
-              :style="{ '--delay': '0.2s' }"
-            >
-              <span class="inline-block ml-2">vendez,</span>
-            </Transition>
-            <Transition
-              name="word-stagger"
-              appear
-              :style="{ '--delay': '0.4s' }"
-            >
-              <span class="inline-block ml-2">contrôlez</span>
-            </Transition>
+        <h1 class="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 sm:mb-8  leading-relaxed">
+          <Transition
+            name="word-stagger"
+            appear
+          >
+            <span class="inline-block bg-primary-900 text-white px-3 py-1 rounded-lg transform rotate-[-5deg] shadow-sm border border-primary-200">Organisez,</span>
+          </Transition>
+          <Transition
+            name="word-stagger"
+            appear
+            :style="{ '--delay': '0.2s' }"
+          >
+            <span class="inline-block ml-2">vendez,</span>
+          </Transition>
+          <Transition
+            name="word-stagger"
+            appear
+            :style="{ '--delay': '0.4s' }"
+          >
+            <span class="inline-block ml-2">contrôlez</span>
+          </Transition>
         </h1>
-        </Transition>
         
             <!-- Sous-titre avec animation de révélation -->
-        <Transition
-          name="fade-slide-up"
-          appear
-          :style="{ '--delay': '0.3s' }"
-        >
-          <p class="text-base sm:text-lg text-gray-600 mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed">
-            <Transition
-              name="fade-slide-up"
-              appear
-              :style="{ '--delay': '0.5s' }"
-            >
-              <span class="inline-block">Biso Ticket simplifie vos événements.</span>
-            </Transition>
-              <br class="hidden sm:block">
-            <Transition
-              name="fade-slide-up"
-              appear
-              :style="{ '--delay': '0.7s' }"
-            >
-              <span class="inline-block">Créez vos billets, recevez les paiements mobile money,</span>
-            </Transition>
-              <br class="hidden sm:block">
-            <Transition
-              name="fade-slide-up"
-              appear
-              :style="{ '--delay': '0.9s' }"
-            >
-              <span class="inline-block">envoyez des invitations électroniques, et gérez l'accès avec des QR codes anti-fraude.</span>
-            </Transition>
-              <br class="hidden sm:block">
-            <Transition
-              name="fade-slide-up"
-              appear
-              :style="{ '--delay': '1.1s' }"
-            >
-              <span class="inline-block">Concert, Festival, Mariages, soirées privées ou événements pro — tout est là.</span>
-            </Transition>
-            </p>
-        </Transition>
+        <p class="text-base sm:text-lg text-gray-600 mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed">
+          <Transition
+            name="fade-slide-up"
+            appear
+            :style="{ '--delay': '0.5s' }"
+          >
+            <span class="inline-block">Biso Ticket simplifie vos événements.</span>
+          </Transition>
+            <br class="hidden sm:block">
+          <Transition
+            name="fade-slide-up"
+            appear
+            :style="{ '--delay': '0.7s' }"
+          >
+            <span class="inline-block">Créez vos billets, recevez les paiements mobile money,</span>
+          </Transition>
+            <br class="hidden sm:block">
+          <Transition
+            name="fade-slide-up"
+            appear
+            :style="{ '--delay': '0.9s' }"
+          >
+            <span class="inline-block">envoyez des invitations électroniques, et gérez l'accès avec des QR codes anti-fraude.</span>
+          </Transition>
+            <br class="hidden sm:block">
+          <Transition
+            name="fade-slide-up"
+            appear
+            :style="{ '--delay': '1.1s' }"
+          >
+            <span class="inline-block">Concert, Festival, Mariages, soirées privées ou événements pro — tout est là.</span>
+          </Transition>
+          </p>
 
                         <!-- CTA Buttons avec animation stagger -->
-        <Transition
-          name="fade-slide-up"
-          appear
-          :style="{ '--delay': '0.6s' }"
-        >
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-start sm:justify-center gap-3 sm:gap-4">
-            <Transition
-              name="button-bounce"
-              appear
-              :style="{ '--delay': '0.8s' }"
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-start sm:justify-center gap-3 sm:gap-4">
+          <Transition
+            name="button-bounce"
+            appear
+            :style="{ '--delay': '0.8s' }"
+          >
+            <NuxtLink 
+              to="/organisateur/create-event" 
+              class="hero-button w-full sm:w-auto bg-primary-600 text-white px-6 py-3 rounded-md font-medium hover:bg-primary-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg text-center"
             >
-              <NuxtLink 
-                to="/organisateur/create-event" 
-                class="hero-button w-full sm:w-auto bg-primary-600 text-white px-6 py-3 rounded-md font-medium hover:bg-primary-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg text-center"
-              >
-            Organiser un événement
-              </NuxtLink>
-            </Transition>
-            <Transition
-              name="button-bounce"
-              appear
-              :style="{ '--delay': '1.0s' }"
+          Organiser un événement
+            </NuxtLink>
+          </Transition>
+          <Transition
+            name="button-bounce"
+            appear
+            :style="{ '--delay': '1.0s' }"
+          >
+            <NuxtLink 
+              to="/evenements" 
+              class="hero-button w-full border rounded-md sm:w-auto flex items-center justify-center gap-2 px-6 py-3 text-primary-700 hover:text-primary-900 transition-all duration-300 transform hover:scale-105"
             >
-              <NuxtLink 
-                to="/evenements" 
-                class="hero-button w-full border rounded-md sm:w-auto flex items-center justify-center gap-2 px-6 py-3 text-primary-700 hover:text-primary-900 transition-all duration-300 transform hover:scale-105"
-              >
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            Voir les événements
-              </NuxtLink>
-            </Transition>
-        </div>
-        </Transition>
+          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          Voir les événements
+            </NuxtLink>
+          </Transition>
+      </div>
       </div>
     </div>
       </section>
