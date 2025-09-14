@@ -118,6 +118,20 @@
                     </svg>
                     Modifier le mot de passe
                   </button>
+                  
+                  <button 
+                    @click="handleLogout"
+                    :disabled="isLoggingOut"
+                    class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg v-if="!isLoggingOut" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <svg v-else class="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    {{ isLoggingOut ? 'Déconnexion...' : 'Se déconnecter' }}
+                  </button>
                 </div>
               </div>
             </div>
@@ -340,8 +354,9 @@
   })
   
   // Composables
-  const { getProfile, updateProfile, changePassword } = useAuth()
+  const { getProfile, updateProfile, changePassword, logout } = useAuth()
   const toast = useToast()
+  const router = useRouter()
   
   // Chargement du profil via useAsyncData (repository pattern)
   const { data: userData, pending: loading, error, refresh } = await useAsyncData('auth:profile', () => getProfile(), { server: false })
@@ -351,6 +366,7 @@
   const showPasswordModal = ref(false)
   const isUpdating = ref(false)
   const isUpdatingPassword = ref(false)
+  const isLoggingOut = ref(false)
   
   // Formulaire d'édition du profil
   const editForm = ref({
@@ -566,6 +582,35 @@
       }
     } finally {
       isUpdatingPassword.value = false
+    }
+  }
+  
+  // Gestion de la déconnexion
+  const handleLogout = async () => {
+    try {
+      isLoggingOut.value = true
+      
+      await logout()
+      
+      toast.add({
+        title: 'Déconnexion réussie',
+        description: 'Vous avez été déconnecté avec succès',
+        color: 'success'
+      })
+      
+      // Rediriger vers la page d'accueil
+      await router.push('/')
+      
+    } catch (error: any) {
+      console.error('Erreur lors de la déconnexion:', error)
+      
+      toast.add({
+        title: 'Erreur de déconnexion',
+        description: error?.message || 'Une erreur est survenue lors de la déconnexion',
+        color: 'error'
+      })
+    } finally {
+      isLoggingOut.value = false
     }
   }
 </script>

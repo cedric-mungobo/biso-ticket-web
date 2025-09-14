@@ -35,6 +35,7 @@ export interface RegisterRequest {
   email: string
   telephone?: string
   password: string
+  recaptcha_token?: string
 }
 
 export interface ProfileUpdateRequest {

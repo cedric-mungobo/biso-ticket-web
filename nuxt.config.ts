@@ -89,10 +89,12 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Variables privées (côté serveur uniquement)
     apiSecret: '',
+    recaptchaSecretKey: '6LfnSMkrAAAAAGlONNhD7Ec3pBPoTGuwbHo2SXgb', // Remplacez par votre clé secrète
     
     // Variables publiques (côté client et serveur)
     public: {
-      apiBaseUrl: 'https://api.bisoticket.com/api'
+      apiBaseUrl: 'https://api.bisoticket.com/api',
+      recaptchaSiteKey: '6LfnSMkrAAAAAEuOzQY-COgBmEk-oUtxaiSTgTm4' // Remplacez par votre clé site
     }
   }
 })

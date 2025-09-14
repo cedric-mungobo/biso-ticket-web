@@ -1,5 +1,5 @@
 <template>
-  <div class=" h-full md:py-18  flex items-center justify-center p-4">
+  <div class=" h-full py-16  flex items-center justify-center p-4">
     <div class="w-full max-w-md">
       <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
         <!-- Icône utilisateur -->
@@ -18,6 +18,15 @@
 
         <!-- Formulaire -->
         <form @submit.prevent="handleRegister" class="space-y-4">
+          <!-- Champ honeypot caché pour les bots -->
+          <input 
+            v-model="honeypot" 
+            type="text" 
+            name="website" 
+            style="display: none !important;" 
+            tabindex="-1" 
+            autocomplete="off"
+          />
           <!-- Nom complet -->
           <div>
             <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
@@ -47,6 +56,8 @@
                 required 
                 placeholder="Créez un mot de passe sécurisé" 
                 class="w-full rounded-md pr-10" 
+                minlength="8"
+                maxlength="128"
               />
               <button
                 type="button"
@@ -56,6 +67,22 @@
                 <Icon :name="showPassword ? 'heroicons:eye-slash' : 'heroicons:eye'" class="h-5 w-5" />
               </button>
             </div>
+            <p class="text-xs text-gray-500 mt-1">Minimum 8 caractères</p>
+          </div>
+
+          <!-- reCAPTCHA -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Vérification de sécurité
+            </label>
+            <Recaptcha 
+              :site-key="recaptchaSiteKey"
+              theme="light"
+              size="normal"
+              @verify="onCaptchaVerify"
+              @expired="onCaptchaExpired"
+              @error="onCaptchaError"
+            />
           </div>
 
           
@@ -111,15 +138,64 @@ const success = ref('')
 const isLoading = ref(false)
 const showPassword = ref(false)
 
+// Protection anti-spam
+const honeypot = ref('')
+const recaptchaToken = ref('')
+const lastSubmissionTime = ref(0)
+const submissionCount = ref(0)
+
 // Composables
 const { register } = useAuth()
 const router = useRouter()
 const toast = useToast()
+const { public: { recaptchaSiteKey } } = useRuntimeConfig()
 
 const emailRegex = /[^\s@]+@[^\s@]+\.[^\s@]+/
 const phoneIntl = /^\+?[1-9][0-9]{6,14}$/
+const isFormValid = computed(() => !!(form.name && form.telephone && form.email && form.password && recaptchaToken.value))
 
-const isFormValid = computed(() => !!(form.name && form.telephone && form.email && form.password))
+// Gestionnaires reCAPTCHA
+const onCaptchaVerify = (token: string) => {
+  recaptchaToken.value = token
+}
+
+const onCaptchaExpired = () => {
+  recaptchaToken.value = ''
+  toast.add({ 
+    title: 'Vérification expirée', 
+    description: 'Veuillez refaire la vérification.', 
+    color: 'warning' 
+  })
+}
+
+const onCaptchaError = () => {
+  recaptchaToken.value = ''
+  toast.add({ 
+    title: 'Erreur de vérification', 
+    description: 'Une erreur est survenue. Veuillez réessayer.', 
+    color: 'error' 
+  })
+}
+
+// Vérifier le taux de soumission (max 3 par minute)
+const checkSubmissionRate = () => {
+  const now = Date.now()
+  const timeDiff = now - lastSubmissionTime.value
+  
+  if (timeDiff < 60000) { // Moins d'1 minute
+    submissionCount.value++
+    if (submissionCount.value > 3) {
+      return false
+    }
+  } else {
+    submissionCount.value = 1
+  }
+  
+  lastSubmissionTime.value = now
+  return true
+}
+
+// Pas besoin d'initialisation pour reCAPTCHA
 
 const extractErrorMessage = (e: any): string => {
   const direct = e?.data?.message || e?.response?._data?.message || e?.message
@@ -140,15 +216,42 @@ const extractErrorMessage = (e: any): string => {
 const handleRegister = async () => {
   try {
     success.value = ''
+    
+    // Vérifications anti-spam
+    if (honeypot.value) {
+      console.log('Bot détecté via honeypot')
+      return // Silencieux pour ne pas alerter les bots
+    }
+    
+    if (!checkSubmissionRate()) {
+      return toast.add({ 
+        title: 'Trop de tentatives', 
+        description: 'Veuillez attendre avant de réessayer.', 
+        color: 'error' 
+      })
+    }
+    
+    if (!recaptchaToken.value) {
+      return toast.add({ 
+        title: 'Vérification requise', 
+        description: 'Veuillez compléter la vérification de sécurité.', 
+        color: 'error' 
+      })
+    }
+    
+    // Validations classiques
     if (!form.name.trim()) return toast.add({ title: 'Nom requis', description: 'Veuillez saisir votre nom.', color: 'warning' })
     if (!emailRegex.test(form.email.trim())) return toast.add({ title: 'Email invalide', description: 'Saisissez une adresse email valide.', color: 'error' })
     if (!phoneIntl.test(form.telephone.replace(/\s/g, ''))) return toast.add({ title: 'Téléphone invalide', description: 'Saisissez un numéro valide (international).', color: 'error' })
+    if (form.password.length < 8) return toast.add({ title: 'Mot de passe trop court', description: 'Le mot de passe doit contenir au moins 8 caractères.', color: 'error' })
+    
     isLoading.value = true
     await register({
       name: form.name.trim(),
       email: form.email.trim(),
       telephone: form.telephone.trim(),
-      password: form.password
+      password: form.password,
+      recaptcha_token: recaptchaToken.value
     })
     success.value = 'Compte créé avec succès ! Redirection...'
     toast.add({ title: 'Bienvenue', description: 'Votre compte a été créé.' })
@@ -156,6 +259,8 @@ const handleRegister = async () => {
   } catch (e: any) {
     const message = extractErrorMessage(e)
     toast.add({ title: 'Inscription échouée', description: message, color: 'error' })
+    // Réinitialiser le reCAPTCHA en cas d'erreur
+    recaptchaToken.value = ''
   } finally {
     isLoading.value = false
   }
