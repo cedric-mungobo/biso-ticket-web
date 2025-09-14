@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-      <div class="">
+      <div class=" py-16">
         <div class="max-w-5xl mx-auto px-4">
           <!-- En-tête du profil -->
           <div class="mb-8">

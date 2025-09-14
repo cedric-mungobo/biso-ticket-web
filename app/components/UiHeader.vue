@@ -38,12 +38,12 @@
           </button>
         </template>
         <template v-else>
-          <div class="flex items-center gap-2">
+          <NuxtLink to="/profile" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold text-sm">
               {{ userInitials }}
             </div>
             <span class="text-sm text-gray-700">{{ (user as any)?.name || 'Utilisateur' }}</span>
-          </div>
+          </NuxtLink>
         </template>
         
         <button 
@@ -101,12 +101,12 @@
           </button>
           </template>
           <template v-else>
-              <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold text-xs">
-                  {{ userInitials }}
-                </div>
-            <span class="text-sm text-gray-700 font-medium">{{ (user as any)?.name || 'Utilisateur' }}</span>
+            <NuxtLink to="/profile" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <div class="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold text-xs">
+                {{ userInitials }}
               </div>
+              <span class="text-xs text-gray-700 font-medium">{{ (user as any)?.name || 'Utilisateur' }}</span>
+            </NuxtLink>
           </template>
         
         <!-- Social Media Icons Mobile -->

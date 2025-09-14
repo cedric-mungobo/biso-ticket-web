@@ -1,73 +1,81 @@
 <template>
   <NuxtLink :to="`/evenements/${slug}`"> 
     <article 
-      ref="cardRef"
-      class="rounded-xl border bg-white transition-all hover:shadow-lg border-primary-400 hover:border-primary-300 group event-card-animated"
+      class="w-full bg-black text-white rounded-2xl group flex flex-col h-full"
     >
-      <div class="p-2">
-        <!-- Catégories + date -->
-        <div class="text-xs font-semibold mb-3 flex justify-between items-center">
+      <div class="relative -mt-px overflow-hidden rounded-2xl">
+        <NuxtImg
+          v-if="image"
+          :src="image"
+          :alt="title"
+          class="aspect-square w-full rounded-2xl object-cover object-top"
+          loading="lazy"
+          placeholder
+          format="webp"
+          quality="75"
+          sizes="sm:100vw md:50vw lg:320px"
+          :decoding="'async'"
+          :fetchpriority="'low'"
+        />
+        <div
+          v-else
+          class="aspect-square w-full bg-gradient-to-br from-primary-100 to-teal-200 flex items-center justify-center event-placeholder"
+        >
+          <svg class="w-12 h-12 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+          </svg>
+        </div>
+        <div class="absolute bottom-0 z-10 h-1/2 w-full bg-gradient-to-t pointer-events-none from-black to-transparent"></div>
+      </div>
+      
+      <div class="px-4 pb-4 flex flex-col flex-grow">
+        <!-- Titre de l'événement - hauteur fixe -->
+        <div class="mb-4 min-h-[60px] flex items-start">
+          <h3 class="text-[15px] leading-5 md:text-base font-semibold text-white line-clamp-2">
+            {{ title }}
+          </h3>
+        </div>
+
+
+        <!-- Localisation -->
+        <div v-if="location" class="mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <span class="text-sm text-gray-300">{{ location }}</span>
+        </div>
+
+        <!-- Catégories et date en bas - toujours en bas -->
+        <div class="mt-auto flex items-center justify-between">
           <div class="flex flex-wrap items-center gap-2">
             <template v-if="categories && categories.length">
               <span
                 v-for="cat in categories"
                 :key="cat"
-                class="inline-flex items-center rounded-md px-2.5 py-1.5 text-[12px] leading-none font-medium category-badge border"
-                :class="getCategoryClass(cat)"
+                class="inline-flex items-center rounded-md px-2.5 py-1.5 text-[12px] leading-none font-medium bg-gray-100 text-gray-700 border border-gray-200"
               >
                 {{ cat }}
               </span>
             </template>
             <template v-else-if="category">
               <span
-                class="inline-flex items-center rounded-md px-2.5 py-1.5 text-[12px] leading-none font-medium category-badge border"
-                :class="getCategoryClass(category)"
+                class="inline-flex items-center rounded-md px-2.5 py-1.5 text-[12px] leading-none font-medium bg-gray-100 text-gray-700 border border-gray-200"
               >
                 {{ category }}
               </span>
             </template>
           </div>
-          <span>{{ formatDate }}</span>
+          <span class="text-sm font-medium bg-gradient-to-r from-[#8B5CF6] via-[#E0724A] to-[#9938CA] text-transparent bg-clip-text">
+            {{ formatDate }}
+          </span>
         </div>
-
-        <!-- Titre de l'événement avec animation -->
-        <h3 class="text-[15px] leading-5 md:text-base font-semibold text-gray-900 mb-4 group-hover:text-primary-700 transition-colors duration-200 event-title">
-          {{ title }}
-        </h3>
-
-        <!-- Image de l'événement avec animation -->
-        <div class="rounded-lg overflow-hidden aspect-square w-full group-hover:scale-[1.02] transition-transform duration-300 event-image-container">
-          <NuxtImg
-            v-if="image"
-            :src="image"
-            :alt="title"
-            class="h-full w-full object-cover event-image"
-            loading="lazy"
-            placeholder
-            format="webp"
-            quality="75"
-            sizes="sm:100vw md:50vw lg:400px"
-            :decoding="'async'"
-            :fetchpriority="'low'"
-          />
-          <div
-            v-else
-            class="h-full w-full bg-gradient-to-br from-primary-100 to-teal-200 flex items-center justify-center event-placeholder"
-          >
-            <svg class="w-12 h-12 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-            </svg>
-          </div>
-        </div>
-
-      
       </div>
     </article>
   </NuxtLink>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
 
 interface Props {
   category?: string
@@ -75,7 +83,6 @@ interface Props {
   title: string
   image?: string
   date?: string
-  description?: string
   location?: string
   eventId?: number | string
   slug: string
@@ -85,53 +92,13 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   image: '',
   date: new Date().toISOString(),
-  description: '',
   location: '',
   eventId: undefined,
   categories: () => [],
   enableAnimations: true
 })
 
-// Référence pour l'animation
-const cardRef = ref<HTMLElement>()
 
-// Composable GSAP
-const { 
-  animateIn, 
-  createScrollAnimation, 
-  accessibleAnimation,
-  prefersReducedMotion 
-} = useGSAP()
-
-// Classes par catégorie
-const getCategoryClass = (raw: string) => {
-  const category = (raw || '').toLowerCase()
-  switch (category) {
-    case 'image':
-      return 'bg-sky-50 text-sky-700 border-sky-200'
-    case 'code':
-      return 'bg-primary-50 text-primary-700 border-primary-200'
-    case 'rédaction':
-    case 'redaction':
-      return 'bg-violet-50 text-violet-700 border-violet-200'
-    case 'événement':
-    case 'evenement':
-      return 'bg-orange-50 text-orange-700 border-orange-200'
-    case 'concert':
-      return 'bg-pink-50 text-pink-700 border-pink-200'
-    case 'théâtre':
-    case 'theatre':
-      return 'bg-purple-50 text-purple-700 border-purple-200'
-    case 'sport':
-      return 'bg-red-50 text-red-700 border-red-200'
-    case 'conference':
-      return 'bg-amber-50 text-amber-700 border-amber-200'
-    case 'live':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200'
-    default:
-      return 'bg-gray-50 text-gray-700 border-gray-200'
-  }
-}
 
 // Formatage de la date
 const formatDate = computed(() => {
@@ -166,135 +133,14 @@ const formatDate = computed(() => {
   }
 })
 
-// Animation d'entrée de la carte
-const animateCardEnter = () => {
-  if (prefersReducedMotion() || !cardRef.value) return
-  
-  accessibleAnimation(
-    cardRef.value,
-    () => animateIn(cardRef.value!, {
-      duration: 1.2,
-      y: 30,
-      scale: 0.95,
-      ease: 'power2.out'
-    })
-  )
-}
-
-// Configuration des animations au montage
-onMounted(async () => {
-  await nextTick()
-  
-  // Configuration des animations au scroll seulement si activées
-  if (props.enableAnimations && cardRef.value) {
-    createScrollAnimation(cardRef.value, {
-      start: 'top 85%',
-      end: 'bottom 15%',
-      onEnter: () => {
-        // Délai pour l'animation séquentielle
-        setTimeout(animateCardEnter, 100)
-      }
-    })
-  } else if (cardRef.value) {
-    // Si les animations sont désactivées, afficher la carte directement
-    cardRef.value.style.opacity = '1'
-    cardRef.value.style.transform = 'translateY(0) scale(1)'
-  }
-})
 </script>
 
 <style scoped>
-/* Animations pour les cartes d'événements */
-.event-card-animated {
-  opacity: 0;
-  transform: translateY(30px) scale(0.95);
-  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
-.event-card-animated.animated {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-/* Animation des éléments internes */
-.category-badge {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.event-title {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.event-image-container {
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.event-image {
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.event-placeholder {
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.event-actions {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.event-date {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.event-link {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Effets de hover améliorés */
-.event-card-animated:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-.event-card-animated:hover .category-badge {
-  transform: scale(1.05);
-}
-
-.event-card-animated:hover .event-title {
-  transform: translateX(4px);
-}
-
-.event-card-animated:hover .event-image-container {
-  transform: scale(1.05);
-}
-
-.event-card-animated:hover .event-link {
-  transform: translateX(4px);
-}
-
-/* Optimisations pour les préférences de réduction de mouvement */
-@media (prefers-reduced-motion: reduce) {
-  .event-card-animated,
-  .category-badge,
-  .event-title,
-  .event-image-container,
-  .event-image,
-  .event-placeholder,
-  .event-actions,
-  .event-date,
-  .event-link {
-    transition: none;
-  }
-  
-  .event-card-animated:hover {
-    transform: none;
-  }
-  
-  .event-card-animated:hover .category-badge,
-  .event-card-animated:hover .event-title,
-  .event-card-animated:hover .event-image-container,
-  .event-card-animated:hover .event-link {
-    transform: none;
-  }
+/* Styles de base sans animations */
+* {
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Classe pour limiter le texte à 2 lignes */
@@ -304,30 +150,5 @@ onMounted(async () => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-/* Optimisations de performance */
-* {
-  will-change: transform, opacity;
-}
-
-/* Optimisations pour les images */
-.event-image {
-  content-visibility: auto;
-  contain-intrinsic-size: 300px;
-  transform: translateZ(0); /* Force l'accélération matérielle */
-}
-
-/* Optimisations pour les cartes */
-.event-card-animated {
-  contain: layout style paint;
-  transform: translateZ(0); /* Force l'accélération matérielle */
-}
-
-/* Optimisations pour les animations */
-.animate-fade-in {
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-  perspective: 1000px;
 }
 </style>

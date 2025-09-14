@@ -17,8 +17,6 @@
         :categories="event.settings?.categories || []"
         :slug="event.slug"
         :enable-animations="props.enableAnimations"
-        class="transform transition-all duration-300 hover:scale-105"
-        :class="{ 'animate-fade-in': props.enableAnimations && index >= visibleEventsCount }"
       />
     </div>
 
@@ -156,7 +154,6 @@ const currentPage = ref(1)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const hasReachedEnd = ref(false)
-const visibleEventsCount = ref(0)
 
 // Intersection Observer pour l'infinite scroll
 let observer: IntersectionObserver | null = null
@@ -181,6 +178,8 @@ const loadEvents = async (page: number = 1, append: boolean = false) => {
       q: props.searchQuery
     })
 
+    console.log('Response from API:', response)
+
     if (response?.items) {
       const newEvents = response.items
       
@@ -197,11 +196,10 @@ const loadEvents = async (page: number = 1, append: boolean = false) => {
       // Émettre les événements chargés
       emit('events-loaded', allEvents.value)
       
-      // Animation progressive des nouveaux événements
-      if (append) {
-        await nextTick()
-        animateNewEvents(newEvents.length)
-      }
+    } else {
+      console.warn('No events found in response:', response)
+      allEvents.value = []
+      hasReachedEnd.value = true
     }
   } catch (err) {
     console.error('Erreur lors du chargement des événements:', err)
@@ -229,16 +227,6 @@ const retry = async () => {
   await loadEvents(1, false)
 }
 
-// Animation des nouveaux événements
-const animateNewEvents = (count: number) => {
-  const startIndex = allEvents.value.length - count
-  visibleEventsCount.value = startIndex
-  
-  // Animation progressive
-  setTimeout(() => {
-    visibleEventsCount.value = allEvents.value.length
-  }, 100)
-}
 
 // Configuration de l'Intersection Observer optimisée
 const setupIntersectionObserver = () => {
@@ -315,54 +303,5 @@ defineExpose({
 </script>
 
 <style scoped>
-/* Animation d'apparition progressive */
-.animate-fade-in {
-  animation: fadeInUp 0.6s ease-out forwards;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Optimisations de performance */
-* {
-  will-change: transform, opacity;
-}
-
-/* Optimisations pour les images */
-img {
-  content-visibility: auto;
-  contain-intrinsic-size: 300px;
-}
-
-/* Réduction de mouvement pour l'accessibilité */
-@media (prefers-reduced-motion: reduce) {
-  .animate-fade-in {
-    animation: none;
-  }
-  
-  * {
-    will-change: auto;
-  }
-}
-
-/* Optimisations pour les cartes */
-.event-card {
-  contain: layout style paint;
-  transform: translateZ(0); /* Force l'accélération matérielle */
-}
-
-/* Optimisations pour les animations */
-.animate-fade-in {
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-  perspective: 1000px;
-}
+/* Styles de base sans animations */
 </style>
