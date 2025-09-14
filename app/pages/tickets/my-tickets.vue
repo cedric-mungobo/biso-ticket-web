@@ -203,6 +203,39 @@ const downloadTicket = async (item: ClientTicketItem) => {
     // Fond du ticket
     ctx.fillStyle = '#f8f6f0'
     ctx.fillRect(0, 0, ticketWidth, ticketHeight)
+    
+    // Définir la couleur selon le type de ticket
+    const getTicketColor = (ticketId: number) => {
+      const colors = [
+        { primary: '#8b12ff', secondary: '#a855f7', light: '#c084fc', veryLight: '#e9d5ff' }, // Violet (Standard)
+        { primary: '#059669', secondary: '#10b981', light: '#34d399', veryLight: '#a7f3d0' }, // Vert (VIP)
+        { primary: '#dc2626', secondary: '#ef4444', light: '#f87171', veryLight: '#fecaca' }, // Rouge (Premium)
+        { primary: '#2563eb', secondary: '#3b82f6', light: '#60a5fa', veryLight: '#bfdbfe' }, // Bleu (Gold)
+        { primary: '#ea580c', secondary: '#f97316', light: '#fb923c', veryLight: '#fed7aa' }, // Orange (Platinum)
+        { primary: '#7c3aed', secondary: '#8b5cf6', light: '#a78bfa', veryLight: '#ddd6fe' }, // Violet foncé (Diamond)
+        { primary: '#0891b2', secondary: '#06b6d4', light: '#22d3ee', veryLight: '#a5f3fc' }, // Cyan (Elite)
+        { primary: '#be123c', secondary: '#e11d48', light: '#f43f5e', veryLight: '#fecdd3' }, // Rose (Royal)
+        { primary: '#0f766e', secondary: '#14b8a6', light: '#5eead4', veryLight: '#ccfbf1' }, // Teal (Emerald)
+        { primary: '#7c2d12', secondary: '#ea580c', light: '#fdba74', veryLight: '#fed7aa' }, // Orange foncé (Amber)
+        { primary: '#1e40af', secondary: '#3b82f6', light: '#93c5fd', veryLight: '#dbeafe' }, // Bleu foncé (Sapphire)
+        { primary: '#86198f', secondary: '#c084fc', light: '#e9d5ff', veryLight: '#f3e8ff' }, // Violet clair (Amethyst)
+        { primary: '#166534', secondary: '#22c55e', light: '#86efac', veryLight: '#dcfce7' }, // Vert foncé (Jade)
+        { primary: '#991b1b', secondary: '#ef4444', light: '#fca5a5', veryLight: '#fecaca' }, // Rouge foncé (Ruby)
+        { primary: '#1e3a8a', secondary: '#3b82f6', light: '#93c5fd', veryLight: '#dbeafe' }, // Bleu marine (Ocean)
+        { primary: '#7c2d12', secondary: '#f97316', light: '#fdba74', veryLight: '#fed7aa' }, // Orange foncé (Sunset)
+      ]
+      
+      // Utiliser le modulo pour cycler à travers les couleurs
+      const colorIndex = ticketId % colors.length
+      const selectedColor = colors[colorIndex] || colors[0]
+      
+      console.log(`🎨 Ticket ID: ${ticketId} → Index couleur: ${colorIndex} → Couleur: ${selectedColor?.primary || '#8b12ff'}`)
+      
+      return selectedColor
+    }
+    
+    const ticketColors = getTicketColor(item.ticket.id)
+    console.log(`🎨 Couleur du ticket (ID: ${item.ticket.id}):`, ticketColors?.primary || '#8b12ff')
 
     // Charger l'image de l'événement
     if (item.event.imageUrl) {
@@ -223,9 +256,9 @@ const downloadTicket = async (item: ClientTicketItem) => {
             // Dessiner l'image de fond en haute résolution
             ctx.drawImage(bgImg, 0, 0, ticketWidth, ticketHeight)
             
-            // Superposition de couleur primaire
-            ctx.fillStyle = 'rgba(139, 18, 255, 0.8)'
-            ctx.fillRect(0, 0, ticketWidth, ticketHeight)
+              // Superposition de couleur selon le type de ticket
+              ctx.fillStyle = `${ticketColors?.primary || '#8b12ff'}CC` // Ajouter transparence
+              ctx.fillRect(0, 0, ticketWidth, ticketHeight)
             
             // Nettoyer l'URL
             URL.revokeObjectURL(blobUrl)
@@ -257,12 +290,12 @@ const downloadTicket = async (item: ClientTicketItem) => {
     function createFallbackBackground() {
       if (!ctx) return
       
-      // Créer un fond dégradé élégant sans dépendre d'images externes
+      // Créer un fond dégradé élégant avec les couleurs du ticket
       const gradient = ctx.createLinearGradient(0, 0, ticketWidth, ticketHeight)
-      gradient.addColorStop(0, '#8b12ff') // Couleur primaire
-      gradient.addColorStop(0.3, '#a855f7') // Violet moyen
-      gradient.addColorStop(0.7, '#c084fc') // Violet clair
-      gradient.addColorStop(1, '#e9d5ff') // Violet très clair
+      gradient.addColorStop(0, ticketColors?.primary || '#8b12ff') // Couleur primaire du ticket
+      gradient.addColorStop(0.3, ticketColors?.secondary || '#a855f7') // Couleur secondaire
+      gradient.addColorStop(0.7, ticketColors?.light || '#c084fc') // Couleur claire
+      gradient.addColorStop(1, ticketColors?.veryLight || '#e9d5ff') // Couleur très claire
       
       // Appliquer le dégradé
       ctx.fillStyle = gradient
@@ -415,7 +448,7 @@ const downloadTicket = async (item: ClientTicketItem) => {
     
     // Attendre un peu avant de nettoyer
     setTimeout(() => {
-      document.body.removeChild(link)
+    document.body.removeChild(link)
       console.log('✅ Téléchargement lancé avec succès')
     }, 100)
 
