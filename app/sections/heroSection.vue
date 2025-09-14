@@ -1,76 +1,10 @@
 <template>
   <div>
-    <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50  border-b border-gray-200 flex items-center justify-between py-3 px-6 md:px-16 lg:px-24 xl:px-32 backdrop-blur bg-white/80 text-gray-900 text-sm">
-        <NuxtLink to="/">
-        
-          <Logo size=" h-10 w-auto" />
-        </NuxtLink>
-  
-        <div class="hidden md:flex items-center gap-8 transition duration-500">
-          <NuxtLink to="/" class="hover:text-purple-500 transition">
-            Accueil
-          </NuxtLink>
-          <NuxtLink to="/evenements" class="hover:text-purple-500 transition">
-            Événements
-          </NuxtLink>
-          <NuxtLink to="/contact" class="hover:text-purple-500 transition">
-            Contact
-          </NuxtLink>
-          <NuxtLink to="/organisateur" class="hover:text-purple-500 transition">
-            Organisateur
-          </NuxtLink>
-        </div>
-  
-        <button 
-          class="hidden md:block px-6 py-2.5 bg-purple-600 hover:bg-purple-700 active:scale-95 transition-all rounded-full"
-          @click="handleGetStarted"
-        >
-          Commencer
-        </button>
-        
-        <button 
-          ref="openMenuButton"
-          class="md:hidden active:scale-90 transition"
-          @click="toggleMobileMenu"
-        >
-          <Icon name="lucide:menu" class="w-6 h-6" />
-        </button>
-      </nav>
-  
-      <!-- Mobile Navigation Overlay -->
-      <div 
-        ref="mobileNavLinks"
-        class="fixed inset-0 z-[100] bg-black/40 text-white backdrop-blur flex flex-col items-center justify-center text-lg gap-8 md:hidden transition-transform duration-300"
-        :class="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'"
-      >
-        <NuxtLink to="/" @click="closeMobileMenu">
-          Accueil
-        </NuxtLink>
-        <NuxtLink to="/evenements" @click="closeMobileMenu">
-          Événements
-        </NuxtLink>
-        <NuxtLink to="/contact" @click="closeMobileMenu">
-          Contact
-        </NuxtLink>
-        <NuxtLink to="/organisateur" @click="closeMobileMenu">
-          Organisateur
-        </NuxtLink>
-        
-        <button 
-          ref="closeMenuButton"
-          class="active:ring-3 active:ring-white aspect-square size-10 p-1 items-center justify-center bg-purple-600 hover:bg-purple-700 transition text-white rounded-md flex"
-          @click="closeMobileMenu"
-        >
-          <Icon name="lucide:x" class="w-6 h-6" />
-        </button>
-      </div>
-
     <!-- Hero Section -->
   <!-- Hero Section -->
 <div class=" flex flex-col items-center justify-center text-sm px-2 pt-5 md:px-16 lg:px-24 xl:px-32 text-gray-900 min-h-screen md:py-20">
  
-    <NuxtLink to="/inscription" class="group flex items-center gap-2 rounded-full p-1 pr-3 mt-16 md:mt-36 text-purple-700 bg-purple-100">
+    <NuxtLink to="/inscription" class="group flex items-center gap-2 rounded-full p-1 pr-3 mt-16 mb-8 md:mt-36 text-purple-700 bg-purple-100">
         <span class="bg-purple-600 text-white text-xs px-3.5 py-1 rounded-full">
             NEW
         </span>
@@ -138,9 +72,6 @@
 <script setup lang="ts">
 import type { MarqueeCard } from '~/types/marquee'
 
-// État réactif pour le menu mobile
-const isMobileMenuOpen = ref(false)
-
 // Utilisation du composable existant
 const { fetchPublicEvents } = useEvents()
 
@@ -184,41 +115,6 @@ const displayEvents = computed(() => {
   }))
 })
 
-// Références aux éléments DOM
-const openMenuButton = ref<HTMLButtonElement>()
-const closeMenuButton = ref<HTMLButtonElement>()
-const mobileNavLinks = ref<HTMLDivElement>()
-
-/**
- * Ouvre le menu mobile
- */
-const toggleMobileMenu = (): void => {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value
-}
-
-/**
- * Ferme le menu mobile
- */
-const closeMobileMenu = (): void => {
-  isMobileMenuOpen.value = false
-}
-
-/**
- * Gère l'action "Commencer"
- */
-const handleGetStarted = (): void => {
-  // Redirection vers la page d'inscription ou de connexion
-  navigateTo('/inscription')
-}
-
-/**
- * Gère l'action "Voir la démo"
- */
-const handleWatchDemo = (): void => {
-  // Logique pour afficher la démo (modal, redirection, etc.)
-  console.log('Affichage de la démo')
-}
-
 /**
  * Gère le clic sur un événement dans le marquee
  */
@@ -227,28 +123,6 @@ const handleEventClick = (card: MarqueeCard): void => {
   const eventPath = card.slug ? `/evenements/${card.slug}` : `/evenements/${card.id}`
   navigateTo(eventPath)
 }
-
-// Gestion des événements clavier pour l'accessibilité
-const handleKeydown = (event: KeyboardEvent): void => {
-  if (event.key === 'Escape' && isMobileMenuOpen.value) {
-    closeMobileMenu()
-  }
-}
-
-// Écoute des événements clavier
-onMounted(() => {
-  document.addEventListener('keydown', handleKeydown)
-})
-
-// Nettoyage des événements
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
-})
-
-// Fermeture du menu lors du changement de route
-watch(() => useRoute().path, () => {
-  closeMobileMenu()
-})
 </script>
 
 <style scoped>

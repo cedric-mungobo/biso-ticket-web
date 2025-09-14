@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- <UiHeader/> -->
+    <UiHeader/>
 
     <div class="pt-0">
       <!-- Alerte pour les erreurs de validation API -->

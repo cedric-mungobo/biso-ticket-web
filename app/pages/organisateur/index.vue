@@ -21,7 +21,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
             </div>
-            <h3 class="text-base lg:text-lg font-medium text-gray-900 mb-2">Créer un événement</h3>
+            <h3 class="text-base lg:text-lg font-medium text-gray-900 mb-2">Créer mon événement</h3>
             <p class="text-sm lg:text-base text-gray-600 mb-3 lg:mb-4">Créez et configurez un nouvel événement</p>
             <NuxtLink
               to="/organisateur/create-event"
