@@ -72,7 +72,8 @@
             <p class="text-xs text-gray-500 mt-1">Minimum 8 caractères</p>
           </div>
 
-          <!-- reCAPTCHA -->
+          <!-- reCAPTCHA - TEMPORAIREMENT DÉSACTIVÉ -->
+          <!-- 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
               Vérification de sécurité
@@ -86,6 +87,7 @@
               @error="onCaptchaError"
             />
           </div>
+          -->
 
           
 
@@ -154,7 +156,8 @@ const { public: { recaptchaSiteKey } } = useRuntimeConfig()
 
 const emailRegex = /[^\s@]+@[^\s@]+\.[^\s@]+/
 const phoneIntl = /^\+?[1-9][0-9]{6,14}$/
-const isFormValid = computed(() => !!(form.name && form.telephone && form.email && form.password && recaptchaToken.value))
+// reCAPTCHA temporairement désactivé - validation simplifiée
+const isFormValid = computed(() => !!(form.name && form.telephone && form.email && form.password))
 
 // Gestionnaires reCAPTCHA
 const onCaptchaVerify = (token: string) => {
@@ -233,13 +236,14 @@ const handleRegister = async () => {
       })
     }
     
-    if (!recaptchaToken.value) {
-      return toast.add({ 
-        title: 'Vérification requise', 
-        description: 'Veuillez compléter la vérification de sécurité.', 
-        color: 'error' 
-      })
-    }
+    // reCAPTCHA temporairement désactivé
+    // if (!recaptchaToken.value) {
+    //   return toast.add({ 
+    //     title: 'Vérification requise', 
+    //     description: 'Veuillez compléter la vérification de sécurité.', 
+    //     color: 'error' 
+    //   })
+    // }
     
     // Validations classiques
     if (!form.name.trim()) return toast.add({ title: 'Nom requis', description: 'Veuillez saisir votre nom.', color: 'warning' })
@@ -252,8 +256,8 @@ const handleRegister = async () => {
       name: form.name.trim(),
       email: form.email.trim(),
       telephone: form.telephone.trim(),
-      password: form.password,
-      recaptcha_token: recaptchaToken.value
+      password: form.password
+      // recaptcha_token: recaptchaToken.value // Temporairement désactivé
     })
     success.value = 'Compte créé avec succès ! Redirection...'
     toast.add({ title: 'Bienvenue', description: 'Votre compte a été créé.' })
@@ -261,8 +265,8 @@ const handleRegister = async () => {
   } catch (e: any) {
     const message = extractErrorMessage(e)
     toast.add({ title: 'Inscription échouée', description: message, color: 'error' })
-    // Réinitialiser le reCAPTCHA en cas d'erreur
-    recaptchaToken.value = ''
+    // reCAPTCHA temporairement désactivé - pas de réinitialisation nécessaire
+    // recaptchaToken.value = ''
   } finally {
     isLoading.value = false
   }
