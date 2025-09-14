@@ -53,41 +53,60 @@
       </NuxtLink>
     </div>
 
-    <!-- Liste des billets (nouveau format API) -->
-    <div v-else class="space-y-6">
-      <div v-for="item in tickets" :key="item.id" class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group">
-        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white flex justify-between items-start">
-          <div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors duration-200">{{ item.event.title }}</h3>
-            <p class="text-sm text-gray-600"><span class="font-medium">Date :</span> {{ formatDate(item.event.startsAt) }}</p>
+    <!-- Liste des billets (design inspiré de l'image) -->
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 py-4">
+      <div v-for="item in tickets" :key="item.id" class="w-full max-w-sm mx-auto rounded-2xl overflow-hidden shadow-2xl relative transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(0,0,0,0.2)]">
+        <!-- Section supérieure avec image de fond -->
+        <div 
+          class="px-8 py-4 relative min-h-[600px] flex flex-col justify-center items-center bg-cover bg-center bg-no-repeat"
+          :style="item.event.imageUrl ? `background-image: url('${item.event.imageUrl}')` : 'background: linear-gradient(135deg, #f8f6f0 0%, #f5f3ed 100%)'"
+        >
+          <!-- Superposition de couleur primaire -->
+          <div class="absolute inset-0 bg-primary-600/80 z-10"></div>
+        
+          <!-- Contenu principal -->
+          <div class="text-center z-40 relative">
+            <!-- Titre principal -->
+            <div class="mb-4">
+              <h1 class="text-4xl font-extrabold text-white mb-2 leading-tight tracking-tight drop-shadow-lg">{{ item.ticket.name }}</h1>
+              <p class="text-lg text-white opacity-95 drop-shadow-md">{{ item.event.title }}</p>
+              <!-- Prix affiché dans la partie haute -->
+              <div class="mt-2 text-center">
+                <span class="block text-3xl font-extrabold text-white mb-1 drop-shadow-lg">{{ item.ticket.price }} {{ item.ticket.currency }}</span>
           </div>
-          <img v-if="item.event.imageUrl" :src="item.event.imageUrl" :alt="item.event.title" class="w-16 h-16 object-cover rounded-lg" />
         </div>
-        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-          <div class="space-y-1 text-sm">
-            <div><span class="text-gray-500">Billet:</span> <span class="font-medium text-gray-900">{{ item.ticket.name }}</span></div>
-            <div><span class="text-gray-500">Quantité:</span> <span class="font-medium text-gray-900">{{ item.quantity }}</span></div>
-            <div><span class="text-gray-500">Prix:</span> <span class="font-medium text-gray-900">{{ item.ticket.price }} {{ item.ticket.currency }}</span></div>
-            <div><span class="text-gray-500">Acheté le:</span> <span class="font-medium text-gray-900">{{ formatDate(item.createdAt) }}</span></div>
-          </div>
-          <div class="flex md:justify-end">
-            <div class="flex flex-col items-center gap-2">
-              <div v-if="item.qrCode" class="qr-code-container">
-                <Qrcode 
-                  :value="item.qrCode" 
-                  :size="160"
-                  :margin="2"
-                  :color="{ dark: '#000000', light: '#FFFFFF' }"
-                  :error-correction-level="'H'"
-                  class="w-40 h-40 border rounded bg-white"
+            
+            <!-- QR Code central -->
+            <div class="my-2">
+              <div v-if="item.qrCode" class="bg-white p-5 rounded-xl shadow-lg inline-block border-4 border-gray-100">
+                <QRCode 
+                  :data="item.qrCode"
+                  :size="200"
+                  class="block rounded-lg"
                 />
               </div>
-              <template v-else>
-                <div class="w-40 h-40 border rounded bg-gray-100 flex items-center justify-center">
-                  <div class="text-xs text-gray-500 text-center">QR code indisponible</div>
+              <div v-else class="bg-white p-5 rounded-xl shadow-lg border-4 border-gray-100 w-48 h-48 flex items-center justify-center">
+                <div class="text-gray-500 text-sm">QR Code indisponible</div>
+                <div class="text-xs text-gray-400 mt-1">
+                  Valeur: {{ item.qrCode || 'undefined' }}
                 </div>
-              </template>
-              <UButton v-if="item.qrCode" size="xs" color="neutral" variant="soft" @click="() => downloadQr(item)">Télécharger</UButton>
+              </div>
+            </div>
+            
+            <!-- Informations supplémentaires -->
+            <div class="my-2 flex justify-center">
+              <div class="text-center flex flex-col gap-1">
+                <span class="text-xs text-white opacity-80 font-medium uppercase tracking-wider drop-shadow-md">Date</span>
+                <span class="text-base text-white font-semibold drop-shadow-md">{{ formatDate(item.event.startsAt) }}</span>
+              </div>
+            </div>
+            
+            <!-- Bouton de téléchargement -->
+            <div class="mt-2">
+              <UButton size="sm" color="neutral" variant="solid" @click="() => downloadTicket(item)" class="bg-white/90 backdrop-blur-sm text-primary-600 border-none font-semibold px-6 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:-translate-y-0.5 hover:shadow-lg">
+                <Icon name="heroicons:arrow-down-tray" class="w-4 h-4 mr-2" />
+                Télécharger Ticket
+              </UButton>
             </div>
           </div>
         </div>
@@ -104,7 +123,7 @@
 
 <script setup lang="ts">
 import { useClientTickets, type ClientTicketItem } from '~/composables/useClientTickets'
-import QRCode from 'qrcode'
+// QR Code maintenant géré par le composant QRCode avec qr-code-styling
 
 
 definePageMeta({
@@ -163,30 +182,297 @@ const handleViewTicketDetails = (item: ClientTicketItem) => {
 
 // QR Code helpers - maintenant géré par le composant Qrcode de nuxt-qrcode
 
-const downloadQr = async (item: ClientTicketItem) => {
-  if (!item.qrCode) return
+const downloadTicket = async (item: ClientTicketItem) => {
+  // Afficher le loading
+  const loadingToast = useToast()
   
   try {
-    // Utiliser directement la librairie QRCode pour générer le QR code
-    const qrCodeDataUrl = await QRCode.toDataURL(item.qrCode, {
-      width: 400,
-      margin: 2,
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      },
-      errorCorrectionLevel: 'H'
+    loadingToast.add({
+      title: 'Génération du ticket',
+      description: 'Chargement de l\'image en cours...',
+      color: 'primary',
+      id: 'ticket-loading'
     })
 
-    // Créer un lien de téléchargement
+    // Créer un canvas haute résolution pour le ticket complet
+    const scale = 2 // Facteur de qualité
+    const ticketWidth = 400 * scale
+    const ticketHeight = 600 * scale
+    
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    canvas.width = ticketWidth
+    canvas.height = ticketHeight
+
+    // Améliorer la qualité du canvas
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+
+    // Fond du ticket
+    ctx.fillStyle = '#f8f6f0'
+    ctx.fillRect(0, 0, ticketWidth, ticketHeight)
+
+    // Charger l'image de fond via plusieurs méthodes CORS
+    if (item.event.imageUrl) {
+      try {
+        // Méthode 1: Essayer plusieurs proxies CORS publics
+        const proxies = [
+          'https://cors-anywhere.herokuapp.com/',
+          'https://api.allorigins.win/raw?url=',
+          'https://corsproxy.io/?',
+          'https://thingproxy.freeboard.io/fetch/'
+        ]
+        
+        let imageLoaded = false
+        
+        for (const proxyUrl of proxies) {
+          try {
+            console.log(`Tentative avec proxy: ${proxyUrl}`)
+            
+            // Mettre à jour le message de loading
+            loadingToast.remove('ticket-loading')
+            loadingToast.add({
+              title: 'Génération du ticket',
+              description: `Tentative de chargement via proxy...`,
+              color: 'primary',
+              id: 'ticket-loading'
+            })
+            
+            const response = await fetch(proxyUrl + encodeURIComponent(item.event.imageUrl), {
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            })
+            
+            if (response.ok) {
+              // Mettre à jour le loading pour indiquer le chargement de l'image
+              loadingToast.remove('ticket-loading')
+              loadingToast.add({
+                title: 'Génération du ticket',
+                description: 'Image chargée, génération du ticket...',
+                color: 'primary',
+                id: 'ticket-loading'
+              })
+              
+              const blob = await response.blob()
+              const blobUrl = URL.createObjectURL(blob)
+              
+              const bgImg = new Image()
+              await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                  reject(new Error('Timeout loading image'))
+                }, 8000)
+                
+                bgImg.onload = () => {
+                  clearTimeout(timeout)
+                  // Dessiner l'image de fond en haute résolution
+                  ctx.drawImage(bgImg, 0, 0, ticketWidth, ticketHeight)
+                  
+                  // Superposition de couleur primaire
+                  ctx.fillStyle = 'rgba(139, 18, 255, 0.8)'
+                  ctx.fillRect(0, 0, ticketWidth, ticketHeight)
+                  
+                  // Nettoyer l'URL
+                  URL.revokeObjectURL(blobUrl)
+                  imageLoaded = true
+                  resolve(true)
+                }
+                bgImg.onerror = () => {
+                  clearTimeout(timeout)
+                  reject(new Error('Erreur de chargement de l\'image'))
+                }
+                bgImg.src = blobUrl
+              })
+              
+              if (imageLoaded) break
+            }
+          } catch (proxyError: unknown) {
+            const errorMessage = proxyError instanceof Error ? proxyError.message : String(proxyError)
+            console.warn(`Proxy ${proxyUrl} échoué:`, errorMessage)
+            continue
+          }
+        }
+        
+        if (!imageLoaded) {
+          throw new Error('Tous les proxies CORS ont échoué')
+        }
+        
+      } catch (error) {
+        console.warn('Erreur lors du chargement de l\'image via proxies CORS:', error)
+        // Fallback: créer un fond dégradé élégant
+        createFallbackBackground()
+      }
+    } else {
+      // Créer un fond dégradé élégant sans image
+      createFallbackBackground()
+    }
+    
+    function createFallbackBackground() {
+      if (!ctx) return
+      
+      // Créer un fond dégradé élégant sans dépendre d'images externes
+      const gradient = ctx.createLinearGradient(0, 0, ticketWidth, ticketHeight)
+      gradient.addColorStop(0, '#8b12ff') // Couleur primaire
+      gradient.addColorStop(0.3, '#a855f7') // Violet moyen
+      gradient.addColorStop(0.7, '#c084fc') // Violet clair
+      gradient.addColorStop(1, '#e9d5ff') // Violet très clair
+      
+      // Appliquer le dégradé
+      ctx.fillStyle = gradient
+      ctx.fillRect(0, 0, ticketWidth, ticketHeight)
+      
+      // Ajouter des éléments décoratifs pour simuler un design moderne
+      // Cercles décoratifs
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'
+      ctx.beginPath()
+      ctx.arc(ticketWidth * 0.2, ticketHeight * 0.3, 80 * scale, 0, 2 * Math.PI)
+      ctx.fill()
+      
+      ctx.beginPath()
+      ctx.arc(ticketWidth * 0.8, ticketHeight * 0.7, 60 * scale, 0, 2 * Math.PI)
+      ctx.fill()
+      
+      // Lignes décoratives
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'
+      ctx.lineWidth = 2 * scale
+      ctx.beginPath()
+      ctx.moveTo(0, ticketHeight * 0.4)
+      ctx.lineTo(ticketWidth, ticketHeight * 0.4)
+      ctx.stroke()
+      
+      ctx.beginPath()
+      ctx.moveTo(0, ticketHeight * 0.6)
+      ctx.lineTo(ticketWidth, ticketHeight * 0.6)
+      ctx.stroke()
+    }
+
+    // Configuration du texte
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+
+    // Titre du ticket (haute résolution)
+    ctx.fillStyle = 'white'
+    ctx.font = `bold ${32 * scale}px Arial`
+    ctx.fillText(item.ticket.name, ticketWidth / 2, 120 * scale)
+
+    // Titre de l'événement
+    ctx.font = `${18 * scale}px Arial`
+    ctx.fillText(item.event.title, ticketWidth / 2, 160 * scale)
+
+    // Prix
+    ctx.font = `bold ${24 * scale}px Arial`
+    ctx.fillText(`${item.ticket.price} ${item.ticket.currency}`, ticketWidth / 2, 200 * scale)
+
+    // Date
+    ctx.font = `${14 * scale}px Arial`
+    ctx.fillText(formatDate(item.event.startsAt), ticketWidth / 2, 240 * scale)
+
+    // Générer le QR code
+    if (item.qrCode) {
+      try {
+        const { $qrCodeStyling } = useNuxtApp()
+        const qrCodeStyling = $qrCodeStyling({
+          width: 200 * scale,
+          height: 200 * scale,
+          type: 'svg',
+          data: item.qrCode,
+          dotsOptions: {
+            color: '#000000',
+            type: 'rounded',
+          },
+          backgroundOptions: {
+            color: '#ffffff',
+          },
+        })
+
+        const svg = await qrCodeStyling.getRawData('svg')
+        if (svg) {
+          let svgString: string
+          if (typeof svg === 'string') {
+            svgString = svg
+          } else if (svg instanceof Blob) {
+            svgString = await svg.text()
+          } else {
+            svgString = svg.toString('utf8')
+          }
+
+          const qrImg = new Image()
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              reject(new Error('Timeout loading QR code'))
+            }, 3000)
+            
+            qrImg.onload = () => {
+              clearTimeout(timeout)
+              // Fond blanc pour le QR code (haute résolution)
+              ctx.fillStyle = 'white'
+              ctx.fillRect(ticketWidth / 2 - 110 * scale, 280 * scale, 220 * scale, 220 * scale)
+              
+              // Dessiner le QR code (haute résolution)
+              ctx.drawImage(qrImg, ticketWidth / 2 - 100 * scale, 290 * scale, 200 * scale, 200 * scale)
+              resolve(true)
+            }
+            qrImg.onerror = () => {
+              clearTimeout(timeout)
+              console.warn('Impossible de générer le QR code')
+              // Dessiner un placeholder pour le QR code (haute résolution)
+              ctx.fillStyle = 'white'
+              ctx.fillRect(ticketWidth / 2 - 110 * scale, 280 * scale, 220 * scale, 220 * scale)
+              ctx.fillStyle = '#666'
+              ctx.font = `${14 * scale}px Arial`
+              ctx.fillText('QR Code indisponible', ticketWidth / 2, 390 * scale)
+              resolve(true)
+            }
+            qrImg.src = `data:image/svg+xml;base64,${btoa(svgString)}`
+          })
+        }
+      } catch (error) {
+        console.warn('Erreur lors de la génération du QR code:', error)
+        // Dessiner un placeholder pour le QR code (haute résolution)
+        ctx.fillStyle = 'white'
+        ctx.fillRect(ticketWidth / 2 - 110 * scale, 280 * scale, 220 * scale, 220 * scale)
+        ctx.fillStyle = '#666'
+        ctx.font = `${14 * scale}px Arial`
+        ctx.fillText('QR Code indisponible', ticketWidth / 2, 390 * scale)
+      }
+    } else {
+      // Dessiner un placeholder pour le QR code (haute résolution)
+      ctx.fillStyle = 'white'
+      ctx.fillRect(ticketWidth / 2 - 110 * scale, 280 * scale, 220 * scale, 220 * scale)
+      ctx.fillStyle = '#666'
+      ctx.font = `${14 * scale}px Arial`
+      ctx.fillText('QR Code indisponible', ticketWidth / 2, 390 * scale)
+    }
+
+    // Télécharger l'image
+    const dataUrl = canvas.toDataURL('image/png')
     const link = document.createElement('a')
-    link.href = qrCodeDataUrl
+    link.href = dataUrl
     link.download = `billet-${item.event.title}-${item.ticket.name}.png`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+
+    // Fermer le loading avec succès
+    loadingToast.remove('ticket-loading')
+    loadingToast.add({
+      title: 'Ticket généré !',
+      description: 'Le ticket a été téléchargé avec succès',
+      color: 'success'
+    })
+
   } catch (error) {
-    console.error('Erreur lors du téléchargement du QR Code:', error)
+    console.error('Erreur lors du téléchargement du ticket:', error)
+    
+    // Fermer le loading avec erreur
+    loadingToast.remove('ticket-loading')
+    loadingToast.add({
+      title: 'Erreur de génération',
+      description: 'Impossible de générer le ticket. Veuillez réessayer.',
+      color: 'error'
+    })
   }
 }
 
@@ -214,240 +500,17 @@ const changePage = async (page: number) => {
 onMounted(async () => {
   await fetchMyTickets()
 })
+
+// Debug pour les tickets
+watch(tickets, (newTickets) => {
+  console.log('Tickets chargés:', newTickets)
+  if (newTickets && newTickets.length > 0) {
+    console.log('Premier ticket:', newTickets[0])
+    console.log('QR Code du premier ticket:', newTickets[0]?.qrCode)
+    console.log('Type QR Code:', typeof newTickets[0]?.qrCode)
+    console.log('QR Code length:', newTickets[0]?.qrCode?.length)
+  }
+}, { immediate: true })
 </script>
 
-<style scoped>
-/* Styles personnalisés pour la page my-tickets */
 
-/* Animation d'entrée pour les cartes d'événements */
-.bg-white.rounded-xl {
-  animation: slideInUp 0.4s ease-out;
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Animation d'entrée progressive pour les cartes */
-.bg-white.rounded-xl:nth-child(1) { animation-delay: 0.1s; }
-.bg-white.rounded-xl:nth-child(2) { animation-delay: 0.2s; }
-.bg-white.rounded-xl:nth-child(3) { animation-delay: 0.3s; }
-.bg-white.rounded-xl:nth-child(4) { animation-delay: 0.4s; }
-
-/* Amélioration des transitions */
-.transition-all {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Effet de hover amélioré pour les cartes */
-.bg-white.rounded-xl:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-}
-
-/* Amélioration des boutons */
-button, a {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-button:hover, a:hover {
-  transform: translateY(-1px);
-}
-
-/* Amélioration des icônes */
-svg {
-  transition: all 0.2s ease;
-}
-
-.group:hover svg {
-  transform: scale(1.05);
-}
-
-/* Amélioration des gradients */
-.bg-gradient-to-r {
-  background-size: 200% 200%;
-  animation: gradientShift 3s ease infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-/* Responsive design amélioré */
-@media (max-width: 768px) {
-  .text-4xl {
-    font-size: 2rem;
-  }
-  
-  .text-xl {
-    font-size: 1.125rem;
-  }
-  
-  .p-8 {
-    padding: 1.5rem;
-  }
-  
-  .gap-6 {
-    gap: 1rem;
-  }
-}
-
-/* Amélioration de l'accessibilité */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Focus visible pour l'accessibilité */
-button:focus-visible,
-a:focus-visible {
-  outline: 2px solid #8b12ff;
-  outline-offset: 2px;
-}
-
-/* Amélioration des états de chargement */
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Amélioration des messages d'état */
-.text-center.py-16 {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 1rem;
-  margin: 2rem 0;
-}
-
-/* Amélioration des cartes de résumé */
-.bg-gradient-to-br {
-  position: relative;
-  overflow: hidden;
-}
-
-.bg-gradient-to-br::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.bg-gradient-to-br:hover::before {
-  opacity: 1;
-}
-
-/* Amélioration de la grille des tickets */
-.grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-2 {
-  gap: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-2 {
-    gap: 2rem;
-  }
-}
-
-/* Amélioration des bordures et ombres */
-.border-gray-200 {
-  border-color: #e5e7eb;
-}
-
-.shadow-sm {
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
-
-.hover\:shadow-lg:hover {
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-}
-
-/* Styles pour les QR codes avec le composant Qrcode */
-.qr-code-container {
-  position: relative;
-  display: inline-block;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.qr-code-container:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-}
-
-.qr-code-container img {
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-  image-rendering: pixelated;
-  display: block;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  border: 3px solid #f3f4f6;
-}
-
-.qr-code-container img:hover {
-  border-color: #8b12ff;
-  box-shadow: 0 8px 25px rgba(139, 18, 255, 0.15);
-  transform: scale(1.02);
-}
-
-/* Effet de brillance sur le QR code */
-.qr-code-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-  border-radius: 12px;
-}
-
-.qr-code-container:hover::before {
-  opacity: 1;
-}
-
-/* Animation de pulsation pour le QR code */
-@keyframes qrPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
-  }
-}
-
-.qr-code-container img:hover {
-  animation: qrPulse 2s ease-in-out infinite;
-}
-</style>

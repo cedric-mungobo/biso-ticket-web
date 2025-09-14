@@ -37,19 +37,7 @@ export default defineNuxtConfig({
       transitions: true
     }
   },
-  qrcode: {
-    options: {
-    
-      variant: {
-        inner: 'circle',
-        marker: 'rounded',
-        pixel: 'rounded',
-      },
-      radius: 1,
-      blackColor: 'currentColor',
-      whiteColor: 'transparent',
-    },
-  },
+
   
   // Configuration des alias de chemins
   alias: {
