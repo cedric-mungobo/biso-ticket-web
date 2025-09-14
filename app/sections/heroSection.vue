@@ -25,8 +25,8 @@
     <!-- Titre principal avec animation fade -->
     <h1 
       v-motion
-      :initial="{ opacity: 0 }"
-      :visible-once="{ opacity: 1 }"
+      :initial="{ opacity: 0, x: 50 }"
+      :visible-once="{ opacity: 1 , x: 0}"
       :delay="200"
       :duration="1200"
       class="text-5xl leading-[68px] md:text-6xl md:leading-[84px] font-medium max-w-2xl text-center"

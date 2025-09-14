@@ -1,5 +1,5 @@
 <template>
-  <div class="px-1  md:px-8  lg:px-12 max-w-5xl mx-auto">
+  <div class="px-1  py-16 max-w-5xl mx-auto">
     <!-- En-tête de la page -->
     <div class="mb-8 text-center">
       <h1 class="text-4xl font-bold text-gray-900 mb-3">Mes Billets</h1>

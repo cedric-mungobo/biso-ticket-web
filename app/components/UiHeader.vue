@@ -2,11 +2,11 @@
   <div>
     <!-- Navigation -->
     <nav class="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 flex items-center justify-between py-3 px-6 md:px-16 lg:px-24 xl:px-32 backdrop-blur bg-white/80 text-gray-900 text-sm">
+      <NuxtLink to="/">
+        <Logo size="h-10 w-auto" />
+      </NuxtLink>
       <!-- Left side: Logo + Navigation -->
       <div class="flex items-center gap-8">
-        <NuxtLink to="/">
-          <Logo size="h-10 w-auto" />
-        </NuxtLink>
 
         <div class="hidden md:flex items-center gap-8 transition duration-500">
           <NuxtLink to="/" class="hover:text-purple-500 transition">
