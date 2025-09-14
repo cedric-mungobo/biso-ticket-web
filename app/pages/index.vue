@@ -3,6 +3,7 @@ import HeroSection from '@/sections/heroSection.vue'
 import FeaturesSection from '@/sections/FeaturesSection.vue'
 import ShowcaseSection from '@/sections/ShowcaseSection.vue'
 import TestimonialsSection from '@/sections/TestimonialsSection.vue'
+import CtaSection from '@/sections/CtaSection.vue'
 // Utilisation du composable useEvents
 const { fetchPublicEvents, formatDate } = useEvents()
 
@@ -52,18 +53,12 @@ const events = computed(() => {
       <!-- Showcase Section -->
       <ShowcaseSection />
 
-      <!-- Our Approach Section -->
-      <div class="w-full container mx-auto px-1 sm:px-0 lg:px-8">
-        <OurApproach class="" />
-      </div>
-
-      <!-- Services Section -->
-      <div class="w-full ">
-        <ServicesSection class="my-10" />
-      </div>
   
       <!-- Testimonials Section -->
       <TestimonialsSection />
+
+      <!-- CTA Section -->
+      <CtaSection />
   
       <!-- Contact Section -->
       <ContactSection />

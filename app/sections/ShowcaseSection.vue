@@ -15,7 +15,7 @@
         <div class="md:col-span-2">
           <NuxtImg 
             alt="Interface Biso Ticket - Dashboard organisateur" 
-            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80"
+            src="/assets/images/hero.jpg"
             class="w-full h-auto rounded-2xl shadow-lg"
             loading="lazy"
           />
@@ -25,7 +25,7 @@
         <div class="md:col-span-1">
           <NuxtImg 
             alt="Application mobile Biso Ticket" 
-            src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&auto=format&fit=crop&q=80"
+            src="/assets/images/ticket.jpg"
             class="w-full h-auto rounded-xl shadow-md hover:-translate-y-0.5 transition duration-300"
             loading="lazy"
           />
