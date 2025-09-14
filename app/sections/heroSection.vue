@@ -19,11 +19,11 @@
     </h1>
     <p class="text-base text-center text-gray-600 max-w-lg mt-6">
         Tout ce dont vous avez besoin pour gérer un événement : vendre vos billets en ligne et envoyer des invitations digitales.</p>
-        <div class="flex flex-col md:flex-row items-center gap-4 mt-8">
-        <button class="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-7 h-11">
+        <div class="flex flex-col md:flex-row items-center justify-center gap-4 mt-8 w-full max-w-md md:max-w-none mx-auto">
+          <button class="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-7 h-11 w-full md:w-auto">
           Créer mon événement
         </button>
-        <button class="flex items-center gap-2 border border-purple-600 hover:bg-purple-50 transition rounded-full px-6 h-11 text-gray-700">
+        <button class="flex items-center justify-center gap-2 border border-purple-600 hover:bg-purple-50 transition rounded-full px-6 h-11 text-gray-700 w-full md:w-auto">
             <Icon name="lucide:calendar" class="w-5 h-5" />
             <span>Voir les événements</span>
         </button>
