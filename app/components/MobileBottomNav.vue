@@ -1,7 +1,7 @@
 <template>
   <div v-if="!isHiddenNav" class="fixed bottom-0 left-0 right-0 z-50 md:hidden pb-[env(safe-area-inset-bottom)]">
     <nav class="mx-2 mb-2" role="navigation" aria-label="Navigation principale mobile">
-      <div class="max-w-5xl mx-auto bg-white/10 backdrop-blur-md rounded-[26px] p-1 border border-primary-200/50 dark:border-neutral-800/50 shadow-lg">
+      <div class="max-w-5xl mx-auto bg-white/80 backdrop-blur-md rounded-[26px] p-1 border border-primary-200/50  shadow-sm">
         <div class="flex items-center justify-around" data-testid="mobile-bottom-nav">
           <NuxtLink
             v-for="item in navItems"
@@ -9,11 +9,11 @@
             :to="item.to"   
             :prefetch="true"
             :aria-label="item.label"
-            class="flex flex-col items-center justify-center flex-1 py-2 transition-all duration-200 group"
+            class="flex flex-row gap-2 items-center justify-center flex-1 py-2 transition-all duration-200 group"
             :class="isActive(item.to) ? 'text-primary-500' : 'text-black dark:text-neutral-300 hover:text-primary-500'"
             :aria-current="isActive(item.to) ? 'page' : undefined"
           >
-            <div class="w-5 h-5 flex items-center justify-center mb-1">
+            <div class="w-4 h-4 flex items-center justify-center mb-1">
               <UIcon :name="getIconName(item.key, isActive(item.to))" class="w-5 h-5" aria-hidden="true" />
             </div>
             <span class="text-xs font-medium group-hover:text-primary-500 transition-colors">{{ item.label }}</span>
@@ -41,7 +41,7 @@ const navItems: NavItem[] = [
   { key: 'events', to: '/evenements', label: 'Événements' },
   { key: 'organizer', to: '/organisateur', label: 'Organisateur' },
   { key: 'tickets', to: '/tickets/my-tickets', label: 'Mes Billets' },
-  { key: 'checkin', to: '/check-in', label: 'Check-in' }
+  // { key: 'checkin', to: '/check-in', label: 'Check-in' }
 ]
 
 // Lien actif
