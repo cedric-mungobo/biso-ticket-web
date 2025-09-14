@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import HeroSection from '@/sections/heroSection.vue'
+import FeaturesSection from '@/sections/FeaturesSection.vue'
+import ShowcaseSection from '@/sections/ShowcaseSection.vue'
+import TestimonialsSection from '@/sections/TestimonialsSection.vue'
 // Utilisation du composable useEvents
 const { fetchPublicEvents, formatDate } = useEvents()
 
@@ -43,6 +46,12 @@ const events = computed(() => {
       <!-- <HeroAnimated :events="events" :max-events="4" :enable-animations="false" />
 
        -->
+      <!-- Features Section -->
+      <FeaturesSection />
+
+      <!-- Showcase Section -->
+      <ShowcaseSection />
+
       <!-- Our Approach Section -->
       <div class="w-full container mx-auto px-1 sm:px-0 lg:px-8">
         <OurApproach class="" />
