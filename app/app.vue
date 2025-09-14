@@ -1,13 +1,25 @@
 <template>
   <!-- Background fixe -->
   <div class="fixed inset-0 bg-white dark:bg-gray-950">
-    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(59,130,246,0.15),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_left,rgba(59,130,246,0.1),transparent_70%)]" />
-    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(236,72,153,0.15),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_bottom_right,rgba(236,72,153,0.1),transparent_70%)]" />
-    <div 
-      class="absolute inset-0 opacity-[0.3] dark:opacity-[0.15] backdrop-blur-[100px]"
-      :style="{ backgroundImage: noiseBg }"
-    />
-    <div class="absolute inset-0 backdrop-blur-[100px]" />
+    <div class="absolute inset-0">
+      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <pattern id="pixel-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+          <rect x="0" y="0" width="1" height="1" class="fill-blue-500/20 dark:fill-blue-400/10" />
+          <rect x="8" y="4" width="1" height="1" class="fill-blue-500/30 dark:fill-blue-400/15" />
+          <rect x="16" y="8" width="1" height="1" class="fill-blue-500/20 dark:fill-blue-400/10" />
+          <rect x="4" y="12" width="1" height="1" class="fill-blue-500/30 dark:fill-blue-400/15" />
+          <rect x="12" y="16" width="1" height="1" class="fill-blue-500/20 dark:fill-blue-400/10" />
+          
+          <rect x="4" y="0" width="1" height="1" class="fill-purple-500/20 dark:fill-purple-400/10" />
+          <rect x="12" y="4" width="1" height="1" class="fill-purple-500/30 dark:fill-purple-400/15" />
+          <rect x="0" y="8" width="1" height="1" class="fill-purple-500/20 dark:fill-purple-400/10" />
+          <rect x="8" y="12" width="1" height="1" class="fill-purple-500/30 dark:fill-purple-400/15" />
+          <rect x="16" y="16" width="1" height="1" class="fill-purple-500/20 dark:fill-purple-400/10" />
+        </pattern>
+        <rect width="100%" height="100%" fill="url(#pixel-pattern)" />
+      </svg>
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-b from-white via-white/0 to-white dark:from-gray-950 dark:via-gray-950/0 dark:to-gray-950" />
   </div>
 
   
@@ -22,7 +34,7 @@
 </template>
 
 <script setup>
-const noiseBg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.005' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`;
+// Background pattern défini directement dans le template
 </script>
 
 <style>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HeroSection from '@/sections/heroSection.vue'
 // Utilisation du composable useEvents
 const { fetchPublicEvents, formatDate } = useEvents()
 
@@ -38,9 +39,10 @@ const events = computed(() => {
 <template>
   <div>
     <main id="content">
-      <HeroAnimated :events="events" :max-events="4" :enable-animations="false" />
+      <HeroSection />
+      <!-- <HeroAnimated :events="events" :max-events="4" :enable-animations="false" />
 
-      
+       -->
       <!-- Our Approach Section -->
       <div class="w-full container mx-auto px-1 sm:px-0 lg:px-8">
         <OurApproach class="" />
