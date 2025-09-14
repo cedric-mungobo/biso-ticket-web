@@ -5,14 +5,28 @@
       <div class="absolute -z-50 size-[400px] -top-10 -left-20 aspect-square rounded-full bg-purple-500/10 blur-3xl"></div>
       
       <!-- Description -->
-      <p class="text-gray-800 text-lg text-left max-w-3xl">
+      <p 
+        v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200"
+        class="text-gray-800 text-lg text-left max-w-3xl"
+      >
         Organisez votre événement à Kinshasa avec Biso Ticket, la plateforme de billetterie en ligne qui vous permet de créer, gérer et vendre vos billets facilement. Vos participants peuvent payer par mobile money (Orange Money, M-Pesa, Airtel Money).
       </p>
       
       <!-- Content Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 mt-8 gap-10">
+      <div 
+     
+        class="grid grid-cols-1 md:grid-cols-3 mt-8 gap-10"
+      >
         <!-- Main Image -->
-        <div class="md:col-span-2">
+        <div class="md:col-span-2"    v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200">
           <NuxtImg 
             alt="Interface Biso Ticket - Dashboard organisateur" 
             src="/assets/images/hero.jpg"
@@ -22,7 +36,11 @@
         </div>
         
         <!-- Side Content -->
-        <div class="md:col-span-1">
+        <div class="md:col-span-1"    v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="220"
+        :duration="1500">
           <NuxtImg 
             alt="Application mobile Biso Ticket" 
             src="/assets/images/ticket.jpg"

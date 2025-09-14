@@ -4,22 +4,56 @@
   <!-- Hero Section -->
 <div class=" flex flex-col items-center justify-center text-sm px-2 pt-5 md:px-16 lg:px-24 xl:px-32 text-gray-900 min-h-screen md:py-20">
  
-    <NuxtLink to="/inscription" class="group flex items-center gap-2 rounded-full p-1 pr-3 mt-16 mb-8 md:mt-36 text-purple-700 bg-purple-100">
+    <!-- Badge d'annonce avec animation slide depuis le haut -->
+    <NuxtLink 
+      to="/inscription" 
+      v-motion
+      :initial="{ opacity: 0, y: -50 }"
+      :visible-once="{ opacity: 1, y: 0 }"
+      :delay="200"
+      :duration="1200"
+      class="group flex items-center gap-2 rounded-full p-1 pr-3 mt-16 mb-8 md:mt-36 text-purple-700 bg-purple-100"
+    >
         <span class="bg-purple-600 text-white text-xs px-3.5 py-1 rounded-full">
             NEW
         </span>
         <p class="flex items-center gap-1 max-sm:text-[10px]">
-            <span>Digitalisez votre événement — c’est gratuit ! </span>
+            <span>Digitalisez votre événement — c'est gratuit ! </span>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon lucide-chevron-right group-hover:translate-x-0.5 transition duration-300"><path d="m9 18 6-6-6-6"/></svg>
         </p>
-        </NuxtLink> 
-    <h1 class="text-5xl leading-[68px] md:text-6xl md:leading-[84px] font-medium max-w-2xl text-center">
+    </NuxtLink> 
+    <!-- Titre principal avec animation fade -->
+    <h1 
+      v-motion
+      :initial="{ opacity: 0 }"
+      :visible-once="{ opacity: 1 }"
+      :delay="200"
+      :duration="1200"
+      class="text-5xl leading-[68px] md:text-6xl md:leading-[84px] font-medium max-w-2xl text-center"
+    >
         Passez au digital pour vos 
         <span class="bg-gradient-to-r from-purple-500 to-purple-300 px-3 rounded-xl text-nowrap">événements.</span>
     </h1>
-    <p class="text-base text-center text-gray-600 max-w-lg mt-6">
-        Tout ce dont vous avez besoin pour gérer un événement : vendre vos billets en ligne et envoyer des invitations digitales.</p>
-        <div class="flex flex-col md:flex-row items-center justify-center gap-4 mt-8 w-full max-w-md md:max-w-none mx-auto">
+    <!-- Sous-titre avec animation slide depuis le bas -->
+    <p 
+      v-motion
+      :initial="{ opacity: 0, y: 50 }"
+      :visible-once="{ opacity: 1, y: 0 }"
+      :delay="200"
+      :duration="1200"
+      class="text-base text-center text-gray-600 max-w-lg mt-6"
+    >
+        Tout ce dont vous avez besoin pour gérer un événement : vendre vos billets en ligne et envoyer des invitations digitales.
+    </p>
+    <!-- Boutons d'action avec animation pop -->
+    <div 
+      v-motion
+      :initial="{ opacity: 0, scale: 0.8 }"
+      :visible-once="{ opacity: 1, scale: 1 }"
+      :delay="200"
+      :duration="1200"
+      class="flex flex-col md:flex-row items-center justify-center gap-4 mt-8 w-full max-w-md md:max-w-none mx-auto"
+    >
           <button class="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-7 h-11 w-full md:w-auto">
           Créer mon événement
         </button>
@@ -28,7 +62,15 @@
             <span>Voir les événements</span>
         </button>
     </div>
-    <div class="flex flex-wrap justify-center items-center gap-4 md:gap-14 mt-12">
+    <!-- Liste des fonctionnalités avec animation stagger -->
+    <div 
+      v-motion
+      :initial="{ opacity: 0, y: 20 }"
+      :visible-once="{ opacity: 1, y: 0 }"
+      :delay="200"
+      :duration="1200"
+      class="flex flex-wrap justify-center items-center gap-4 md:gap-14 mt-12"
+    >
         <p class="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check size-5 text-purple-600"><path d="M20 6 9 17l-5-5"/></svg>
             <span class="text-gray-500">recevez les paiements mobile money</span>
@@ -44,10 +86,36 @@
     </div>
 
     <!-- Section Marquee Cards - Affichée seulement s'il y a des événements -->
-    <div v-if="!pending && displayEvents.length > 0" class="mt-20 w-full">
+    <div 
+      v-if="!pending && displayEvents.length > 0" 
+      v-motion
+      :initial="{ opacity: 0, y: 50 }"
+      :visible-once="{ opacity: 1, y: 0 }"
+      :delay="200"
+      :duration="1200"
+      class="mt-20 w-full"
+    >
         <div class="text-center mb-8">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-2">Découvrez nos événements</h2>
-            <p class="text-gray-600">Des événements exceptionnels vous attendent</p>
+            <h2 
+              v-motion
+              :initial="{ opacity: 0 }"
+              :visible-once="{ opacity: 1 }"
+              :delay="200"
+              :duration="1200"
+              class="text-2xl font-semibold text-gray-800 mb-2"
+            >
+              Découvrez nos événements
+            </h2>
+            <p 
+              v-motion
+              :initial="{ opacity: 0, y: 50 }"
+              :visible-once="{ opacity: 1, y: 0 }"
+              :delay="200"
+              :duration="1200"
+              class="text-gray-600"
+            >
+              Des événements exceptionnels vous attendent
+            </p>
         </div>
         
         <!-- Marquee Cards -->

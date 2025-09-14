@@ -1,77 +1,51 @@
 <template>
-  <div class="">
-    <!-- Speed Dial FAB (Mobile) -->
-    <div class="lg:hidden fixed bottom-40 right-6 group">
-      <!-- Speed Dial Menu -->
+  <div class=" max-w-5xl mx-auto py-16 p-1">
+    <!-- Mobile Menu -->
+    <div class="">
+      <!-- Menu Container -->
       <div 
-        :class="[
-          'flex flex-col justify-end py-1 mb-4 space-y-2 bg-white border border-gray-100 rounded-lg shadow-xs',
-          isMobileMenuOpen ? 'block' : 'hidden'
-        ]"
+        v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200"
+        class="bg-white border border-gray-200 rounded-2xl  p-2"
       >
-        <ul class="text-sm text-gray-500">
-          <li>
-            <button 
-              type="button"
-              @click="navigateTo('/organisateur/create-event'); closeMobileMenu()"
-              class="flex items-center w-full px-5 py-2 border-b border-gray-200 hover:bg-gray-100 hover:text-gray-900 focus:outline-none"
+        <ul class="flex flex-row overflow-x-auto scrollbar-hide gap-2">
+          <li v-for="item in menuItems" :key="item.id" class="flex-shrink-0">
+            <a 
+              @click="navigateTo(item.route)"
+              :class="[
+                'flex flex-row items-center px-4 py-3 focus:outline-none transition-all duration-200 rounded-xl min-w-[80px] whitespace-nowrap gap-2',
+                isActiveLink(item.route) 
+                  ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                  : 'hover:bg-gray-50 text-gray-700'
+              ]"
             >
-              <Plus class="w-3.5 h-3.5 me-2" />
-              <span class="text-sm font-medium">Créer un événement</span>
-            </button>
-          </li>
-          <li>
-            <button 
-              type="button"
-              @click="navigateTo('/organisateur/my-events'); closeMobileMenu()"
-              class="flex items-center w-full px-5 py-2 border-b border-gray-200 hover:bg-gray-100 hover:text-gray-900 focus:outline-none"
-            >
-              <Calendar class="w-3.5 h-3.5 me-2" />
-              <span class="text-sm font-medium">Mes événements</span>
-            </button>
-          </li>
-          <li>
-            <button 
-              type="button"
-              @click="navigateTo('/organisateur/statistics'); closeMobileMenu()"
-              class="flex items-center w-full px-5 py-2 hover:bg-gray-100 hover:text-gray-900 focus:outline-none"
-            >
-              <BarChart3 class="w-3.5 h-3.5 me-2" />
-              <span class="text-sm font-medium">Rapport</span>
-            </button>
+              <component 
+                :is="item.icon" 
+                :class="[
+                  'w-5 h-5 hidden lg:block',
+                  isActiveLink(item.route) ? 'text-purple-600' : 'text-gray-500'
+                ]"
+              />
+              <span class="text-xs font-medium text-center">{{ item.label }}</span>
+            </a>
           </li>
         </ul>
       </div>
-      
-      <!-- Main FAB Button -->
-      <button 
-        type="button" 
-        @click="toggleMobileMenu"
-        class="flex items-center justify-center ml-auto text-white bg-primary-600 rounded-lg px-4 py-1 hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 focus:outline-none"
-      >
-        <svg 
-          class="w-4 h-4 mr-2" 
-          aria-hidden="true" 
-          xmlns="http://www.w3.org/2000/svg" 
-          fill="none" 
-          viewBox="0 0 17 14"
-        >
-          <path 
-            stroke="currentColor" 
-            stroke-linecap="round" 
-            stroke-linejoin="round" 
-            stroke-width="2" 
-            d="M1 1h15M1 7h15M1 13h15"
-          />
-        </svg>
-        <span class="text-sm font-medium">Menu</span>
-        <span class="sr-only">Ouvrir le menu</span>
-      </button>
     </div>
     
     <!-- Main Content -->
-    <main class="flex-1 overflow-auto">
-      <div class="max-w-7xl mx-auto   md:p-6">
+    <main 
+      v-motion
+      :initial="{ opacity: 0, y: 50 }"
+      :visible-once="{ opacity: 1, y: 0 }"
+      :delay="200"
+      :duration="1200"
+      class="flex-1 overflow-auto mt-8"
+    >
+      <div class="">
         <slot></slot>
       </div>
     </main>
@@ -85,33 +59,33 @@ import {
   BarChart3
 } from 'lucide-vue-next'
 
-// State pour le menu mobile
-const isMobileMenuOpen = ref(false)
-
-// Toggle menu mobile
-const toggleMobileMenu = () => {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value
-}
-
-// Fermer le menu mobile
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false
-}
-
-// Fermer le menu mobile avec la touche Escape
-onMounted(() => {
-  const handleEscape = (event) => {
-    if (event.key === 'Escape' && isMobileMenuOpen.value) {
-      closeMobileMenu()
-    }
+// Array des éléments du menu
+const menuItems = [
+  {
+    id: 'create',
+    label: 'Créer mon événement',
+    icon: Plus,
+    route: '/organisateur/create-event'
+  },
+  {
+    id: 'events',
+    label: 'Mes événements',
+    icon: Calendar,
+    route: '/organisateur/my-events'
+  },
+  {
+    id: 'statistics',
+    label: 'Statistiques événements',
+    icon: BarChart3,
+    route: '/organisateur/statistics'
   }
-  
-  document.addEventListener('keydown', handleEscape)
-  
-  onUnmounted(() => {
-    document.removeEventListener('keydown', handleEscape)
-  })
-})
+]
+
+// Fonction pour vérifier si un lien est actif
+const isActiveLink = (route) => {
+  const currentRoute = useRoute()
+  return currentRoute.path === route
+}
 </script>
 
 <style scoped>
@@ -137,5 +111,14 @@ main::-webkit-scrollbar-thumb:hover {
 * {
   scrollbar-width: thin;
   scrollbar-color: #3b82f6 #f1f5f9;
+}
+
+/* Masquer la scrollbar pour le menu horizontal */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
 }
 </style>

@@ -2,7 +2,14 @@
   <section class="py-16 md:py-24 ">
     <div class="container mx-auto px-4 md:px-8 lg:px-16">
       <!-- Header -->
-      <div class="text-center mb-16">
+      <div 
+        v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200"
+        class="text-center mb-16"
+      >
         <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
           Pourquoi choisir Biso Ticket ?
         </h2>
@@ -12,7 +19,14 @@
       </div>
 
       <!-- Features Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <div 
+        v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto"
+      >
         <!-- Feature 1 -->
         <div class="group p-6 rounded-2xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
           <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">

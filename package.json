@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "@types/qrcode": "^1.5.5",
     "@unhead/vue": "^2.0.14",
+    "@vueuse/motion": "^3.0.3",
     "gsap": "^3.13.0",
     "lucide-vue-next": "^0.539.0",
     "nuxt": "^4.0.3",

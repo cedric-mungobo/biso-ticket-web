@@ -1,7 +1,14 @@
 <template>
 
       <!-- CTA Section -->
-      <div class="py-16 p-1 max-w-5xl mx-auto rounded-3xl text-center">
+      <div 
+        v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200"
+        class="py-16 p-1 max-w-5xl mx-auto rounded-3xl text-center"
+      >
         <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-3xl p-8 md:p-12">
           <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
             Prêt à digitaliser vos événements ?

@@ -22,7 +22,8 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     'nuxt-auth-utils',
     'nuxt-qrcode',
-    'nuxt-pdfmake'
+    'nuxt-pdfmake',
+    '@vueuse/motion/nuxt'
   ],
   ui: {
     colorMode: false,

@@ -2,7 +2,11 @@
   <OrganizerNavigation page-title="Tableau de bord">
     <div class="p-6 lg:p-8">
       <!-- En-tête de la page -->
-      <div class="text-center mb-8 lg:mb-12">
+      <div    v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200" class="text-center mb-8 lg:mb-12">
         <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
           Tableau de bord
         </h1>
@@ -12,9 +16,13 @@
       </div>
 
       <!-- Contenu principal -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+      <div    v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         <!-- Carte Créer un événement -->
-        <div class="bg-white rounded-lg shadow-md p-4 lg:p-6 hover:shadow-lg transition-shadow">
+        <div class="bg-white rounded-2xl  border border-gray-200 p-4 lg:p-6 hover:shadow-lg transition-shadow">
           <div class="text-center">
             <div class="mx-auto flex items-center justify-center h-10 w-10 lg:h-12 lg:w-12 rounded-md bg-blue-100 mb-3 lg:mb-4">
               <svg class="h-5 w-5 lg:h-6 lg:w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +41,7 @@
         </div>
 
         <!-- Carte Mes événements -->
-        <div class="bg-white rounded-lg shadow-md p-4 lg:p-6 hover:shadow-lg transition-shadow">
+        <div class="bg-white rounded-2xl  border border-gray-200 p-4 lg:p-6 hover:shadow-lg transition-shadow">
           <div class="text-center">
             <div class="mx-auto flex items-center justify-center h-10 w-10 lg:h-12 lg:w-12 rounded-md bg-black mb-3 lg:mb-4">
               <svg class="h-5 w-5 lg:h-6 lg:w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +60,7 @@
         </div>
 
         <!-- Carte Statistiques -->
-        <div class="bg-white rounded-lg shadow-md p-4 lg:p-6 hover:shadow-lg transition-shadow">
+        <div class="bg-white rounded-2xl  border border-gray-200 p-4 lg:p-6 hover:shadow-lg transition-shadow">
           <div class="text-center">
             <div class="mx-auto flex items-center justify-center h-10 w-10 lg:h-12 lg:w-12 rounded-md bg-purple-100 mb-3 lg:mb-4">
               <svg class="h-5 w-5 lg:h-6 lg:w-6 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -2,7 +2,14 @@
   <section class="py-16 md:py-24 ">
     <div class="container mx-auto px-4 md:px-8 lg:px-16">
       <!-- Header -->
-      <div class="text-center mb-12">
+      <div 
+        v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200"
+        class="text-center mb-12"
+      >
         <h2 class="text-4xl font-bold text-gray-900 mb-4">Ce que disent nos organisateurs</h2>
         <p class="text-lg text-gray-600 max-w-2xl mx-auto">
           Découvrez les témoignages de nos organisateurs qui font confiance à Biso Ticket
@@ -10,13 +17,27 @@
       </div>
 
       <!-- Marquee Testimonials -->
-      <div class="marquee-row w-full mx-auto max-w-5xl overflow-hidden relative">
+      <div 
+        v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200"
+        class="marquee-row w-full mx-auto max-w-5xl overflow-hidden relative"
+      >
         <div class="absolute left-0 top-0 h-full w-20 z-10 pointer-events-none bg-gradient-to-r from-gray-50 to-transparent"></div>
         <div class="marquee-inner flex transform-gpu min-w-[200%] pt-10 pb-5" id="row1"></div>
         <div class="absolute right-0 top-0 h-full w-20 md:w-40 z-10 pointer-events-none bg-gradient-to-l from-gray-50 to-transparent"></div>
       </div>
 
-      <div class="marquee-row w-full mx-auto max-w-5xl overflow-hidden relative">
+      <div 
+        v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200"
+        class="marquee-row w-full mx-auto max-w-5xl overflow-hidden relative"
+      >
         <div class="absolute left-0 top-0 h-full w-20 z-10 pointer-events-none bg-gradient-to-r from-gray-50 to-transparent"></div>
         <div class="marquee-inner marquee-reverse flex transform-gpu min-w-[200%] pt-5 pb-10" id="row2"></div>
         <div class="absolute right-0 top-0 h-full w-20 md:w-40 z-10 pointer-events-none bg-gradient-to-l from-gray-50 to-transparent"></div>
