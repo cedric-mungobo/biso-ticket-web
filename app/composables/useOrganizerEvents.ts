@@ -88,8 +88,6 @@ export const useOrganizerEvents = () => {
 
   const createEvent = async (eventData: EventCreateRequest, image?: File): Promise<Event> => {
     try {
-      console.log('createEvent - Image:', image ? `${image.name} (${image.size} bytes)` : 'Aucune image')
-      
       let res: any
       if (image) {
         const formData = new FormData()
@@ -122,97 +120,63 @@ export const useOrganizerEvents = () => {
         // Image (toujours en dernier)
         formData.append('image', image)
         
-        console.log('FormData créé avec image')
-        console.log('Envoi de la requête POST avec FormData...')
         res = await $myFetch<any>('/events', { 
           method: 'POST', 
           body: formData,
-          // Ne pas spécifier Content-Type - laisser le navigateur le définir automatiquement
         })
       } else {
-        console.log('Création événement sans image')
         res = await $myFetch<any>('/events', { method: 'POST', body: eventData })
       }
       
       return unwrap<Event>(res)
     } catch (error: any) {
-      console.error('Erreur dans createEvent:', error)
-      // Re-throw l'erreur pour qu'elle soit gérée par le composant parent
       throw error
     }
   }
 
   const fetchEvent = async (eventId: number): Promise<Event> => {
     const res = await $myFetch<any>(`/events/${eventId}`, { method: 'GET' })
-    if (process.dev) {
-      console.log('[Repo] fetchEvent → raw response:', res)
-      try { console.log('[Repo] fetchEvent → raw.data:', (res as any)?.data) } catch {}
-    }
-    const unwrapped = unwrap<Event>(res)
-    if (process.dev) {
-      console.log('[Repo] fetchEvent → unwrapped:', unwrapped)
-    }
-    return unwrapped
+    return unwrap<Event>(res)
   }
 
-  const updateEvent = async (eventId: number, eventData: Partial<EventCreateRequest>, image?: File): Promise<Event> => {
-    console.log('=== UPDATE EVENT DEBUG ===')
-    console.log('updateEvent appelé avec:')
-    console.log('  eventId:', eventId)
-    console.log('  eventData:', JSON.stringify(eventData, null, 2))
-    console.log('  image:', image ? `${image.name} (${image.size} bytes)` : 'Aucune image')
-    console.log('  image type:', typeof image)
-    console.log('  image instanceof File:', image instanceof File)
-    
+  const updateEvent = async (eventId: number, eventData: Partial<EventCreateRequest>, image?: File, removeImage?: boolean): Promise<Event> => {
     let res: any
     if (image) {
       // Récupérer l'événement existant pour avoir toutes les données
       const existingEvent = await fetchEvent(eventId)
-      console.log('Événement existant récupéré:', JSON.stringify(existingEvent, null, 2))
       
       const formData = new FormData()
-      console.log('FormData créé, ajout des champs...')
       
       // Champs obligatoires (toujours envoyés comme dans createEvent)
       const title = eventData.title || existingEvent.title || ''
       const startsAt = eventData.starts_at || existingEvent.startsAt || ''
-      console.log('Ajout title:', title)
-      console.log('Ajout starts_at:', startsAt)
       formData.append('title', title)
       formData.append('starts_at', startsAt)
       
       // Champs optionnels (utiliser les nouvelles valeurs ou les existantes)
       if (eventData.location || existingEvent.location) {
         const location = eventData.location || existingEvent.location || ''
-        console.log('Ajout location:', location)
         formData.append('location', location)
       }
       if (eventData.ends_at || existingEvent.endsAt) {
         const endsAt = eventData.ends_at || existingEvent.endsAt || ''
-        console.log('Ajout ends_at:', endsAt)
         formData.append('ends_at', endsAt)
       }
       if (eventData.description || existingEvent.description) {
         const description = eventData.description || existingEvent.description || ''
-        console.log('Ajout description:', description)
         formData.append('description', description)
       }
       const status = eventData.status || existingEvent.status || 'draft'
       const isPublic = (eventData.is_public !== undefined ? eventData.is_public : existingEvent.isPublic) ? '1' : '0'
-      console.log('Ajout status:', status)
-      console.log('Ajout is_public:', isPublic)
       formData.append('status', status)
       formData.append('is_public', isPublic)
       
       // Settings (fusionner les nouvelles avec les existantes)
       const newSettings = eventData.settings || {}
       const existingSettings = existingEvent.settings || {}
-      console.log('newSettings:', newSettings)
-      console.log('existingSettings:', existingSettings)
       
       // scan_enabled
       const scanEnabled = newSettings.scan_enabled !== undefined ? newSettings.scan_enabled : existingSettings.scanEnabled
-      console.log('Ajout settings[scan_enabled]:', scanEnabled ? '1' : '0')
       formData.append('settings[scan_enabled]', scanEnabled ? '1' : '0')
       
       // categories
@@ -234,39 +198,27 @@ export const useOrganizerEvents = () => {
       }
       
       // Image (toujours en dernier)
-      console.log('Ajout de l\'image:', image.name, image.size, 'bytes')
       formData.append('image', image)
       
-      // Debug: Afficher le contenu du FormData
-      console.log('FormData créé pour mise à jour événement avec image (données complètes)')
-      console.log('Contenu du FormData:')
-      for (const [key, value] of formData.entries()) {
-        if (key === 'image') {
-          console.log(`  ${key}:`, value instanceof File ? `${value.name} (${value.size} bytes)` : value)
-        } else {
-          console.log(`  ${key}:`, value)
-        }
+      // Flag pour supprimer l'image existante
+      if (removeImage) {
+        formData.append('remove_image', '1')
       }
       
       // Ajouter _method=PUT pour Laravel (requis pour les uploads de fichiers)
       formData.append('_method', 'PUT')
       
-      console.log('Envoi de la requête POST avec FormData et _method=PUT...')
-      console.log('FormData instanceof FormData:', formData instanceof FormData)
-      console.log('FormData entries count:', Array.from(formData.entries()).length)
-      
       res = await $myFetch<any>(`/events/${eventId}`, { 
         method: 'POST', 
         body: formData,
-        // Ne pas spécifier Content-Type - laisser le navigateur le définir automatiquement
       })
-      console.log('Réponse API après mise à jour avec image:', JSON.stringify(res, null, 2))
     } else {
-      console.log('Mise à jour événement sans image')
-      res = await $myFetch<any>(`/events/${eventId}`, { method: 'PUT', body: eventData })
-      console.log('Réponse API après mise à jour sans image:', JSON.stringify(res, null, 2))
+      const body: any = { ...eventData }
+      if (removeImage) {
+        body.remove_image = true
+      }
+      res = await $myFetch<any>(`/events/${eventId}`, { method: 'PUT', body })
     }
-    console.log('=== FIN UPDATE EVENT DEBUG ===')
     return unwrap<Event>(res)
   }
 
@@ -283,11 +235,6 @@ export const useOrganizerEvents = () => {
       currency: (ticketData as any).currency || (ticketData as any).devise || 'USD',
       quantity: Number((ticketData as any).quantity || 0),
       commissionRate: (ticketData as any).commissionRate
-    }
-    if (process.dev) {
-      // Log clair du payload envoyé (conformément à la doc API Tickets)
-      console.log('[Repo] addTicket → URL:', `/events/${eventId}/tickets`)
-      console.log('[Repo] addTicket → payload:', JSON.stringify(normalized))
     }
     const response = await $myFetch<{ ticket: Ticket }>(`/events/${eventId}/tickets`, { method: 'POST', body: normalized })
     return response.ticket
@@ -321,10 +268,6 @@ export const useOrganizerEvents = () => {
     if (maybe(quantity) !== undefined) body.quantity = Number(quantity)
     if (maybe(commissionRate) !== undefined) body.commissionRate = Number(commissionRate)
 
-    if (process.dev) {
-      console.log('[Repo] updateTicket → URL:', `/tickets/${ticketId}`)
-      console.log('[Repo] updateTicket → payload:', JSON.stringify(body))
-    }
     const res = await $myFetch<any>(`/tickets/${ticketId}`, { method: 'PUT', body })
     const payload = unwrap<any>(res)
     return payload?.ticket ?? payload

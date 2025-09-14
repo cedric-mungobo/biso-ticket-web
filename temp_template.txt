@@ -1,0 +1,16 @@
+            <template v-for="button in actionButtons" :key="button.id">
+              <UButton 
+                v-if="!button.condition || button.condition()"
+                :to="button.to"
+                @click="button.action"
+                :variant="button.variant"
+                :size="button.size"
+                :color="button.color"
+                :class="button.class"
+                :ui="button.ui"
+              >
+                <UIcon :name="button.icon" class="w-4 h-4 mr-2" /> 
+                <span class="hidden sm:inline">{{ button.label }}</span>
+                <span class="sm:hidden">{{ button.labelMobile || button.label }}</span>
+              </UButton>
+            </template>

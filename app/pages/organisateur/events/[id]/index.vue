@@ -4,11 +4,11 @@
 
    
      
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="">
         <!-- En-tête responsive -->
-        <div class="mb-6">
+        <div class="mb-2">
           <!-- Navigation de retour -->
-          <div class="mb-4">
+          <div class="mb-2">
             <NuxtLink
               to="/organisateur/my-events"
               class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 mb-3"
@@ -26,81 +26,29 @@
           </div>
           
           <!-- Boutons d'action responsive -->
-          <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3">
-            <UButton 
-              @click="showTicketsList = true" 
-              variant="solid" 
-              size="md" 
-              color="primary" 
-              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
-              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-            >
-              <UIcon name="i-heroicons-ticket" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Mes tickets</span>
-              <span class="sm:hidden">Mes tickets</span>
-            </UButton>
-
-            <UButton 
-              @click="openCreateTicket()" 
-              variant="solid" 
-              size="md" 
-              color="success" 
-              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
-              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-            >
-              <UIcon name="i-heroicons-plus" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Ajouter un ticket</span>
-              <span class="sm:hidden">Ajouter un ticket</span>
-            </UButton>
-
-
-            <UButton 
-              @click="openOrders" 
-              variant="solid" 
-              size="md" 
-              color="secondary" 
-              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
-              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-            >
-              <UIcon name="i-heroicons-clipboard-document-list" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Rapports de ventes</span>
-              <span class="sm:hidden">Rapports de ventes</span>
-            </UButton>
-
-            <UButton 
-              :to="reportsUrl" 
-              variant="solid" 
-              size="md" 
-              color="neutral" 
-              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
-              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-            >
-              <UIcon name="i-heroicons-chart-bar" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Rapport de l'événement</span>
-              <span class="sm:hidden">Rapport</span>
-            </UButton>
-
-            <UButton 
-              :to="scansUrl" 
-              variant="solid" 
-              size="md" 
-              color="warning" 
-              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
-              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-            >
-              <UIcon name="i-heroicons-qr-code" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Logs de scan</span>
-              <span class="sm:hidden">Scans</span>
-            </UButton>
-
-           
-
+          <div class=" grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 p-1">
+            <!-- Boutons principaux -->
+            <template v-for="button in actionButtons" :key="button.id">
+              <UButton 
+                v-if="!button.condition || button.condition()"
+                :to="button.to"
+                @click="button.action && button.action()"
+                :variant="button.variant"
+                :size="button.size"
+                :color="button.color"
+                :class="button.class"
+                :ui="button.ui"
+              >
+                <UIcon :name="button.icon" class="w-4 h-4 mr-2" /> 
+                <span>{{ button.label }}</span>
+              </UButton>
+            </template>
             <!-- Clé de scan (inline dans la barre d'actions) -->
-            <div v-if="event?.settings?.scanSecret" class="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none w-full sm:w-auto">
+            <div v-if="event?.settings?.scanSecret" class="flex items-center gap-2 sm:gap-2 flex-1 sm:flex-none w-full sm:w-auto">
               <span class="text-sm text-gray-700 whitespace-nowrap">Clé de scan:</span>
               <input
                 :value="displayedScanSecret"
-                class="rounded-lg border border-gray-300 px-3 py-1 w-full sm:w-48 bg-white text-gray-900"
+                class="rounded-lg border border-gray-300 px-2 py-1 w-full sm:w-24 bg-white text-gray-900"
                 readonly
               />
               <UButton
@@ -118,11 +66,11 @@
             </div>
 
             <!-- ID public (à côté de la clé de scan) -->
-            <div v-if="event?.publicId" class="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-none w-full sm:w-auto">
+            <div v-if="event?.publicId" class="flex items-center gap-2 sm:gap-2 flex-1 sm:flex-none w-full sm:w-auto">
               <span class="text-sm text-gray-700 whitespace-nowrap">ID public:</span>
               <input
                 :value="displayedPublicId"
-                class="rounded-lg border border-gray-300 px-3 py-1 w-full sm:w-48 bg-white text-gray-900"
+                class="rounded-lg border border-gray-300 px-2 py-1 w-full sm:w-24 bg-white text-gray-900"
                 readonly
               />
               <UButton
@@ -138,58 +86,6 @@
                 <UIcon name="i-heroicons-clipboard" class="w-5 h-5" />
               </UButton>
             </div>
-
-            <UButton 
-              :to="invitationsUrl" 
-              variant="solid" 
-              size="md" 
-              color="primary" 
-              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
-              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-            >
-              <UIcon name="i-heroicons-envelope" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Mes invités</span>
-              <span class="sm:hidden"> Mes invités</span>
-            </UButton>
-
-            <UButton 
-              @click="openEditEvent()" 
-              variant="solid" 
-              size="md" 
-              color="warning" 
-              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
-              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-            >
-              <UIcon name="i-heroicons-pencil-square" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Éditer</span>
-              <span class="sm:hidden">Modifier</span>
-            </UButton>
-
-            <UButton 
-              @click="openDeleteConfirm" 
-              variant="solid" 
-              size="md" 
-              color="error" 
-              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
-              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-            >
-              <UIcon name="i-heroicons-trash" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Supprimer</span>
-              <span class="sm:hidden">Suppr.</span>
-            </UButton>
-
-            <UButton 
-              @click="showCredits = true" 
-              variant="solid" 
-              size="md" 
-              color="primary" 
-              class="shadow-sm flex-1 sm:flex-none w-full sm:w-auto"
-              :ui="{ base: 'min-h-[44px] touch-manipulation' }"
-            >
-              <UIcon name="i-heroicons-banknotes" class="w-4 h-4 mr-2" /> 
-              <span class="hidden sm:inline">Acheter des crédits</span>
-              <span class="sm:hidden">Acheter des crédits</span>
-            </UButton>
           </div>
         </div>
         
@@ -207,116 +103,55 @@
 
         <div v-else-if="event" class="space-y-6">
           <UCard class="overflow-hidden">
-            <img
-              v-if="event?.image_url || event?.image"
-              :src="event?.image_url || event?.image"
-              :alt="event?.name"
-              class="w-full h-64 object-cover"
-            />
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+              <!-- Image à gauche -->
+              <div class="relative min-h-96 lg:h-full">
+                <img
+                  v-if="event?.image_url || event?.image"
+                  :src="event?.image_url || event?.image"
+                  :alt="event?.name"
+                  class="w-full h-full min-h-96 lg:h-full object-cover"
+                />
+                <div v-else class="w-full h-full bg-gray-100 flex items-center justify-center">
+                  <UIcon name="i-heroicons-photo" class="w-16 h-16 text-gray-400" />
+                </div>
+              </div>
 
-            <div class="p-6 space-y-4">
-              <div class="flex items-start justify-between gap-4">
-                <div>
-                  <h2 class="text-xl font-semibold text-gray-900">{{ event?.name }}</h2>
-                  <div class="mt-1 text-gray-600">{{ event?.location }}</div>
+              <!-- Informations à droite -->
+              <div class="p-6 space-y-4">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 class="text-xl font-semibold text-gray-900">{{ event?.name }}</h2>
+                    <div class="mt-1 text-gray-600">{{ event?.location }}</div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <UBadge :color="statusColor" variant="soft" class="capitalize">{{ event?.status }}</UBadge>
+                    <UBadge v-if="event?.is_public" color="info" variant="soft">public</UBadge>
+                  </div>
                 </div>
-                <div class="flex items-center gap-2">
-                  <UBadge :color="statusColor" variant="soft" class="capitalize">{{ event?.status }}</UBadge>
-                  <UBadge v-if="event?.is_public" color="info" variant="soft">public</UBadge>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-2">
+                    <p class="text-sm text-gray-500">Date</p>
+                    <p class="text-gray-800">{{ formatDate(event?.date_time || '') }}</p>
+                  </div>
+                  <div class="space-y-2">
+                    <p class="text-sm text-gray-500">Lieu</p>
+                    <p class="text-gray-800 line-clamp-1">{{ event?.location || '—' }}</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-2">
-                  <p class="text-sm text-gray-500">Date</p>
-                  <p class="text-gray-800">{{ formatDate(event?.date_time || '') }}</p>
+                
+                <div class="pt-4">
+                  <p class="text-sm text-gray-500 mb-2">Aperçu</p>
+                  <p class="text-gray-700 whitespace-pre-line">{{ event?.description || 'Aucune description fournie.' }}</p>
                 </div>
-                <div class="space-y-2">
-                  <p class="text-sm text-gray-500">Lieu</p>
-                  <p class="text-gray-800 line-clamp-1">{{ event?.location || '—' }}</p>
-                </div>
-              </div>
-              
-              <div class="pt-4">
-                <p class="text-sm text-gray-500 mb-2">Aperçu</p>
-                <p class="text-gray-700 whitespace-pre-line">{{ event?.description || 'Aucune description fournie.' }}</p>
               </div>
             </div>
           </UCard>
 
           
 
-          <!-- Tickets -->
-          <UCard id="tickets">
-            <div class="p-4">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-base font-semibold text-gray-900">Tickets</h3>
-                <span class="text-xs text-gray-500" v-if="tickets && tickets.length">{{ tickets.length }} types</span>
-        </div>
-
-              <div v-if="ticketsLoading" class="space-y-2">
-                <USkeleton class="h-6 w-full" />
-                <USkeleton class="h-6 w-2/3" />
-          </div>
-
-              <div v-else-if="!tickets || tickets.length === 0" class="text-sm text-gray-500">
-                Aucun ticket configuré.
-          </div>
-          
-              <div v-else class="space-y-3">
-                <div
-                  v-for="t in tickets"
-                  :key="t.id"
-                  class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
-                >
-                  <!-- Informations du ticket -->
-                  <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-3 sm:mb-0">
-                    <span class="text-sm font-medium text-gray-900">{{ t.type }}</span>
-                    <div class="flex items-center gap-2">
-                      <UBadge variant="soft" class="text-xs">{{ t.quantity }} disponibles</UBadge>
-                      <div class="text-sm font-semibold text-gray-900">
-                        {{ t.price }} {{ t.devise || 'USD' }}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Actions du ticket -->
-                  <div class="flex items-center gap-1 sm:gap-2">
-                    <UButton 
-                      size="xs" 
-                      variant="ghost" 
-                      color="primary" 
-                      @click="openEditTicket(t)"
-                      class="min-h-[36px] min-w-[36px]"
-                      :ui="{ base: 'touch-manipulation' }"
-                    >
-                      <UIcon name="i-heroicons-eye" class="w-4 h-4" />
-                    </UButton>
-                    <UButton 
-                      size="xs" 
-                      variant="ghost" 
-                      color="warning" 
-                      @click="openEditTicket(t)"
-                      class="min-h-[36px] min-w-[36px]"
-                      :ui="{ base: 'touch-manipulation' }"
-                    >
-                      <UIcon name="i-heroicons-pencil-square" class="w-4 h-4" />
-                    </UButton>
-                    <UButton 
-                      size="xs" 
-                      variant="ghost" 
-                      color="error" 
-                      @click="openDeleteTicket(t)"
-                      class="min-h-[36px] min-w-[36px]"
-                      :ui="{ base: 'touch-manipulation' }"
-                    >
-                      <UIcon name="i-heroicons-trash" class="w-4 h-4" />
-                    </UButton>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </UCard>
+      
                   </div>
                 </div>
         
@@ -401,26 +236,6 @@
           <UButton color="error" :loading="ticketSubmitting" @click="handleDeleteTicket">Supprimer</UButton>
         </template>
       </Modal>
-      <Modal v-model="showEventEdit" title="Éditer l'événement" class="modal-mobile-optimized">
-        <div class="modal-content-mobile relative">
-          <!-- Overlay de loading -->
-          <LoadingOverlay
-            :show="submitting"
-            title="Mise à jour de l'événement..."
-            description="Veuillez patienter"
-            color="primary"
-            :size="48"
-          />
-          
-          <EventForm 
-            v-model="eventForm" 
-            :submitting="submitting" 
-            :is-edit-mode="true"
-            @cancel="showEventEdit=false" 
-            @submit="handleUpdateEvent" 
-          />
-        </div>
-      </Modal>
 
       <!-- Achat crédits d'invitation -->
       <Modal v-model="showCredits" title="Acheter des crédits d'invitation">
@@ -498,7 +313,113 @@ const reportsUrl = computed(() => `/organisateur/events/${eventId}/reports`)
 const scansUrl = computed(() => `/organisateur/events/${eventId}/scans`)
 const invitationsUrl = computed(() => `/organisateur/events/${eventId}/invitations`)
 
-
+// Configuration des boutons d'action
+const actionButtons = computed(() => [
+  {
+    id: 'tickets',
+    label: 'Mes tickets',
+    icon: 'i-heroicons-ticket',
+    variant: 'solid',
+    size: 'md',
+    color: 'primary',
+    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
+    ui: { base: 'min-h-[44px] touch-manipulation' },
+    action: () => { showTicketsList.value = true }
+  },
+  {
+    id: 'invitations',
+    label: 'Mes invités',
+    icon: 'i-heroicons-envelope',
+    variant: 'solid',
+    size: 'md',
+    color: 'secondary',
+    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
+    ui: { base: 'min-h-[44px] touch-manipulation' },
+    to: invitationsUrl.value,
+    action: null
+  },
+  {
+    id: 'credits',
+    label: 'Acheter des crédits',
+    icon: 'i-heroicons-banknotes',
+    variant: 'solid',
+    size: 'md',
+    color: 'primary',
+    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
+    ui: { base: 'min-h-[44px] touch-manipulation' },
+    action: () => { showCredits.value = true }
+  },
+  {
+    id: 'add-ticket',
+    label: 'Ajouter un ticket',
+    icon: 'i-heroicons-plus',
+    variant: 'solid',
+    size: 'md',
+    color: 'success',
+    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
+    ui: { base: 'min-h-[44px] touch-manipulation' },
+    action: () => openCreateTicket()
+  },
+  {
+    id: 'orders',
+    label: 'Rapports de ventes',
+    icon: 'i-heroicons-clipboard-document-list',
+    variant: 'solid',
+    size: 'md',
+    color: 'secondary',
+    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
+    ui: { base: 'min-h-[44px] touch-manipulation' },
+    action: () => openOrders()
+  },
+  {
+    id: 'edit-event',
+    label: 'Modifier l\'événement',
+    icon: 'i-heroicons-pencil',
+    variant: 'outline',
+    size: 'md',
+    color: 'primary',
+    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
+    ui: { base: 'min-h-[44px] touch-manipulation' },
+    action: () => editEvent()
+  },
+  {
+    id: 'reports',
+    label: 'Rapport de l\'événement',
+    icon: 'i-heroicons-chart-bar',
+    variant: 'solid',
+    size: 'md',
+    color: 'neutral',
+    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
+    ui: { base: 'min-h-[44px] touch-manipulation' },
+    to: reportsUrl.value,
+    action: null
+  },
+  {
+    id: 'scans',
+    label: 'Logs de scan',
+    icon: 'i-heroicons-qr-code',
+    variant: 'solid',
+    size: 'md',
+    color: 'warning',
+    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
+    ui: { base: 'min-h-[44px] touch-manipulation' },
+    to: scansUrl.value,
+    action: null
+  },
+ 
+  {
+    id: 'delete-event',
+    label: 'Supprimer',
+    icon: 'i-heroicons-trash',
+    variant: 'solid',
+    size: 'md',
+    color: 'error',
+    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
+    ui: { base: 'min-h-[44px] touch-manipulation' },
+    action: () => openDeleteConfirm()
+  }
+ 
+])
 
 const { pending } = await useAsyncData(`organizer-event-${eventId}`, async () => {
   await fetchEventWithState(eventId)
@@ -630,6 +551,10 @@ const openEditEvent = () => {
 
 const openOrders = () => {
   navigateTo(ordersUrl.value)
+}
+
+const editEvent = () => {
+  navigateTo(`/organisateur/events/${eventId}/edit`)
 }
 
 const { purchaseCredits: repoPurchaseCredits } = useOrganizerEvents()
