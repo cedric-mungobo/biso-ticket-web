@@ -5,8 +5,10 @@
         <!-- Icône utilisateur -->
         <div class="flex justify-center mb-6">
           <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-            <NuxtImg src="/logo.png" alt="Biso Ticket" class="w-10 h-10 object-contain" />
-
+           
+            <Logo
+              class="w-10 h-10 object-contain"
+            />
           </div>
         </div>
 

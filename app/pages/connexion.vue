@@ -1,11 +1,14 @@
 <template>
-  <div class=" h-full md:py-36  flex items-center justify-center p-4">
+  <div class=" h-full md:py-36 py-16  flex items-center justify-center p-4">
     <div class="w-full max-w-md">
       <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
         <!-- User Icon -->
         <div class="flex justify-center mb-6">
           <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-           <NuxtImg src="/logo.png" alt="Biso Ticket" class="w-10 h-10 object-contain" />
+
+            <Logo
+              class="w-10 h-10 object-contain"
+            />
           </div>
         </div>
 
