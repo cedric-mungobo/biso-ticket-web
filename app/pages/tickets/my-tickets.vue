@@ -183,17 +183,7 @@ const handleViewTicketDetails = (item: ClientTicketItem) => {
 // QR Code helpers - maintenant géré par le composant Qrcode de nuxt-qrcode
 
 const downloadTicket = async (item: ClientTicketItem) => {
-  // Afficher le loading
-  const loadingToast = useToast()
-  
   try {
-    loadingToast.add({
-      title: 'Génération du ticket',
-      description: 'Chargement de l\'image en cours...',
-      color: 'primary',
-      id: 'ticket-loading'
-    })
-
     // Créer un canvas haute résolution pour le ticket complet
     const scale = 2 // Facteur de qualité
     const ticketWidth = 400 * scale
@@ -214,100 +204,55 @@ const downloadTicket = async (item: ClientTicketItem) => {
     ctx.fillStyle = '#f8f6f0'
     ctx.fillRect(0, 0, ticketWidth, ticketHeight)
 
-    // Charger l'image de fond via plusieurs méthodes CORS
+    // Charger l'image de l'événement
     if (item.event.imageUrl) {
       try {
-        // Méthode 1: Essayer plusieurs proxies CORS publics
-        const proxies = [
-          'https://cors-anywhere.herokuapp.com/',
-          'https://api.allorigins.win/raw?url=',
-          'https://corsproxy.io/?',
-          'https://thingproxy.freeboard.io/fetch/'
-        ]
+        console.log('🔄 Chargement de l\'image via proxy...')
+        const proxyUrl = 'https://api.allorigins.win/raw?url='
         
-        let imageLoaded = false
+        const response = await fetch(proxyUrl + encodeURIComponent(item.event.imageUrl))
         
-        for (const proxyUrl of proxies) {
-          try {
-            console.log(`Tentative avec proxy: ${proxyUrl}`)
+        if (response.ok) {
+          console.log('✅ Image chargée avec succès')
+          const blob = await response.blob()
+          const blobUrl = URL.createObjectURL(blob)
+          
+          const bgImg = new Image()
+          bgImg.onload = () => {
+            console.log('🖼️ Dessin de l\'image sur le canvas...')
+            // Dessiner l'image de fond en haute résolution
+            ctx.drawImage(bgImg, 0, 0, ticketWidth, ticketHeight)
             
-            // Mettre à jour le message de loading
-            loadingToast.remove('ticket-loading')
-            loadingToast.add({
-              title: 'Génération du ticket',
-              description: `Tentative de chargement via proxy...`,
-              color: 'primary',
-              id: 'ticket-loading'
-            })
+            // Superposition de couleur primaire
+            ctx.fillStyle = 'rgba(139, 18, 255, 0.8)'
+            ctx.fillRect(0, 0, ticketWidth, ticketHeight)
             
-            const response = await fetch(proxyUrl + encodeURIComponent(item.event.imageUrl), {
-              headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-              }
-            })
-            
-            if (response.ok) {
-              // Mettre à jour le loading pour indiquer le chargement de l'image
-              loadingToast.remove('ticket-loading')
-              loadingToast.add({
-                title: 'Génération du ticket',
-                description: 'Image chargée, génération du ticket...',
-                color: 'primary',
-                id: 'ticket-loading'
-              })
-              
-              const blob = await response.blob()
-              const blobUrl = URL.createObjectURL(blob)
-              
-              const bgImg = new Image()
-              await new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => {
-                  reject(new Error('Timeout loading image'))
-                }, 8000)
-                
-                bgImg.onload = () => {
-                  clearTimeout(timeout)
-                  // Dessiner l'image de fond en haute résolution
-                  ctx.drawImage(bgImg, 0, 0, ticketWidth, ticketHeight)
-                  
-                  // Superposition de couleur primaire
-                  ctx.fillStyle = 'rgba(139, 18, 255, 0.8)'
-                  ctx.fillRect(0, 0, ticketWidth, ticketHeight)
-                  
-                  // Nettoyer l'URL
-                  URL.revokeObjectURL(blobUrl)
-                  imageLoaded = true
-                  resolve(true)
-                }
-                bgImg.onerror = () => {
-                  clearTimeout(timeout)
-                  reject(new Error('Erreur de chargement de l\'image'))
-                }
-                bgImg.src = blobUrl
-              })
-              
-              if (imageLoaded) break
-            }
-          } catch (proxyError: unknown) {
-            const errorMessage = proxyError instanceof Error ? proxyError.message : String(proxyError)
-            console.warn(`Proxy ${proxyUrl} échoué:`, errorMessage)
-            continue
+            // Nettoyer l'URL
+            URL.revokeObjectURL(blobUrl)
+            console.log('✅ Image dessinée avec succès')
           }
+          bgImg.onerror = () => {
+            console.warn('Erreur lors du chargement de l\'image')
+            // Fallback: utiliser le dégradé
+            createFallbackBackground()
+          }
+          bgImg.src = blobUrl
+          
+          // Attendre un peu pour que l'image se charge
+          await new Promise(resolve => setTimeout(resolve, 2000))
+        } else {
+          throw new Error(`Erreur HTTP: ${response.status}`)
         }
-        
-        if (!imageLoaded) {
-          throw new Error('Tous les proxies CORS ont échoué')
-        }
-        
       } catch (error) {
-        console.warn('Erreur lors du chargement de l\'image via proxies CORS:', error)
-        // Fallback: créer un fond dégradé élégant
+        console.warn('Erreur lors du chargement de l\'image:', error)
+        console.log('🎨 Utilisation du fond dégradé...')
         createFallbackBackground()
       }
     } else {
-      // Créer un fond dégradé élégant sans image
+      console.log('🎨 Pas d\'image, création du fond dégradé...')
       createFallbackBackground()
     }
+    console.log('✅ Fond créé, passage au texte...')
     
     function createFallbackBackground() {
       if (!ctx) return
@@ -349,6 +294,7 @@ const downloadTicket = async (item: ClientTicketItem) => {
     }
 
     // Configuration du texte
+    console.log('📝 Configuration du texte...')
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
 
@@ -368,10 +314,13 @@ const downloadTicket = async (item: ClientTicketItem) => {
     // Date
     ctx.font = `${14 * scale}px Arial`
     ctx.fillText(formatDate(item.event.startsAt), ticketWidth / 2, 240 * scale)
+    console.log('✅ Texte ajouté au canvas')
 
-    // Générer le QR code
+    // Générer le QR code réel
+    console.log('🔲 Génération du QR code...')
     if (item.qrCode) {
       try {
+        console.log('📱 QR Code détecté, génération en cours...')
         const { $qrCodeStyling } = useNuxtApp()
         const qrCodeStyling = $qrCodeStyling({
           width: 200 * scale,
@@ -388,6 +337,7 @@ const downloadTicket = async (item: ClientTicketItem) => {
         })
 
         const svg = await qrCodeStyling.getRawData('svg')
+        console.log('📄 SVG généré, conversion en image...')
         if (svg) {
           let svgString: string
           if (typeof svg === 'string') {
@@ -399,20 +349,22 @@ const downloadTicket = async (item: ClientTicketItem) => {
           }
 
           const qrImg = new Image()
-          await new Promise((resolve, reject) => {
+          await new Promise<void>((resolve, reject) => {
             const timeout = setTimeout(() => {
               reject(new Error('Timeout loading QR code'))
-            }, 3000)
+            }, 5000)
             
             qrImg.onload = () => {
               clearTimeout(timeout)
+              console.log('🖼️ Dessin du QR code sur le canvas...')
               // Fond blanc pour le QR code (haute résolution)
               ctx.fillStyle = 'white'
               ctx.fillRect(ticketWidth / 2 - 110 * scale, 280 * scale, 220 * scale, 220 * scale)
               
               // Dessiner le QR code (haute résolution)
               ctx.drawImage(qrImg, ticketWidth / 2 - 100 * scale, 290 * scale, 200 * scale, 200 * scale)
-              resolve(true)
+              console.log('✅ QR code dessiné avec succès')
+              resolve()
             }
             qrImg.onerror = () => {
               clearTimeout(timeout)
@@ -423,7 +375,7 @@ const downloadTicket = async (item: ClientTicketItem) => {
               ctx.fillStyle = '#666'
               ctx.font = `${14 * scale}px Arial`
               ctx.fillText('QR Code indisponible', ticketWidth / 2, 390 * scale)
-              resolve(true)
+              resolve()
             }
             qrImg.src = `data:image/svg+xml;base64,${btoa(svgString)}`
           })
@@ -445,34 +397,30 @@ const downloadTicket = async (item: ClientTicketItem) => {
       ctx.font = `${14 * scale}px Arial`
       ctx.fillText('QR Code indisponible', ticketWidth / 2, 390 * scale)
     }
+    console.log('✅ QR code ajouté')
 
     // Télécharger l'image
+    console.log('🎫 Génération du ticket terminée, lancement du téléchargement...')
     const dataUrl = canvas.toDataURL('image/png')
+    console.log('📁 Data URL générée, longueur:', dataUrl.length)
+    
     const link = document.createElement('a')
     link.href = dataUrl
     link.download = `billet-${item.event.title}-${item.ticket.name}.png`
+    link.style.display = 'none'
+    
     document.body.appendChild(link)
+    console.log('🖱️ Clic sur le lien de téléchargement...')
     link.click()
-    document.body.removeChild(link)
-
-    // Fermer le loading avec succès
-    loadingToast.remove('ticket-loading')
-    loadingToast.add({
-      title: 'Ticket généré !',
-      description: 'Le ticket a été téléchargé avec succès',
-      color: 'success'
-    })
+    
+    // Attendre un peu avant de nettoyer
+    setTimeout(() => {
+      document.body.removeChild(link)
+      console.log('✅ Téléchargement lancé avec succès')
+    }, 100)
 
   } catch (error) {
     console.error('Erreur lors du téléchargement du ticket:', error)
-    
-    // Fermer le loading avec erreur
-    loadingToast.remove('ticket-loading')
-    loadingToast.add({
-      title: 'Erreur de génération',
-      description: 'Impossible de générer le ticket. Veuillez réessayer.',
-      color: 'error'
-    })
   }
 }
 
