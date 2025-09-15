@@ -53,7 +53,10 @@
       :key="`invitation-${isVisible}`"
     >
       <div class="max-w-4xl mx-auto">
-        <div class="p-8 sm:p-12 border-2 rounded-2xl border-primary-100">
+        <div 
+          id="invitation-card"
+          class="p-8 sm:p-12 border-2 rounded-2xl border-primary-100"
+        >
           <!-- Titre -->
           <h2 class="text-5xl font-serif font-bold text-center mb-12 text-gray-800 tracking-wide">
             Invitation
@@ -87,15 +90,83 @@
           <!-- Bouton de téléchargement -->
           <div class="text-center mt-12">
             <UButton 
-                  @click="handleDownloadInvitation"
+              @click="handleDownloadInvitation" 
+              :loading="isCapturing"
+              :disabled="isCapturing"
               color="primary" 
               size="lg" 
               class="px-8 py-3 font-serif"
-                >
+            >
               <Download class="w-5 h-5 mr-2" />
-                  Télécharger l'invitation
+              {{ isCapturing ? 'Génération en cours...' : 'Télécharger l\'invitation' }}
             </UButton>
-              </div>
+          </div>
+          
+          <!-- Version simplifiée pour la capture (cachée) -->
+          <div 
+            id="invitation-simple"
+            style="
+              position: absolute;
+              top: -9999px;
+              left: -9999px;
+              width: 1000px; 
+              height: 800px; 
+              background: white; 
+              padding: 60px; 
+              font-family: 'Times New Roman', 'Times', serif;
+              color: #1f2937;
+              border: 3px solid #d1d5db;
+              border-radius: 20px;
+              z-index: -1;
+              box-sizing: border-box;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+            "
+          >
+            <h1 style="
+              font-size: 64px; 
+              font-weight: bold; 
+              text-align: center; 
+              margin-bottom: 60px; 
+              color: #1f2937;
+              font-family: 'Times New Roman', serif;
+              letter-spacing: 2px;
+            ">
+              Invitation
+            </h1>
+            <div style="
+              font-size: 22px; 
+              line-height: 1.8; 
+              text-align: center; 
+              color: #374151;
+              max-width: 800px;
+              margin: 0 auto;
+            ">
+              <p style="
+                font-size: 28px; 
+                font-style: italic; 
+                margin-bottom: 40px; 
+                color: #1f2937;
+                font-family: 'Times New Roman', serif;
+                line-height: 1.4;
+              ">
+                C'est avec une immense joie que nous vous annonçons notre union sacrée devant Dieu.
+              </p>
+              <p style="margin-bottom: 24px; font-size: 20px;">
+                Nous serions honorés de votre présence pour célébrer notre mariage religieux le 
+                <strong style="color: #dc2626; font-size: 22px;">{{ eventDateText }}</strong> 
+                en l'église 
+                <strong style="color: #dc2626; font-size: 22px;">{{ churchName }}</strong> 
+                à 
+                <strong style="color: #dc2626; font-size: 22px;">{{ churchLocation }}</strong>.
+              </p>
+              <p style="font-size: 20px; line-height: 1.6;">
+                À l'issue de la cérémonie, nous vous invitons à partager un moment de convivialité 
+                autour d'un vin d'honneur au 
+                <strong style="color: #dc2626; font-size: 22px;">{{ receptionLocation }}</strong>.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -197,12 +268,16 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Star, Heart, Download } from 'lucide-vue-next'
 import { useGuestBook } from '~/composables/useGuestBook'
+import { useScreenshot } from '~/composables/useScreenshot'
 
 const props = defineProps<{ invitation: any; event?: any }>()
 
 const scrollY = ref(0)
 const isVisible = ref(false)
 const guestMessages = ref<any[]>([])
+
+// Composable pour la capture d'écran
+const { isCapturing, downloadScreenshot } = useScreenshot()
 
 const handleScroll = () => {
   scrollY.value = window.scrollY
@@ -219,8 +294,23 @@ const churchLocation = computed(() => 'Avenue de la Paix, Kinshasa')
 const receptionLocation = computed(() => 'Grand Hôtel de Kinshasa')
 const receptionTime = computed(() => '21h00')
 
-const handleDownloadInvitation = () => {
-  const invitationText = `
+const handleDownloadInvitation = async () => {
+  console.log('🎯 Clic sur le bouton de téléchargement')
+  try {
+    console.log('📸 Tentative de capture d\'écran (version simplifiée)...')
+    await downloadScreenshot('invitation-simple', {
+      filename: `invitation-mariage-${groomName.value.toLowerCase()}-${brideName.value.toLowerCase()}.png`,
+      quality: 1,
+      backgroundColor: '#ffffff',
+      scale: 3
+    })
+    console.log('✅ Capture d\'écran réussie')
+  } catch (error) {
+    console.error('❌ Erreur lors de la capture d\'écran:', error)
+    console.log('🔄 Fallback vers le téléchargement texte...')
+    
+    // Fallback vers le téléchargement texte
+    const invitationText = `
 MARIAGE DE STEVE & STÉPHANIE
 Invitation au Mariage Religieux
 
@@ -236,17 +326,19 @@ autour d'un vin d'honneur au ${receptionLocation.value}.
 
 Avec toute notre affection,
 Steve & Stéphanie
-  `
+    `
 
-  const blob = new Blob([invitationText], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'invitation-mariage-steve-stephanie.txt'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+    const blob = new Blob([invitationText], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'invitation-mariage-steve-stephanie.txt'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    console.log('✅ Téléchargement texte terminé')
+  }
 }
 
 const handleDownloadImage = () => {
