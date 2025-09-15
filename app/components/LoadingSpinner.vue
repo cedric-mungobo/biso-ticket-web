@@ -10,7 +10,7 @@
     ></div>
     <span 
       v-if="text" 
-      class="ml-2 text-sm font-medium"
+      class="ml-2 text-sm font-medium animate-pulse"
       :class="textClass"
     >
       {{ text }}

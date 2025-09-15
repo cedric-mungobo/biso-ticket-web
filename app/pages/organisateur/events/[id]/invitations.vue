@@ -351,7 +351,7 @@ const shareItems = (inv?: any): DropdownMenuItem[] => [
     kbds: ['meta','w'],
     onSelect: () => {
       const url = `${location.origin}/invitation/${inv?.token || inv?.id}`
-      const eventName = event?.name || 'événement'
+      const eventName = event?.title || 'événement'
       const message = `Bonjour,\n\n Vous êtes invité(e) à l'événement "${eventName}" !\n\nCliquez sur le lien ci-dessous pour voir votre invitation :\n${url}`
       const text = encodeURIComponent(message)
       const wa = `https://wa.me/?text=${text}`
