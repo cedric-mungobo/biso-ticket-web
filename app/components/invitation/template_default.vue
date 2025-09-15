@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen ">
       <!-- Hero Section avec parallaxe simple -->
-    <section class="relative h-screen overflow-hidden">
+    <section class="header-image" style="height: 80dvh;">
       <!-- Image de fond avec parallaxe simple -->
       <div
         class="absolute inset-0 bg-cover bg-center bg-no-repeat parallax-bg"
@@ -42,30 +42,18 @@
       </div>
     </section>
 
+  
+
     <!-- Section d'invitation simplifiée -->
     <section 
-      class="py-20 px-2 relative"
-     
+      class="content-section"
       :key="`invitation-${isVisible}`"
     >
-      <!-- Image de fond du template -->
-      <div 
-        class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        :style="{
-          backgroundImage: `url('${templateBackgroundImage}')`
-        }"
-      />
-      
-      <div class="max-w-4xl mx-auto relative z-10"  v-motion
-      :initial="{ opacity: 0, x: 80 }"
-      :visible="{ opacity: 1, x: 0 }"
-      :delay="600"
-      :duration="1800">
-        <div 
-          id="invitation-card"
-          class="p-8 sm:p-12 "
-          style="font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;"
-        >
+      <div class="invitation-content" v-motion
+        :initial="{ opacity: 0, x: 80 }"
+        :visible="{ opacity: 1, x: 0 }"
+        :delay="600"
+        :duration="1800">
           <!-- Titre -->
           <h2 class="text-5xl font-serif font-bold text-center mb-12 tracking-wide" style="color: #794c44;">
             Invitation
@@ -79,7 +67,19 @@
                 <p class="text-2xl font-serif mb-6 italic" style="color: #794c44;">
                   C'est avec une immense joie que nous vous annonçons notre union sacrée devant Dieu.
                 </p>
-                
+                <p class="text-lg mb-4 font-serif" style="color: #794c44;">
+                  Nous serions honorés de votre présence pour célébrer notre mariage religieux le 
+                  <strong class="font-semibold" style="color: #794c44;">{{ eventDateText }}</strong> 
+                  en l'église 
+                  <strong class="font-semibold" style="color: #794c44;">{{ churchName }}</strong> 
+                  à 
+                  <strong class="font-semibold" style="color: #794c44;">{{ churchLocation }}</strong>.
+                </p>
+                <p class="text-lg font-serif" style="color: #794c44;">
+                  À l'issue de la cérémonie, nous vous invitons à partager un moment de convivialité 
+                  autour d'un vin d'honneur au 
+                  <strong class="font-semibold" style="color: #794c44;">{{ receptionLocation }}</strong>.
+                </p>
                 </template>
             </div>
           </div>
@@ -97,9 +97,7 @@
               <Download class="w-5 h-5 mr-2" />
               {{ isGenerating ? 'Génération en cours...' : 'Télécharger l\'invitation' }}
             </UButton>
-          </div>
-          
-        </div>
+            </div>
       </div>
     </section>
 
@@ -245,6 +243,7 @@ const templateBackgroundImage = computed(() => {
   }
   return '/models/template_default.png'
 })
+
 
 // Calculer la taille de police dynamique selon la longueur du texte
 const calculateDynamicFontSize = (text: string) => {
@@ -479,4 +478,57 @@ const guestMessageText = computed(() => {
     transform: translateY(0);
   }
 }
+
+/* Section de l'image d'en-tête (couple) */
+.header-image {
+  background-size: cover;
+  background-position: center 30%;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  color: #fff;
+  padding-bottom: 20px;
+}
+
+/* Section de contenu blanche et la vague */
+.content-section {
+  background-color: #fff;
+  padding: 20px 25px;
+  position: relative;
+  z-index: 3;
+  padding-top: 30px;
+  margin-top: -30px;
+}
+
+/* La VAGUE/PAPIER DÉCHIRÉ */
+.content-section::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1000 100' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'%3E%3Cpath d='M0,40 C200,80 400,0 600,40 S800,80 1000,40 V100 H0 Z' fill='%23ffffff'%3E%3C/path%3E%3C/svg%3E");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.invitation-content h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+  color: #794c44;
+}
+
+.invitation-content p {
+  margin-bottom: 0.8rem;
+  font-size: 1.1rem;
+  color: #794c44;
+}
+
 </style>
