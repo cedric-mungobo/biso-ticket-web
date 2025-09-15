@@ -1,9 +1,9 @@
 <template>
-  <div class=" max-w-5xl mx-auto py-16 p-1">
+  <div class=" max-w-5xl mx-auto py-16  ">
     <!-- Mobile Menu -->
     <div class="">
       <!-- Menu Container -->
-      <div 
+      <!-- <div 
         v-motion
         :initial="{ opacity: 0, y: 50 }"
         :visible-once="{ opacity: 1, y: 0 }"
@@ -33,7 +33,7 @@
             </a>
           </li>
         </ul>
-      </div>
+      </div> -->
     </div>
     
     <!-- Main Content -->
@@ -43,7 +43,7 @@
       :visible-once="{ opacity: 1, y: 0 }"
       :delay="200"
       :duration="1200"
-      class="flex-1 overflow-auto mt-8"
+      class="flex-1 overflow-auto "
     >
       <div class="">
         <slot></slot>

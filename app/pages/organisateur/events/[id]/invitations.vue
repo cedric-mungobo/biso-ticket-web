@@ -10,11 +10,14 @@
         </NuxtLink>
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Invitations</h1>
-          <div class="flex flex-wrap gap-2 w-full sm:w-auto sm:justify-end">
+          <div class="flex flex-wrap gap-2 w-full sm:w-auto sm:justify-end items-center">
+            <div class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
+              <span class="font-medium">{{ credits?.balance ?? 0 }}</span> crédits
+            </div>
             <UButton size="sm" color="primary" @click="showAddGuest=true"><UIcon name="i-heroicons-user-plus" class="w-4 h-4 mr-1" /> Ajouter invité</UButton>
-            <UButton size="sm" color="neutral" @click="showImport=true"><UIcon name="i-heroicons-arrow-up-tray" class="w-4 h-4 mr-1" /> Importer</UButton>
-            <UButton size="sm" color="warning" @click="showTemplate=true"><UIcon name="i-heroicons-swatch" class="w-4 h-4 mr-1" /> Template</UButton>
-            <UButton size="sm" color="neutral" @click="showMessage=true"><UIcon name="i-heroicons-cog-6-tooth" class="w-4 h-4 mr-1" /> Message</UButton>
+            <UButton size="sm" color="neutral" @click="showImport=true"><UIcon name="i-heroicons-arrow-up-tray" class="w-4 h-4 mr-1" /> Importer liste</UButton>
+            <UButton size="sm" color="warning" @click="showTemplate=true"><UIcon name="i-heroicons-swatch" class="w-4 h-4 mr-1" /> Modèle d'invitation</UButton>
+            <UButton size="sm" color="neutral" @click="showMessage=true"><UIcon name="i-heroicons-cog-6-tooth" class="w-4 h-4 mr-1" /> Configuration du message</UButton>
             <UButton size="sm" color="success" @click="openBuyCredits"><UIcon name="i-heroicons-credit-card" class="w-4 h-4 mr-1" /> Acheter crédits</UButton>
           </div>
         </div>
@@ -22,48 +25,26 @@
 
      
       <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-6 space-y-4">
-        <!-- Stats cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
-          <div class="rounded-lg border border-gray-200 p-3 bg-gray-50">
-            <div class="text-xs text-gray-500">Total</div>
-            <div class="text-xl font-semibold text-gray-900">{{ totalCount }}</div>
-          </div>
-          <div class="rounded-lg border border-gray-200 p-3 bg-gray-50">
-            <div class="text-xs text-gray-500">En attente</div>
-            <div class="text-xl font-semibold text-amber-600">{{ pendingCount }}</div>
-          </div>
-          <div class="rounded-lg border border-gray-200 p-3 bg-gray-50">
-            <div class="text-xs text-gray-500">Envoyé</div>
-            <div class="text-xl font-semibold text-primary-600">{{ sentCount }}</div>
-          </div>
-          <div class="rounded-lg border border-gray-200 p-3 bg-gray-50">
-            <div class="text-xs text-gray-500">Confirmé</div>
-            <div class="text-xl font-semibold text-green-600">{{ confirmedCount }}</div>
-          </div>
-          <div class="rounded-lg border border-gray-200 p-3 bg-white">
-            <div class="text-xs text-gray-500">Crédits</div>
-            <div class="text-xl font-semibold text-gray-900">{{ credits?.balance ?? 0 }}</div>
-          </div>
-        </div>
         <div v-if="pending" class="space-y-2">
           <USkeleton class="h-6 w-1/2" />
           <USkeleton class="h-10 w-full" />
         </div>
         <div v-else>
-          <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-            <div class="flex items-center gap-2">
-              <label for="status" class="text-sm text-gray-700">Statut</label>
-              <select id="status" v-model="statusFilter" class="rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500">
+          <div class="flex flex-row items-center gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <label for="status" class="text-xs sm:text-sm text-gray-700 whitespace-nowrap">Statut</label>
+              <select id="status" v-model="statusFilter" class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-primary-500 focus:ring-primary-500 w-24 sm:w-auto min-w-0">
                 <option value="all">Tous</option>
                 <option value="pending">En attente</option>
                 <option value="sent">Envoyé</option>
+                <option value="viewed">Consulté</option>
                 <option value="confirmed">Confirmé</option>
                 <option value="cancelled">Annulé</option>
               </select>
             </div>
-            <div class="flex items-center gap-2">
-              <label for="search" class="text-sm text-gray-700">Recherche</label>
-              <input id="search" v-model="searchQuery" type="text" placeholder="Nom, email, téléphone..." class="rounded-lg border border-gray-300 px-3 py-1 focus:border-primary-500 focus:ring-primary-500" />
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+              <label for="search" class="text-xs sm:text-sm text-gray-700 whitespace-nowrap">Recherche</label>
+              <input id="search" v-model="searchQuery" type="text" placeholder="Nom, email..." class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-primary-500 focus:ring-primary-500 flex-1 min-w-0" />
             </div>
           </div>
 
@@ -85,7 +66,26 @@
                   <td class="py-2 pr-4">{{ inv.guestName || '—' }}</td>
 
                   <td class="py-2 pr-4">{{ inv.guestTableName || '—' }}</td>
-                  <td class="py-2 pr-4 capitalize" :class="{ 'text-primary-600 font-medium': isConfirmed(inv.status) }">{{ statusLabel(inv.status) }}</td>
+                  <td class="py-2 pr-4">
+                    <!-- Mobile: point coloré -->
+                    <div class="sm:hidden flex items-center">
+                      <div 
+                        class="w-3 h-3 rounded-full mr-2" 
+                        :class="{
+                          'bg-amber-500': inv.status === 'pending',
+                          'bg-blue-500': inv.status === 'sent', 
+                          'bg-purple-500': inv.status === 'viewed',
+                          'bg-green-500': inv.status === 'confirmed',
+                          'bg-red-500': inv.status === 'cancelled',
+                          'bg-gray-400': !inv.status
+                        }"
+                      ></div>
+                    </div>
+                    <!-- Desktop: texte complet -->
+                    <div class="hidden sm:block capitalize" :class="{ 'text-primary-600 font-medium': isConfirmed(inv.status) }">
+                      {{ statusLabel(inv.status) }}
+                    </div>
+                  </td>
                   <td class="py-2 pr-4">
                     <div class="flex items-center gap-1">
                       <UTooltip text="Voir">
@@ -159,7 +159,6 @@
         <div class="space-y-3">
           <label class="block text-sm text-gray-700">Message</label>
           <textarea v-model="guestMessage" rows="6" placeholder="Message destiné aux invités (affiché sur l'invitation)" class="rounded-lg border border-gray-300 px-3 py-2 w-full" />
-          <div class="text-xs text-gray-500">Ce contenu mettra à jour <code>settings.guest_message</code> de l'évènement.</div>
         </div>
         <template #footer>
           <UButton variant="ghost" @click="showMessage=false">Fermer</UButton>
@@ -207,10 +206,10 @@
             @change="onImportFile"
             class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
           />
-          <div class="text-xs text-gray-600">Format attendu: <code>name,table_name,phone,email</code> (séparateur "," ou ";"). Seul <strong>name</strong> est requis.</div>
+          <div class="text-xs text-red-600">Format attendu: <code>name,table_name,phone,email</code> (séparateur "," ou ";"). Seul <strong>name</strong> est requis.</div>
           <div v-if="parsedBatch.length" class="text-xs text-gray-700">Lignes détectées: {{ parsedBatch.length }}</div>
           <div>
-            <UButton size="xs" color="neutral" variant="ghost" @click="downloadSampleCsv">Télécharger exemple CSV</UButton>
+            <UButton size="xs" color="primary" class="px-4 py-1" variant="outline" @click="downloadSampleCsv">Télécharger exemple CSV</UButton>
           </div>
         </div>
         <template #footer>
@@ -286,7 +285,7 @@ const backUrl = computed(() => `/organisateur/events/${eventId}`)
 const { fetchEventInvitations, fetchInvitationTemplates, createInvitation, createInvitationsBatch, shareInvitation } = useInvitations()
 const toast = useToast()
 
-const statusFilter = ref<'all'|'pending'|'sent'|'confirmed'|'cancelled'>('all')
+const statusFilter = ref<'all'|'pending'|'sent'|'viewed'|'confirmed'|'cancelled'>('all')
 const searchQuery = ref('')
 const { pending, data, refresh } = await useAsyncData<{ items: any[]; meta: any }>(
   `organizer-event-${eventId}-invitations`,
@@ -346,8 +345,7 @@ const shareItems = (inv?: any): DropdownMenuItem[] => [
     onSelect: () => {
       const url = `${location.origin}/invitation/${inv?.token || inv?.id}`
       const text = encodeURIComponent(`Votre invitation: ${url}`)
-      const phone = (inv?.guestPhone || '').replace(/\D/g, '')
-      const wa = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`
+      const wa = `https://wa.me/?text=${text}`
       window.open(wa, '_blank')
     }
   },
@@ -382,6 +380,7 @@ const statusLabel = (s?: string) => {
   const k = String(s || 'pending').toLowerCase()
   if (k === 'pending') return 'en attente'
   if (k === 'sent') return 'envoyé'
+  if (k === 'viewed') return 'consulté'
   if (k === 'confirmed') return 'confirmé'
   if (k === 'cancelled') return 'annulé'
   return k

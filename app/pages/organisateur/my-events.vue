@@ -2,7 +2,7 @@
   <OrganizerNavigation 
    
   >
-    <div class="p-6 lg:p-8 pb-20 lg:pb-8">
+    <div class="p-1">
       <!-- En-tête de la page -->
       <div class="mb-8">
         <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
@@ -55,18 +55,26 @@
 
       <!-- Liste des événements (Cartes) -->
       <div v-else>
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-6">
           <UCard
             v-for="ev in filteredEvents"
             :key="ev.id"
             class="overflow-hidden"
           >
             <div class="flex items-start gap-3">
-              <img
+              <NuxtImg
+              @click="router.push(`/organisateur/events/${ev.id}?mode=view`)"
+                loading="lazy"
+                placeholder
+                format="webp"
+                quality="75"
+                sizes="sm:100vw md:50vw lg:320px"
+                :decoding="'async'"
+                :fetchpriority="'low'"
                 v-if="ev.image_url"
                 :src="ev.image_url"
                 :alt="ev.name"
-                class="w-28 h-20 object-cover rounded-md flex-shrink-0"
+                class="w-28 h-20  cursor-pointer object-cover rounded-md flex-shrink-0"
               />
 
               <div class="flex-1 min-w-0">
@@ -85,23 +93,74 @@
 
                 <div class="flex items-center gap-1.5 pt-2">
                   <UTooltip text="Voir l'événement">
-                    <UButton :to="`/organisateur/events/${ev.id}?mode=view`" size="xs" variant="ghost" color="primary" aria-label="Voir">
+                    <UButton 
+                      :to="`/organisateur/events/${ev.id}?mode=view`" 
+                      size="xs" 
+                      variant="ghost" 
+                      color="primary" 
+                      aria-label="Voir"
+                      class="hover:bg-primary-50"
+                    >
                       <UIcon name="i-heroicons-eye" class="w-4 h-4" />
                     </UButton>
                   </UTooltip>
-                  <UTooltip text="Gérer">
-                    <UButton :to="`/organisateur/events/${ev.id}`" size="xs" variant="ghost" color="success" aria-label="Gérer">
-                      <UIcon name="i-heroicons-pencil-square" class="w-4 h-4" />
+                  
+                  <UTooltip text="Modifier l'événement">
+                    <UButton 
+                      @click="handleEditEvent(Number(ev.id))"
+                      size="xs" 
+                      variant="ghost" 
+                      color="primary" 
+                      aria-label="Modifier"
+                      class="hover:bg-primary-50"
+                    >
+                      <UIcon name="i-heroicons-pencil" class="w-4 h-4" />
                     </UButton>
                   </UTooltip>
-                  <UTooltip :text="copiedEventId === ev.id ? 'Copié' : 'Copier le lien'">
-                    <UButton size="xs" variant="ghost" color="neutral" aria-label="Copier" @click="copyEventLink(Number(ev.id))">
-                      <UIcon name="i-heroicons-clipboard" class="w-4 h-4" />
+                  
+                  <UTooltip text="Gérer l'événement">
+                    <UButton 
+                      :to="`/organisateur/events/${ev.id}`" 
+                      size="xs" 
+                      variant="ghost" 
+                      color="success" 
+                      aria-label="Gérer"
+                      class="hover:bg-green-50"
+                    >
+                      <UIcon name="i-heroicons-cog-6-tooth" class="w-4 h-4" />
                     </UButton>
                   </UTooltip>
-                  <UTooltip text="Supprimer">
-                    <UButton size="xs" variant="ghost" color="error" aria-label="Supprimer" @click="handleDeleteEvent(Number(ev.id))">
-                      <UIcon name="i-heroicons-trash" class="w-4 h-4" />
+                  
+                  <UTooltip :text="copiedEventId === ev.id ? 'Lien copié !' : 'Copier le lien public'">
+                    <UButton 
+                      size="xs" 
+                      variant="ghost" 
+                      :color="copiedEventId === ev.id ? 'success' : 'neutral'" 
+                      aria-label="Copier le lien"
+                      @click="copyEventLink(Number(ev.id))"
+                      class="hover:bg-gray-50"
+                    >
+                      <UIcon 
+                        :name="copiedEventId === ev.id ? 'i-heroicons-check' : 'i-heroicons-clipboard'" 
+                        class="w-4 h-4" 
+                      />
+                    </UButton>
+                  </UTooltip>
+                  
+                  <UTooltip text="Supprimer l'événement">
+                    <UButton 
+                      size="xs" 
+                      variant="ghost" 
+                      color="error" 
+                      aria-label="Supprimer"
+                      @click="handleDeleteEvent(Number(ev.id))"
+                      :disabled="isDeleting === ev.id"
+                      class="hover:bg-red-50 disabled:opacity-50"
+                    >
+                      <UIcon 
+                        :name="isDeleting === ev.id ? 'i-heroicons-arrow-path' : 'i-heroicons-trash'" 
+                        :class="isDeleting === ev.id ? 'w-4 h-4 animate-spin' : 'w-4 h-4'" 
+                      />
                     </UButton>
                   </UTooltip>
                 </div>
@@ -111,6 +170,60 @@
         </div>
       </div>
     </div>
+
+    <!-- Modale de confirmation de suppression -->
+    <Modal 
+      v-model="showDeleteModal" 
+      title="Confirmer la suppression"
+      :close-on-backdrop="false"
+    >
+      <template #header>
+        <div class="flex items-center gap-2">
+          <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 text-red-500" />
+          <h3 class="text-lg font-semibold">Confirmer la suppression</h3>
+        </div>
+      </template>
+
+      <div v-if="getEventToDelete" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+        <p class="text-sm font-medium text-red-800">
+          Événement à supprimer : <span class="font-semibold">{{ getEventToDelete.name }}</span>
+        </p>
+        <p class="text-xs text-red-600 mt-1">
+          {{ formatDate(getEventToDelete.date_time) }} • {{ getEventToDelete.location }}
+        </p>
+      </div>
+      
+      <p class="text-gray-700 mb-4">
+        Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible et supprimera :
+      </p>
+      <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+        <li>Toutes les données de l'événement</li>
+        <li>Les billets associés</li>
+        <li>Les invitations envoyées</li>
+        <li>L'historique des ventes</li>
+      </ul>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton 
+            variant="ghost" 
+            color="neutral" 
+            @click="cancelDeleteEvent"
+            :disabled="isDeleting !== null"
+          >
+            Annuler
+          </UButton>
+          <UButton 
+            color="error" 
+            @click="confirmDeleteEvent"
+            :loading="isDeleting !== null"
+          >
+            <UIcon name="i-heroicons-trash" class="w-4 h-4 mr-1" />
+            Supprimer définitivement
+          </UButton>
+        </div>
+      </template>
+    </Modal>
   </OrganizerNavigation>
 </template>
 
@@ -124,6 +237,8 @@ definePageMeta({
 })
 
 const UAvatar = resolveComponent('UAvatar')
+const toast = useToast()
+const router = useRouter()
 
 type Event = {
   id: number
@@ -140,6 +255,9 @@ const { fetchMyEvents, formatDate, events, loading, error, deleteEvent } = useOr
 const searchQuery = ref('')
 const copiedEventId = ref<number | null>(null)
 const showFilters = ref(false)
+const isDeleting = ref<number | null>(null)
+const showDeleteModal = ref(false)
+const eventToDelete = ref<number | null>(null)
 
 const columns: TableColumn<any>[] = [
   {
@@ -160,24 +278,74 @@ const toggleFilters = () => {
   showFilters.value = !showFilters.value
 }
 
-const handleDeleteEvent = async (eventId: number) => {
+const handleDeleteEvent = (eventId: number) => {
   if (!eventId || isNaN(eventId)) {
-    alert('Erreur: ID d\'événement invalide')
+    toast.add({
+      title: 'Erreur',
+      description: 'ID d\'événement invalide',
+      color: 'error'
+    })
     return
   }
-  if (confirm('Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible.')) {
-    try {
-      await deleteEvent(eventId)
-      await loadEvents()
-    } catch (error: any) {
-      let errorMessage = 'Erreur lors de la suppression de l\'événement'
-      if (error?.message?.includes('404')) errorMessage = 'Événement non trouvé ou déjà supprimé'
-      else if (error?.message?.includes('403')) errorMessage = 'Permissions insuffisantes'
-      else if (error?.message?.includes('422')) errorMessage = 'Impossible de supprimer (réservations existantes)'
-      alert(errorMessage)
-    }
+  eventToDelete.value = eventId
+  showDeleteModal.value = true
+}
+
+const confirmDeleteEvent = async () => {
+  if (!eventToDelete.value) return
+  
+  try {
+    isDeleting.value = eventToDelete.value
+    await deleteEvent(eventToDelete.value)
+    
+    toast.add({
+      title: 'Succès',
+      description: 'Événement supprimé avec succès',
+      color: 'success'
+    })
+    
+    await loadEvents()
+  } catch (error: any) {
+    let errorMessage = 'Erreur lors de la suppression de l\'événement'
+    if (error?.message?.includes('404')) errorMessage = 'Événement non trouvé ou déjà supprimé'
+    else if (error?.message?.includes('403')) errorMessage = 'Permissions insuffisantes'
+    else if (error?.message?.includes('422')) errorMessage = 'Impossible de supprimer (réservations existantes)'
+    
+    toast.add({
+      title: 'Erreur',
+      description: errorMessage,
+      color: 'error'
+    })
+  } finally {
+    isDeleting.value = null
+    showDeleteModal.value = false
+    eventToDelete.value = null
   }
 }
+
+const cancelDeleteEvent = () => {
+  showDeleteModal.value = false
+  eventToDelete.value = null
+}
+
+const handleEditEvent = (eventId: number) => {
+  if (!eventId || isNaN(eventId)) {
+    toast.add({
+      title: 'Erreur',
+      description: 'ID d\'événement invalide',
+      color: 'error'
+    })
+    return
+  }
+  
+  // Redirection vers la page d'édition
+  router.push(`/organisateur/events/${eventId}/edit`)
+}
+
+const getEventToDelete = computed(() => {
+  if (!eventToDelete.value) return null
+  return events.value.find(e => e.id === eventToDelete.value)
+})
 
 const filteredEvents = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -192,8 +360,13 @@ const filteredEvents = computed(() => {
 const loadEvents = async () => {
   try {
     await fetchMyEvents()
-  } catch (err) {
-    console.error('Erreur:', err)
+  } catch (err: any) {
+    console.error('Erreur lors du chargement des événements:', err)
+    toast.add({
+      title: 'Erreur de chargement',
+      description: err?.message || 'Impossible de charger les événements. Veuillez réessayer.',
+      color: 'error'
+    })
   }
 }
 
@@ -202,11 +375,23 @@ const copyEventLink = async (eventId: number) => {
   try {
     await navigator.clipboard.writeText(eventUrl)
     copiedEventId.value = eventId
+    
+    toast.add({
+      title: 'Lien copié',
+      description: 'Le lien de l\'événement a été copié dans le presse-papiers',
+      color: 'success'
+    })
+    
     setTimeout(() => {
       copiedEventId.value = null
     }, 2000)
   } catch (err) {
     console.error('Erreur lors de la copie:', err)
+    toast.add({
+      title: 'Erreur',
+      description: 'Impossible de copier le lien. Veuillez réessayer.',
+      color: 'error'
+    })
   }
 }
 
@@ -219,6 +404,7 @@ onMounted(() => {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

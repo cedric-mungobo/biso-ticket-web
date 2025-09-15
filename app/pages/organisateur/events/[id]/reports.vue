@@ -42,6 +42,9 @@
             </div>
           </div>
           <div class="flex items-center gap-2 sm:justify-end">
+            <UButton color="warning" variant="soft" :to="scansUrl">
+              <UIcon name="i-heroicons-qr-code" class="w-4 h-4 mr-2" /> Rapport de scan
+            </UButton>
             <UButton color="neutral" variant="soft" @click="exportPdf">
               <UIcon name="i-heroicons-printer" class="w-4 h-4 mr-2" /> Exporter PDF
             </UButton>
@@ -217,6 +220,7 @@ definePageMeta({ middleware: 'authenticated' })
 const route = useRoute()
 const eventId = Number(route.params.id)
 const backUrl = computed(() => `/organisateur/events/${eventId}`)
+const scansUrl = computed(() => `/organisateur/events/${eventId}/scans`)
 
 const filters = reactive<{ period: 'day'|'7d'|'30d'|'custom'; currency: 'USD'|'CDF'; from?: string; to?: string }>({ period: '7d', currency: 'CDF' })
 

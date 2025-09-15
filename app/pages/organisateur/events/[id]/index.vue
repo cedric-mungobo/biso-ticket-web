@@ -1,12 +1,9 @@
 <template>
   <OrganizerNavigation>
-    <div class="">
-
-   
-     
+    <div class=" p-2 md:p-0">
     <div class="">
         <!-- En-tête responsive -->
-        <div class="mb-2">
+        <div class="">
           <!-- Navigation de retour -->
           <div class="mb-2">
             <NuxtLink
@@ -26,7 +23,7 @@
           </div>
           
           <!-- Boutons d'action responsive -->
-          <div class=" grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 p-1">
+          <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 ">
             <!-- Boutons principaux -->
             <template v-for="button in actionButtons" :key="button.id">
               <UButton 
@@ -43,48 +40,67 @@
                 <span>{{ button.label }}</span>
               </UButton>
             </template>
-            <!-- Clé de scan (inline dans la barre d'actions) -->
-            <div v-if="event?.settings?.scanSecret" class="flex items-center gap-2 sm:gap-2 flex-1 sm:flex-none w-full sm:w-auto">
-              <span class="text-sm text-gray-700 whitespace-nowrap">Clé de scan:</span>
-              <input
-                :value="displayedScanSecret"
-                class="rounded-lg border border-gray-300 px-2 py-1 w-full sm:w-24 bg-white text-gray-900"
-                readonly
-              />
-              <UButton
-                variant="ghost"
-                size="md"
-                @click="showScanSecret = !showScanSecret"
-                :title="showScanSecret ? 'Masquer' : 'Afficher'"
-                :ui="{ base: 'min-h-[36px]' }"
-              >
-                <UIcon :name="showScanSecret ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-5 h-5" />
-              </UButton>
-              <UButton variant="ghost" size="md" @click="copyScanSecret" title="Copier" :ui="{ base: 'min-h-[36px]' }">
-                <UIcon name="i-heroicons-clipboard" class="w-5 h-5" />
-              </UButton>
-            </div>
+            <!-- Clé de scan et ID public harmonisés -->
+            <div v-if="event?.settings?.scanSecret || event?.publicId" class="col-span-2 lg:col-span-1 space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+              <!-- Clé de scan -->
+              <div v-if="event?.settings?.scanSecret" class="flex items-center gap-2 w-full">
+                <span class="text-xs sm:text-sm text-gray-700 whitespace-nowrap font-medium">Clé de scan:</span>
+                <div class="flex items-center gap-0 flex-1">
+                  <input
+                    :value="displayedScanSecret"
+                    class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm bg-white text-gray-900 flex-1 md:w-24 min-w-0"
+                    readonly
+                  />
+                  <UButton
+                    variant="ghost"
+                    size="xs"
+                    @click="showScanSecret = !showScanSecret"
+                    :title="showScanSecret ? 'Masquer' : 'Afficher'"
+                    class="min-h-[32px] min-w-[32px] p-1 "
+                  >
+                    <UIcon :name="showScanSecret ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-4 h-4" />
+                  </UButton>
+                  <UButton 
+                    variant="ghost" 
+                    size="xs" 
+                    @click="copyScanSecret" 
+                    title="Copier" 
+                    class="min-h-[32px] min-w-[32px] p-1 "
+                  >
+                    <UIcon name="i-heroicons-clipboard" class="w-4 h-4" />
+                  </UButton>
+                </div>
+              </div>
 
-            <!-- ID public (à côté de la clé de scan) -->
-            <div v-if="event?.publicId" class="flex items-center gap-2 sm:gap-2 flex-1 sm:flex-none w-full sm:w-auto">
-              <span class="text-sm text-gray-700 whitespace-nowrap">ID public:</span>
-              <input
-                :value="displayedPublicId"
-                class="rounded-lg border border-gray-300 px-2 py-1 w-full sm:w-24 bg-white text-gray-900"
-                readonly
-              />
-              <UButton
-                variant="ghost"
-                size="md"
-                @click="showPublicId = !showPublicId"
-                :title="showPublicId ? 'Masquer' : 'Afficher'"
-                :ui="{ base: 'min-h-[36px]' }"
-              >
-                <UIcon :name="showPublicId ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-5 h-5" />
-              </UButton>
-              <UButton variant="ghost" size="md" @click="copyPublicId" title="Copier" :ui="{ base: 'min-h-[36px]' }">
-                <UIcon name="i-heroicons-clipboard" class="w-5 h-5" />
-              </UButton>
+              <!-- ID public -->
+              <div v-if="event?.publicId" class="flex items-center gap-2 w-full">
+                <span class="text-xs sm:text-sm text-gray-700 whitespace-nowrap font-medium">ID public:</span>
+                <div class="flex items-center gap-0 flex-1">
+                  <input
+                    :value="displayedPublicId"
+                    class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm bg-white text-gray-900 flex-1 min-w-0"
+                    readonly
+                  />
+                  <UButton
+                    variant="ghost"
+                    size="xs"
+                    @click="showPublicId = !showPublicId"
+                    :title="showPublicId ? 'Masquer' : 'Afficher'"
+                    class="min-h-[32px] min-w-[32px] p-1 -ml-1"
+                  >
+                    <UIcon :name="showPublicId ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-4 h-4" />
+                  </UButton>
+                  <UButton 
+                    variant="ghost" 
+                    size="xs" 
+                    @click="copyPublicId" 
+                    title="Copier" 
+                    class="min-h-[32px] min-w-[32px] p-1 -ml-2"
+                  >
+                    <UIcon name="i-heroicons-clipboard" class="w-4 h-4" />
+                  </UButton>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -101,7 +117,7 @@
           {{ error }}
       </div>
 
-        <div v-else-if="event" class="space-y-6">
+        <div v-else-if="event" class="space-y-6 py-2">
           <UCard class="overflow-hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
               <!-- Image à gauche -->
@@ -159,6 +175,20 @@
       <!-- Modals -->
       <Modal v-model="showTicketsList" title="Liste des tickets" class="modal-mobile-optimized">
         <div class="modal-content-mobile">
+          <!-- Bouton Ajouter un ticket -->
+          <div class="mb-4 flex justify-end">
+            <UButton 
+              @click="openCreateTicket"
+              variant="solid"
+              color="success"
+              size="sm"
+              class="shadow-sm"
+            >
+              <UIcon name="i-heroicons-plus" class="w-4 h-4 mr-2" />
+              Ajouter un ticket
+            </UButton>
+          </div>
+
           <div v-if="ticketsLoading" class="space-y-3">
             <USkeleton class="h-16 w-full" />
             <USkeleton class="h-16 w-full" />
@@ -167,6 +197,16 @@
           <div v-else-if="!tickets || tickets.length === 0" class="text-center py-6">
             <UIcon name="i-heroicons-ticket" class="w-10 h-10 text-gray-400 mx-auto mb-3" />
             <p class="text-sm text-gray-500">Aucun ticket configuré.</p>
+            <UButton 
+              @click="openCreateTicket"
+              variant="solid"
+              color="success"
+              size="sm"
+              class="mt-4"
+            >
+              <UIcon name="i-heroicons-plus" class="w-4 h-4 mr-2" />
+              Créer votre premier ticket
+            </UButton>
           </div>
           <div v-else class="space-y-3">
             <div v-for="t in tickets" :key="t.id" class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -237,45 +277,7 @@
         </template>
       </Modal>
 
-      <!-- Achat crédits d'invitation -->
-      <Modal v-model="showCredits" title="Acheter des crédits d'invitation">
-        <div class="space-y-3">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-gray-700">Crédits</label>
-              <input v-model.number="creditsForm.credits" type="number" min="1" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
-            </div>
-            <div>
-              <label class="block text-sm text-gray-700">Devise</label>
-              <select v-model="creditsForm.currency" class="rounded-lg border border-gray-300 px-3 py-1 w-full">
-                <option value="CDF">CDF</option>
-                <option value="USD">USD</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm text-gray-700">Téléphone (Mobile Money)</label>
-            <input v-model="creditsForm.phone" placeholder="243xxxxxxxxx" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
-          </div>
-        </div>
-        <template #footer>
-          <UButton variant="ghost" @click="showCredits=false">Fermer</UButton>
-          <UButton color="primary" @click="purchaseCredits">Acheter</UButton>
-        </template>
-      </Modal>
 
-      <!-- Confirmation suppression événement (Modal custom) -->
-      <Modal v-model="showEventDeleteConfirm" title="Supprimer l'événement ?">
-        <div class="modal-content-mobile">
-          <p class="text-sm text-gray-600">
-            Cette action est irréversible. Confirmez-vous la suppression de cet événement ?
-          </p>
-        </div>
-        <template #footer>
-          <UButton variant="ghost" @click="showEventDeleteConfirm=false">Annuler</UButton>
-          <UButton color="error" :loading="eventDeleting" @click="confirmDeleteEvent">Supprimer</UButton>
-        </template>
-      </Modal>
     </div>
   </OrganizerNavigation>
 </template>
@@ -283,7 +285,6 @@
 <script lang="ts" setup>
 // @ts-nocheck
 import TicketForm from '~/components/organizer/forms/TicketForm.vue'
-import EventForm from '~/components/organizer/forms/EventForm.vue'
 import LoadingOverlay from '~/components/LoadingOverlay.vue'
 
 definePageMeta({ middleware: 'authenticated' })
@@ -292,7 +293,7 @@ const route = useRoute()
 const router = useRouter()
 const eventId = Number(route.params.id)
 
-const { fetchEventWithState, fetchEventTickets, updateTicket, deleteTicket, updateEvent, deleteEvent, currentEvent, formatDate, loading, error } = useOrganizerEvents()
+const { fetchEventWithState, fetchEventTickets, updateTicket, deleteTicket, currentEvent, formatDate, loading, error } = useOrganizerEvents()
 const { isLoading, withLoading, preventMultipleSubmissions } = useLoading()
 
 const event = computed(() => currentEvent.value)
@@ -307,10 +308,8 @@ const statusColor = computed(() => {
 })
 
 const publicUrl = computed(() => `/evenements/${event.value?.slug || eventId}`)
-const editUrl = computed(() => `/organisateur/events/${eventId}?mode=edit`)
 const ordersUrl = computed(() => `/organisateur/events/${eventId}/orders`)
 const reportsUrl = computed(() => `/organisateur/events/${eventId}/reports`)
-const scansUrl = computed(() => `/organisateur/events/${eventId}/scans`)
 const invitationsUrl = computed(() => `/organisateur/events/${eventId}/invitations`)
 
 // Configuration des boutons d'action
@@ -319,7 +318,7 @@ const actionButtons = computed(() => [
     id: 'tickets',
     label: 'Mes tickets',
     icon: 'i-heroicons-ticket',
-    variant: 'solid',
+    variant: 'soft',
     size: 'md',
     color: 'primary',
     class: 'shadow-sm w-full sm:w-auto rounded-2xl',
@@ -330,7 +329,7 @@ const actionButtons = computed(() => [
     id: 'invitations',
     label: 'Mes invités',
     icon: 'i-heroicons-envelope',
-    variant: 'solid',
+    variant: 'soft',
     size: 'md',
     color: 'secondary',
     class: 'shadow-sm w-full sm:w-auto rounded-2xl',
@@ -339,32 +338,10 @@ const actionButtons = computed(() => [
     action: null
   },
   {
-    id: 'credits',
-    label: 'Acheter des crédits',
-    icon: 'i-heroicons-banknotes',
-    variant: 'solid',
-    size: 'md',
-    color: 'primary',
-    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
-    ui: { base: 'min-h-[44px] touch-manipulation' },
-    action: () => { showCredits.value = true }
-  },
-  {
-    id: 'add-ticket',
-    label: 'Ajouter un ticket',
-    icon: 'i-heroicons-plus',
-    variant: 'solid',
-    size: 'md',
-    color: 'success',
-    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
-    ui: { base: 'min-h-[44px] touch-manipulation' },
-    action: () => openCreateTicket()
-  },
-  {
     id: 'orders',
     label: 'Rapports de ventes',
     icon: 'i-heroicons-clipboard-document-list',
-    variant: 'solid',
+    variant: 'soft',
     size: 'md',
     color: 'secondary',
     class: 'shadow-sm w-full sm:w-auto rounded-2xl',
@@ -372,21 +349,10 @@ const actionButtons = computed(() => [
     action: () => openOrders()
   },
   {
-    id: 'edit-event',
-    label: 'Modifier l\'événement',
-    icon: 'i-heroicons-pencil',
-    variant: 'outline',
-    size: 'md',
-    color: 'primary',
-    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
-    ui: { base: 'min-h-[44px] touch-manipulation' },
-    action: () => editEvent()
-  },
-  {
     id: 'reports',
     label: 'Rapport de l\'événement',
     icon: 'i-heroicons-chart-bar',
-    variant: 'solid',
+    variant: 'soft',
     size: 'md',
     color: 'neutral',
     class: 'shadow-sm w-full sm:w-auto rounded-2xl',
@@ -394,30 +360,7 @@ const actionButtons = computed(() => [
     to: reportsUrl.value,
     action: null
   },
-  {
-    id: 'scans',
-    label: 'Logs de scan',
-    icon: 'i-heroicons-qr-code',
-    variant: 'solid',
-    size: 'md',
-    color: 'warning',
-    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
-    ui: { base: 'min-h-[44px] touch-manipulation' },
-    to: scansUrl.value,
-    action: null
-  },
  
-  {
-    id: 'delete-event',
-    label: 'Supprimer',
-    icon: 'i-heroicons-trash',
-    variant: 'solid',
-    size: 'md',
-    color: 'error',
-    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
-    ui: { base: 'min-h-[44px] touch-manipulation' },
-    action: () => openDeleteConfirm()
-  }
  
 ])
 
@@ -439,20 +382,13 @@ const showTicketView = ref(false)
 const showTicketCreate = ref(false)
 const showTicketEdit = ref(false)
 const showTicketDelete = ref(false)
-const showEventEdit = ref(false)
 const showTicketsList = ref(false)
-const showEventDeleteConfirm = ref(false)
-const eventDeleting = ref(false)
-const showCredits = ref(false)
 const showScanSecret = ref(false)
 const showPublicId = ref(false)
 
 const currentTicket = ref<any>(null)
 const ticketForm = ref<any>({ type: '', price: 0, quantity: 1, devise: 'USD' })
-const eventForm = ref<any>({})
 
-// Utilisation du loading du composable pour l'édition d'événement
-const submitting = isLoading
 
 const getApiErrorMessage = (err: any): string => {
   const response = err?.response
@@ -529,43 +465,12 @@ const openDeleteTicket = (t: any) => {
   showTicketDelete.value = true
 }
 
-const openEditEvent = () => {
-  eventForm.value = {
-    title: event.value?.name || event.value?.title,
-    location: event.value?.location,
-    starts_at: event.value?.date_time ? new Date(event.value.date_time).toISOString().slice(0,16) : (event.value?.startsAt ? new Date(event.value.startsAt).toISOString().slice(0,16) : ''),
-    ends_at: event.value?.ends_at ? new Date(event.value.ends_at).toISOString().slice(0,16) : (event.value?.endsAt ? new Date(event.value.endsAt).toISOString().slice(0,16) : ''),
-    description: event.value?.description || '',
-    status: event.value?.status,
-    is_public: typeof event.value?.is_public === 'boolean' ? event.value.is_public : (typeof event.value?.isPublic === 'boolean' ? event.value.isPublic : true),
-    settings: { 
-      scan_enabled: event.value?.settings?.scan_enabled ?? true,
-      tags: event.value?.settings?.tags || [], 
-      categories: event.value?.settings?.categories || [] 
-    },
-    image_url: event.value?.image_url || event.value?.imageUrl,
-    image: null // Initialiser le champ image pour l'upload
-  }
-  showEventEdit.value = true
-}
 
 const openOrders = () => {
   navigateTo(ordersUrl.value)
 }
 
-const editEvent = () => {
-  navigateTo(`/organisateur/events/${eventId}/edit`)
-}
 
-const { purchaseCredits: repoPurchaseCredits } = useOrganizerEvents()
-const creditsForm = reactive({ credits: 10, currency: 'CDF', phone: '' })
-const purchaseCredits = preventMultipleSubmissions(async () => {
-  await withLoading(async () => {
-    await repoPurchaseCredits({ credits: Number(creditsForm.credits), currency: creditsForm.currency, phone: creditsForm.phone })
-    toast.add({ title: 'Demande envoyée', description: 'Vérifiez le push Mobile Money.', color: 'success' })
-    showCredits.value = false
-  }, 'Achat de crédits...')
-})
 
 const ticketSubmitting = ref(false)
 
@@ -617,64 +522,7 @@ const handleDeleteTicket = async () => {
   }
 }
 
-const handleUpdateEvent = preventMultipleSubmissions(async (data: any) => {
-  await withLoading(async () => {
-    // Préparer les données selon la documentation API
-    const apiBody: any = {
-      title: data.title,
-      location: data.location,
-      starts_at: data.starts_at ? new Date(data.starts_at).toISOString() : undefined,
-      ends_at: data.ends_at ? new Date(data.ends_at).toISOString() : undefined,
-      description: data.description,
-      status: data.status,
-      is_public: data.is_public,
-      settings: {
-        scan_enabled: data.settings?.scan_enabled,
-        tags: data.settings?.tags || [],
-        categories: data.settings?.categories || []
-      }
-    }
-    
-    console.log('Mise à jour de l\'événement en cours...', apiBody)
-    console.log('Image reçue:', data.image ? `${data.image.name} (${data.image.size} bytes)` : 'Aucune image')
-    console.log('Type de data.image:', typeof data.image)
-    console.log('data.image est null?', data.image === null)
-    console.log('data.image est undefined?', data.image === undefined)
-    console.log('data.image est File?', data.image instanceof File)
-    
-    await updateEvent(eventId, apiBody, data.image)
-    showEventEdit.value = false
-    await fetchEventWithState(eventId)
-    
-    toast.add({
-      title: 'Succès',
-      description: 'L\'événement a été mis à jour avec succès',
-      color: 'success'
-    })
-  }, 'Mise à jour de l\'événement...').catch((error: any) => {
-    console.error('Erreur lors de la mise à jour:', error)
-    // Les toasts d'erreur sont maintenant gérés automatiquement par myFetch
-  })
-})
 
-const openDeleteConfirm = () => {
-  showEventDeleteConfirm.value = true
-}
-
-const confirmDeleteEvent = async () => {
-  if (!eventId) return
-  try {
-    eventDeleting.value = true
-    await deleteEvent(eventId)
-    showEventDeleteConfirm.value = false
-    toast.add({ title: 'Événement supprimé', description: 'L’événement a été supprimé.', color: 'success' })
-    await router.push('/organisateur/my-events')
-  } catch (e) {
-    toast.add({ title: 'Erreur lors de la suppression', description: getApiErrorMessage(e), color: 'error' })
-  } finally {
-    eventDeleting.value = false
-  }
-}
 </script>
 
 <style scoped>
