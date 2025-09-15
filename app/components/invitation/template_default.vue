@@ -56,6 +56,7 @@
         <div 
           id="invitation-card"
           class="p-8 sm:p-12 border-2 rounded-2xl border-primary-100"
+          style="font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;"
         >
           <!-- Titre -->
           <h2 class="text-5xl font-serif font-bold text-center mb-12 text-gray-800 tracking-wide">
@@ -91,82 +92,17 @@
           <div class="text-center mt-12">
             <UButton 
               @click="handleDownloadInvitation" 
-              :loading="isCapturing"
-              :disabled="isCapturing"
+              :loading="isGenerating"
+              :disabled="isGenerating"
               color="primary" 
               size="lg" 
               class="px-8 py-3 font-serif"
             >
               <Download class="w-5 h-5 mr-2" />
-              {{ isCapturing ? 'Génération en cours...' : 'Télécharger l\'invitation' }}
+              {{ isGenerating ? 'Génération en cours...' : 'Télécharger l\'invitation' }}
             </UButton>
           </div>
           
-          <!-- Version simplifiée pour la capture (cachée) -->
-          <div 
-            id="invitation-simple"
-            style="
-              position: absolute;
-              top: -9999px;
-              left: -9999px;
-              width: 1000px; 
-              height: 800px; 
-              background: white; 
-              padding: 60px; 
-              font-family: 'Times New Roman', 'Times', serif;
-              color: #1f2937;
-              border: 3px solid #d1d5db;
-              border-radius: 20px;
-              z-index: -1;
-              box-sizing: border-box;
-              -webkit-font-smoothing: antialiased;
-              -moz-osx-font-smoothing: grayscale;
-            "
-          >
-            <h1 style="
-              font-size: 64px; 
-              font-weight: bold; 
-              text-align: center; 
-              margin-bottom: 60px; 
-              color: #1f2937;
-              font-family: 'Times New Roman', serif;
-              letter-spacing: 2px;
-            ">
-              Invitation
-            </h1>
-            <div style="
-              font-size: 22px; 
-              line-height: 1.8; 
-              text-align: center; 
-              color: #374151;
-              max-width: 800px;
-              margin: 0 auto;
-            ">
-              <p style="
-                font-size: 28px; 
-                font-style: italic; 
-                margin-bottom: 40px; 
-                color: #1f2937;
-                font-family: 'Times New Roman', serif;
-                line-height: 1.4;
-              ">
-                C'est avec une immense joie que nous vous annonçons notre union sacrée devant Dieu.
-              </p>
-              <p style="margin-bottom: 24px; font-size: 20px;">
-                Nous serions honorés de votre présence pour célébrer notre mariage religieux le 
-                <strong style="color: #dc2626; font-size: 22px;">{{ eventDateText }}</strong> 
-                en l'église 
-                <strong style="color: #dc2626; font-size: 22px;">{{ churchName }}</strong> 
-                à 
-                <strong style="color: #dc2626; font-size: 22px;">{{ churchLocation }}</strong>.
-              </p>
-              <p style="font-size: 20px; line-height: 1.6;">
-                À l'issue de la cérémonie, nous vous invitons à partager un moment de convivialité 
-                autour d'un vin d'honneur au 
-                <strong style="color: #dc2626; font-size: 22px;">{{ receptionLocation }}</strong>.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -268,7 +204,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Star, Heart, Download } from 'lucide-vue-next'
 import { useGuestBook } from '~/composables/useGuestBook'
-import { useScreenshot } from '~/composables/useScreenshot'
+import { useCanvasImage } from '~/composables/useCanvasImage'
 
 const props = defineProps<{ invitation: any; event?: any }>()
 
@@ -276,8 +212,8 @@ const scrollY = ref(0)
 const isVisible = ref(false)
 const guestMessages = ref<any[]>([])
 
-// Composable pour la capture d'écran
-const { isCapturing, downloadScreenshot } = useScreenshot()
+// Composable pour la génération d'image Canvas
+const { isGenerating, downloadInvitationImage } = useCanvasImage()
 
 const handleScroll = () => {
   scrollY.value = window.scrollY
@@ -294,24 +230,91 @@ const churchLocation = computed(() => 'Avenue de la Paix, Kinshasa')
 const receptionLocation = computed(() => 'Grand Hôtel de Kinshasa')
 const receptionTime = computed(() => '21h00')
 
+// Propriétés pour l'affichage
+const eventImage = computed(() => {
+  // Priorité à l'image de l'événement, sinon image par défaut pour mariage
+  const eventImg = props.event?.imageUrl || props.invitation?.event?.imageUrl
+  if (eventImg) return eventImg
+  
+  // Image par défaut pour mariage
+  return 'https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+})
+
+const eventDateText = computed(() => eventDate.value)
+
+const templateBackgroundImage = computed(() => {
+  const templateKey = props.invitation?.invitationTemplate?.designKey
+  if (templateKey) {
+    return `/models/${templateKey}.png`
+  }
+  return '/models/template_default.png'
+})
+
+// Calculer la taille de police dynamique selon la longueur du texte
+const calculateDynamicFontSize = (text: string) => {
+  if (!text) return 32
+  
+  const textLength = text.length
+  const maxLength = 500 // Longueur maximale pour la plus petite police
+  
+  // Taille de base
+  let baseSize = 32
+  
+  // Réduire la taille si le texte est long
+  if (textLength > 200) {
+    baseSize = 28
+  }
+  if (textLength > 400) {
+    baseSize = 24
+  }
+  if (textLength > 600) {
+    baseSize = 20
+  }
+  if (textLength > 800) {
+    baseSize = 18
+  }
+  if (textLength > 1000) {
+    baseSize = 16
+  }
+  
+  return baseSize
+}
+
+// Test de l'image de fond
+const testBackgroundImage = async () => {
+  const img = new Image()
+  img.onload = () => {
+    console.log('✅ Image de fond chargée:', templateBackgroundImage.value)
+  }
+  img.onerror = () => {
+    console.log('❌ Image de fond non trouvée:', templateBackgroundImage.value)
+  }
+  img.src = templateBackgroundImage.value
+}
+
 const handleDownloadInvitation = async () => {
-  console.log('🎯 Clic sur le bouton de téléchargement')
   try {
-    console.log('📸 Tentative de capture d\'écran (version simplifiée)...')
-    await downloadScreenshot('invitation-simple', {
-      filename: `invitation-mariage-${groomName.value.toLowerCase()}-${brideName.value.toLowerCase()}.png`,
-      quality: 1,
-      backgroundColor: '#ffffff',
-      scale: 3
-    })
-    console.log('✅ Capture d\'écran réussie')
-  } catch (error) {
-    console.error('❌ Erreur lors de la capture d\'écran:', error)
-    console.log('🔄 Fallback vers le téléchargement texte...')
+    // Tester l'image de fond d'abord
+    await testBackgroundImage()
     
+    const invitationData = {
+      guestMessage: guestMessageText.value || undefined,
+      backgroundImage: templateBackgroundImage.value,
+      textStartY: 200,
+      textColor: '#794c44', // Couleur du message principal
+      titleColor: '#794c44', // Couleur du titre
+      accentColor: '#794c44', // Couleur d'accent
+      signatureColor: '#794c44', // Couleur de la signature (gris)
+      messagePadding: 200, // Padding horizontal de 200px de chaque côté
+      textAlign: 'left' as const, // Alignement du texte à gauche
+      messageFontSize: calculateDynamicFontSize(guestMessageText.value || '') // Taille dynamique selon la longueur
+    }
+    
+    await downloadInvitationImage(invitationData)
+  } catch (error) {
     // Fallback vers le téléchargement texte
     const invitationText = `
-MARIAGE DE STEVE & STÉPHANIE
+MARIAGE DE ${groomName.value.toUpperCase()} & ${brideName.value.toUpperCase()}
 Invitation au Mariage Religieux
 
 Cher(e) ${props.invitation?.guestName || 'Invité'},
@@ -325,19 +328,18 @@ ${eventDate.value} à ${eventTime.value} en l'église ${churchName.value} à ${c
 autour d'un vin d'honneur au ${receptionLocation.value}.
 
 Avec toute notre affection,
-Steve & Stéphanie
+${groomName.value} & ${brideName.value}
     `
 
     const blob = new Blob([invitationText], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'invitation-mariage-steve-stephanie.txt'
+    a.download = `invitation-mariage-${groomName.value.toLowerCase()}-${brideName.value.toLowerCase()}.txt`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    console.log('✅ Téléchargement texte terminé')
   }
 }
 
@@ -367,32 +369,6 @@ const handleDownloadImage = () => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
-// Computed properties pour les données de l'événement
-const eventTitle = computed(() => `Mariage de ${groomName.value} & ${brideName.value}`)
-const eventImage = computed(() => {
-  // Priorité à l'image de l'événement, sinon image par défaut pour mariage
-  const eventImg = props.event?.imageUrl || props.invitation?.event?.imageUrl
-  if (eventImg) return eventImg
-  
-  // Image par défaut pour mariage
-  return 'https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-})
-
-const eventDateText = computed(() => eventDate.value)
-    const guestMessageText = computed(() => {
-      // Priorité à l'événement passé en props
-      if (props.event?.settings?.guestMessage) {
-        return props.event.settings.guestMessage
-      }
-      // Sinon, chercher dans l'invitation
-      if (props.invitation?.event?.settings?.guestMessage) {
-        return props.invitation.event.settings.guestMessage
-      }
-      // Fallback vers les anciennes clés
-      return props.event?.settings?.guest_message || 
-             props.invitation?.event?.settings?.guest_message || 
-             ''
-})
 
 // Guest book (public API) via composable
 const tokenRef = computed(() => props.invitation?.token)
@@ -407,40 +383,58 @@ const {
   confirm: confirmPresenceBase
 } = useGuestBook({ token: tokenRef, slug: slugRef, eventId: eventIdRef })
 
-    // Wrapper pour la fonction de confirmation qui met à jour les props
-    const confirmPresence = async () => {
+// Wrapper pour la fonction de confirmation qui met à jour les props
+const confirmPresence = async () => {
+  await confirmPresenceBase()
+  // Mettre à jour les données du composant parent
+  if (props.invitation) {
+    props.invitation.status = 'confirmed'
+    props.invitation.confirmedAt = new Date().toISOString()
+  }
+}
+
+// Confirmation automatique au montage
+const autoConfirmPresence = async () => {
+  // Vérifier si pas encore confirmé
+  if (!isConfirmedFromProps.value && tokenRef.value) {
+    try {
+      console.log('Confirmation automatique de la présence...')
       await confirmPresenceBase()
       // Mettre à jour les données du composant parent
       if (props.invitation) {
         props.invitation.status = 'confirmed'
         props.invitation.confirmedAt = new Date().toISOString()
       }
+      console.log('Présence confirmée automatiquement')
+    } catch (error) {
+      console.warn('Erreur lors de la confirmation automatique:', error)
     }
-
-    // Confirmation automatique au montage
-    const autoConfirmPresence = async () => {
-      // Vérifier si pas encore confirmé
-      if (!isConfirmedFromProps.value && tokenRef.value) {
-        try {
-          console.log('Confirmation automatique de la présence...')
-          await confirmPresenceBase()
-          // Mettre à jour les données du composant parent
-          if (props.invitation) {
-            props.invitation.status = 'confirmed'
-            props.invitation.confirmedAt = new Date().toISOString()
-          }
-          console.log('Présence confirmée automatiquement')
-        } catch (error) {
-          console.warn('Erreur lors de la confirmation automatique:', error)
-        }
-      }
-    }
+  }
+}
 
 // Utiliser les données déjà chargées depuis le composant parent
 const invitationData = computed(() => props.invitation)
 const isConfirmedFromProps = computed(() => invitationData.value?.status === 'confirmed')
 
 const currentYear = computed(() => new Date().getFullYear())
+
+// Computed properties pour les données de l'événement
+const eventTitle = computed(() => `Mariage de ${groomName.value} & ${brideName.value}`)
+const guestMessageText = computed(() => {
+  // Priorité à l'événement passé en props
+  if (props.event?.settings?.guestMessage) {
+    return props.event.settings.guestMessage
+  }
+  // Sinon, chercher dans l'invitation
+  if (props.invitation?.event?.settings?.guestMessage) {
+    return props.invitation.event.settings.guestMessage
+  }
+  // Fallback vers les anciennes clés
+  return props.event?.settings?.guest_message || 
+         props.invitation?.event?.settings?.guest_message || 
+         ''
+})
+
 </script>
 
 

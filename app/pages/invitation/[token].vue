@@ -142,14 +142,14 @@ const loadTemplate = async () => {
   console.log('Chargement du template pour key:', key)
   
   try {
-    const component = await loadTemplateComponent(key)
-    currentTemplate.value = component
+        const component = await loadTemplateComponent(key)
+        currentTemplate.value = markRaw(component)
     console.log('Template chargé avec succès:', key)
   } catch (error) {
     console.error('Erreur lors du chargement du template:', error)
     // Fallback vers le template par défaut
     const fallback = await import('~/components/invitation/template_default.vue')
-    currentTemplate.value = fallback.default || fallback
+    currentTemplate.value = markRaw(fallback.default || fallback)
   }
 }
 
