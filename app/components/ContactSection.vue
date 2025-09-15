@@ -1,6 +1,10 @@
 <template>
   <!-- Contact Section -->
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-24">
+  <div    v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200" class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-24">
     <div class="mb-6 sm:mb-10 max-w-2xl text-center mx-auto">
       <h2 class="font-medium text-black text-2xl sm:text-4xl dark:text-white">
         Contacts

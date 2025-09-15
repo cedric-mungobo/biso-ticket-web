@@ -283,7 +283,11 @@ const eventId = Number(route.params.id)
 const backUrl = computed(() => `/organisateur/events/${eventId}`)
 
 const { fetchEventInvitations, fetchInvitationTemplates, createInvitation, createInvitationsBatch, shareInvitation } = useInvitations()
+const { fetchEventWithState, currentEvent } = useOrganizerEvents()
 const toast = useToast()
+
+// Récupérer les informations de l'événement
+const event = computed(() => currentEvent.value)
 
 const statusFilter = ref<'all'|'pending'|'sent'|'viewed'|'confirmed'|'cancelled'>('all')
 const searchQuery = ref('')
@@ -299,7 +303,10 @@ const totalPages = computed(() => Math.max(1, Number((data.value as any)?.meta?.
 watch([perPage, currentPage], () => { refresh() })
 const prevPage = () => { if (currentPage.value > 1) currentPage.value-- }
 const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
-onMounted(() => { refresh() })
+onMounted(async () => { 
+  await fetchEventWithState(eventId)
+  refresh() 
+})
 const totalCount = computed(() => invitations.value.length)
 const pendingCount = computed(() => invitations.value.filter(i => String(i.status || '').toLowerCase() === 'pending').length)
 const sentCount = computed(() => invitations.value.filter(i => String(i.status || '').toLowerCase() === 'sent').length)
@@ -344,7 +351,9 @@ const shareItems = (inv?: any): DropdownMenuItem[] => [
     kbds: ['meta','w'],
     onSelect: () => {
       const url = `${location.origin}/invitation/${inv?.token || inv?.id}`
-      const text = encodeURIComponent(`Votre invitation: ${url}`)
+      const eventName = event?.name || 'événement'
+      const message = `Bonjour,\n\n Vous êtes invité(e) à l'événement "${eventName}" !\n\nCliquez sur le lien ci-dessous pour voir votre invitation :\n${url}`
+      const text = encodeURIComponent(message)
       const wa = `https://wa.me/?text=${text}`
       window.open(wa, '_blank')
     }
