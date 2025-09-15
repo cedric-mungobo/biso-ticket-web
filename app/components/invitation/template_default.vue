@@ -44,46 +44,42 @@
 
     <!-- Section d'invitation simplifiée -->
     <section 
-      class="py-20 px-2"
-      v-motion
+      class="py-20 px-2 relative"
+     
+      :key="`invitation-${isVisible}`"
+    >
+      <!-- Image de fond du template -->
+      <div 
+        class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        :style="{
+          backgroundImage: `url('${templateBackgroundImage}')`
+        }"
+      />
+      
+      <div class="max-w-4xl mx-auto relative z-10"  v-motion
       :initial="{ opacity: 0, x: 80 }"
       :visible="{ opacity: 1, x: 0 }"
       :delay="600"
-      :duration="1800"
-      :key="`invitation-${isVisible}`"
-    >
-      <div class="max-w-4xl mx-auto">
+      :duration="1800">
         <div 
           id="invitation-card"
-          class="p-8 sm:p-12 border-2 rounded-2xl border-primary-100"
+          class="p-8 sm:p-12 "
           style="font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;"
         >
           <!-- Titre -->
-          <h2 class="text-5xl font-serif font-bold text-center mb-12 text-gray-800 tracking-wide">
+          <h2 class="text-5xl font-serif font-bold text-center mb-12 tracking-wide" style="color: #794c44;">
             Invitation
           </h2>
           
           <!-- Texte de l'invitation -->
           <div class="text-center">
-            <div class="text-lg sm:text-xl leading-relaxed text-gray-700 max-w-3xl mx-auto font-serif">
+            <div class="text-lg sm:text-xl leading-relaxed max-w-3xl mx-auto font-serif" style="color: #794c44;">
               <p v-if="guestMessageText" class="whitespace-pre-line font-medium">{{ guestMessageText }}</p>
                 <template v-else>
-                <p class="text-2xl font-serif text-gray-800 mb-6 italic">
+                <p class="text-2xl font-serif mb-6 italic" style="color: #794c44;">
                   C'est avec une immense joie que nous vous annonçons notre union sacrée devant Dieu.
                 </p>
-                <p class="text-lg mb-4 font-serif">
-                  Nous serions honorés de votre présence pour célébrer notre mariage religieux le 
-                  <strong class="text-rose-600 font-semibold">{{ eventDateText }}</strong> 
-                  en l'église 
-                  <strong class="text-rose-600 font-semibold">{{ churchName }}</strong> 
-                  à 
-                  <strong class="text-rose-600 font-semibold">{{ churchLocation }}</strong>.
-                </p>
-                <p class="text-lg font-serif">
-                  À l'issue de la cérémonie, nous vous invitons à partager un moment de convivialité 
-                  autour d'un vin d'honneur au 
-                  <strong class="text-rose-600 font-semibold">{{ receptionLocation }}</strong>.
-                  </p>
+                
                 </template>
             </div>
           </div>
