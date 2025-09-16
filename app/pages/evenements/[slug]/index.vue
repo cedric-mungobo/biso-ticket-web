@@ -172,7 +172,7 @@
              <UCard class="p-2  col-span-2">
                <div class="">
                  <div class="lg:col-span-2">
-                   <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{{ event.title }}</h1>
+                   <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">{{ event.title }}</h1>
                    
                    <div class=" py-4 hidden max-sm:block">
                      <div class="flex flex-wrap items-center gap-2 mb-6">
