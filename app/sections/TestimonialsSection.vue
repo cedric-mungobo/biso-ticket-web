@@ -52,42 +52,36 @@ import { onMounted } from 'vue'
 // Données des témoignages
 const testimonialsData = [
   {
-    image: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=200',
     name: 'Marie Kabila',
     handle: '@marie_events',
     date: 'Mars 2025',
     testimonial: 'Biso Ticket a révolutionné la gestion de mes événements. La billetterie en ligne est intuitive et les paiements mobile money facilitent tout.'
   },
   {
-    image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200',
     name: 'Jean Mputu',
     handle: '@jean_organizer',
     date: 'Février 2025',
     testimonial: 'Interface simple, paiements sécurisés. Mes participants adorent la facilité de réservation. Je recommande vivement !'
   },
   {
-    image: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60',
     name: 'Sarah Tshisekedi',
     handle: '@sarah_events',
     date: 'Janvier 2025',
     testimonial: 'Gestion complète de A à Z. Les invitations digitales sont magnifiques et l\'application mobile fonctionne parfaitement.'
   },
   {
-    image: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=60',
     name: 'David Kabila',
     handle: '@david_productions',
     date: 'Décembre 2024',
     testimonial: 'Plateforme exceptionnelle ! Les statistiques en temps réel m\'aident à optimiser mes événements. Service client réactif.'
   },
   {
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&auto=format&fit=crop&q=60',
     name: 'Grace Mbuyi',
     handle: '@grace_events',
     date: 'Novembre 2024',
     testimonial: 'Biso Ticket m\'a fait gagner un temps précieux. La synchronisation avec les réseaux sociaux est parfaite.'
   },
   {
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=60',
     name: 'Patrick Mwanza',
     handle: '@patrick_org',
     date: 'Octobre 2024',
@@ -98,7 +92,11 @@ const testimonialsData = [
 const createTestimonialCard = (testimonial: any) => `
   <div class="p-4 rounded-lg mx-4 shadow hover:shadow-lg transition-all duration-200 w-72 shrink-0 ">
     <div class="flex gap-2">
-      <img class="size-11 rounded-full" src="${testimonial.image}" alt="User Image">
+      <div class="size-11 rounded-full bg-primary-200 flex items-center justify-center">
+        <span class="text-primary-600 font-semibold text-sm">
+          ${testimonial.name.charAt(0).toUpperCase()}
+        </span>
+      </div>
       <div class="flex flex-col">
         <div class="flex items-center gap-1">
           <p class="font-semibold text-gray-900">${testimonial.name}</p>
@@ -110,15 +108,7 @@ const createTestimonialCard = (testimonial: any) => `
       </div>
     </div>
     <p class="text-sm py-4 text-gray-800">${testimonial.testimonial}</p>
-    <div class="flex items-center justify-between text-gray-500 text-xs">
-      <div class="flex items-center gap-1">
-        <span>Publié le</span>
-        <a href="https://x.com" target="_blank" class="hover:text-purple-500">
-          <svg width="11" height="10" viewBox="0 0 11 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="m.027 0 4.247 5.516L0 10h.962l3.742-3.926L7.727 10H11L6.514 4.174 10.492 0H9.53L6.084 3.616 3.3 0zM1.44.688h1.504l6.64 8.624H8.082z" fill="currentColor" />
-          </svg>
-        </a>
-      </div>
+    <div class="flex items-center justify-end text-gray-500 text-xs">
       <p>${testimonial.date}</p>
     </div>
   </div>

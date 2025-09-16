@@ -37,8 +37,13 @@
       <!-- Message d'erreur -->
       <div v-else-if="error" class="text-center py-12">
         <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-          <h3 class="text-lg font-medium text-red-800 mb-2">Erreur de chargement</h3>
-          <p class="text-red-600 mb-4">{{ error }}</p>
+          <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-medium text-red-800 mb-2">Impossible de charger les événements</h3>
+          <p class="text-red-600 mb-4">Vérifiez votre connexion internet et réessayez.</p>
           <button @click="retry" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
             Réessayer
           </button>

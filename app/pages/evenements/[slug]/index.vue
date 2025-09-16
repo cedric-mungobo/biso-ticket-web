@@ -1,24 +1,7 @@
 <template>
-  <main class="px-2 py-8 md:px-8  lg:px-12">
+  <main class="px-2 py-14 ">
     <div class="mx-auto container">
-       <!-- Breadcrumb -->
-      <nav class="mb-6" aria-label="Breadcrumb">
-        <ol class="flex items-center space-x-2 text-sm text-gray-600">
-          <li>
-            <NuxtLink to="/evenements" class="hover:text-primary-600 transition-colors">
-              Événements
-            </NuxtLink>
-          </li>
-          <li>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-            </svg>
-          </li>
-          <li class="text-gray-900 font-medium" aria-current="page">
-            {{ event?.title || 'Chargement...' }}
-          </li>
-        </ol>
-      </nav>
+    
 
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-12">
@@ -60,16 +43,16 @@
           <!-- Image + Tickets (desktop) -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div class="lg:col-span-2">
-              <div class="relative  aspect-video  rounded-lg overflow-hidden">
+              <div class="relative  aspect-square md:aspect-video  rounded-lg overflow-hidden">
                 <NuxtImg
                   v-if="event.imageUrl"
                   :src="event.imageUrl"
                   :alt="event.title"
-                  class="h-full w-full aspect-square object-cover"
+                  class="h-full w-full  object-cover"
                   loading="eager"
                   format="webp"
                   quality="90"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 80vw, 1200px"
+              
                 />
                 <div
                   v-else
@@ -118,34 +101,34 @@
                 </div>
                 
                 <!-- Tickets List -->
-                <div v-if="tickets.length" class="flex-1 overflow-y-auto space-y-1 sm:space-y-4">
-                  <div v-for="ticket in tickets" :key="ticket.id" class="group bg-gray-50 rounded-lg p-2 sm:p-4">
+                <div v-if="tickets.length" class="flex-1 overflow-y-auto space-y-1 sm:space-y-2">
+                  <div v-for="ticket in tickets" :key="ticket.id" class="group bg-gray-50 rounded-lg p-2 sm:p-3">
                     <!-- Ticket Header -->
-                    <div class="flex justify-between items-start mb-1 sm:mb-3">
-                      <h4 class="font-medium text-gray-900 text-xs sm:text-base pr-1">{{ ticket.name }}</h4>
-                      <span class="text-xs sm:text-lg font-semibold text-gray-900 flex-shrink-0">{{ ticket.price }} {{ ticket.currency }}</span>
+                    <div class="flex justify-between items-start mb-1 sm:mb-2">
+                      <h4 class="font-medium text-gray-900 text-xs sm:text-sm pr-1">{{ ticket.name }}</h4>
+                      <span class="text-xs sm:text-sm font-semibold text-gray-900 flex-shrink-0">{{ formatTicketPrice(ticket.price, ticket.currency) }}</span>
                     </div>
                     
                     <!-- Quantity Selector -->
-                    <div class="flex items-center justify-between mb-1 sm:mb-4">
-                      <span class="text-xs sm:text-sm text-gray-500">Qté</span>
-                      <div class="flex items-center gap-1 sm:gap-3">
+                    <div class="flex items-center justify-between mb-1 sm:mb-2">
+                      <span class="text-xs text-gray-500">Qté</span>
+                      <div class="flex items-center gap-1 sm:gap-2">
                         <button
-                          class="w-5 h-5 sm:w-8 sm:h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+                          class="w-4 h-4 sm:w-6 sm:h-6 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
                           :disabled="getQuantity(ticket.id) <= 1"
                           @click="decrementQuantity(ticket.id)"
                         >
-                          <svg class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg class="w-2 h-2 sm:w-3 sm:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                           </svg>
                         </button>
-                        <span class="w-5 sm:w-8 text-center font-medium text-xs sm:text-sm">{{ getQuantity(ticket.id) }}</span>
+                        <span class="w-4 sm:w-6 text-center font-medium text-xs">{{ getQuantity(ticket.id) }}</span>
                         <button
-                          class="w-5 h-5 sm:w-8 sm:h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+                          class="w-4 h-4 sm:w-6 sm:h-6 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
                           :disabled="getQuantity(ticket.id) >= ticket.quantity"
                           @click="incrementQuantity(ticket.id, ticket.quantity)"
                         >
-                          <svg class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg class="w-2 h-2 sm:w-3 sm:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                           </svg>
                         </button>
@@ -153,16 +136,16 @@
                     </div>
                     
                     <!-- Total & Reserve Button -->
-                    <div class="flex justify-between items-center pt-1 sm:pt-3 border-t border-gray-200">
+                    <div class="flex justify-between items-center pt-1 sm:pt-2 border-t border-gray-200">
                       <div>
-                        <p class="text-xs sm:text-sm text-gray-500">Total</p>
-                        <p class="font-semibold text-gray-900 text-xs sm:text-base">{{ formatCurrency(ticketTotal(ticket), ticket.currency) }}</p>
+                        <p class="text-xs text-gray-500">Total</p>
+                        <p class="font-semibold text-gray-900 text-xs sm:text-sm">{{ formatTicketPrice(ticketTotal(ticket), ticket.currency) }}</p>
                       </div>
                       <UButton 
                         color="primary" 
                         size="xs"
                         @click="onReserve(ticket)"
-                        class="px-2 sm:px-6 text-xs sm:text-sm py-1 sm:py-2"
+                        class="px-2 sm:px-4 text-xs py-1 sm:py-1.5"
                       >
                         Réserver
                       </UButton>
@@ -184,48 +167,87 @@
           </div>
 
           <!-- Détails de l'événement -->
-          <UCard class="p-2 md:p-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div class="lg:col-span-2">
-                <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{{ event.title }}</h1>
-                <p class="text-lg text-gray-600 leading-relaxed mb-4 whitespace-pre-line">{{ event.description || 'Aucune description disponible.' }}</p>
-                <div class="flex flex-wrap items-center gap-2 mb-6">
-                  <UBadge v-for="cat in categories" :key="`cat-${cat}`" color="neutral" variant="soft">#{{ cat }}</UBadge>
-                  <UBadge v-for="tag in formattedTags" :key="`tag-${tag}`" color="neutral" variant="subtle">{{ tag }}</UBadge>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="flex items-center gap-3">
-                    <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                      <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <p class="text-sm font-medium text-gray-500">Date et heure</p>
-                      <p class="text-base font-semibold text-gray-900">{{ formatEventDate(event.startsAt) }}</p>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                      <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <p class="text-sm font-medium text-gray-500">Lieu</p>
-                      <p class="text-base font-semibold text-gray-900">{{ event.location }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </UCard>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-          <!-- Header Section -->
+             <UCard class="p-2  col-span-2">
+               <div class="">
+                 <div class="lg:col-span-2">
+                   <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{{ event.title }}</h1>
+                   
+                   <div class=" py-4 hidden max-sm:block">
+                     <div class="flex flex-wrap items-center gap-2 mb-6">
+                       <UBadge v-for="cat in categories" :key="`cat-${cat}`" color="neutral" variant="soft">#{{ cat }}</UBadge>
+                       <UBadge v-for="tag in formattedTags" :key="`tag-${tag}`" color="neutral" variant="subtle">{{ tag }}</UBadge>
+                     </div>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div class="flex items-center gap-3">
+                         <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                           <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                           </svg>
+                         </div>
+                         <div>
+                           <p class="text-sm font-medium text-gray-500">Date et heure</p>
+                           <p class="text-base font-semibold text-gray-900">{{ formatEventDate(event.startsAt) }}</p>
+                         </div>
+                       </div>
+                       <div class="flex items-center gap-3">
+                         <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                           <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                           </svg>
+                         </div>
+                         <div>
+                           <p class="text-sm font-medium text-gray-500">Lieu</p>
+                           <p class="text-base font-semibold text-gray-900">{{ event.location }}</p>
+                         </div>
+                       </div>
+                     </div>
+   
+                   </div>
+                   <p class="text-sm sm:text-base text-gray-600 leading-relaxed mb-4 whitespace-pre-line">{{ event.description || 'Aucune description disponible.' }}</p>
+                 </div>
+               </div>
+             </UCard>
 
-          <!-- Actions supplémentaires -->
-          <div class="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 p-6 shadow-sm">
+             <div class=" p-2 bg-white rounded-xl border border-gray-200">
+
+               <div class=" py-4  md:p-4 max-sm:hidden">
+                    <div class="flex flex-wrap items-center gap-2 mb-6">
+                      <UBadge v-for="cat in categories" :key="`cat-${cat}`" color="neutral" variant="soft">#{{ cat }}</UBadge>
+                      <UBadge v-for="tag in formattedTags" :key="`tag-${tag}`" color="neutral" variant="subtle">{{ tag }}</UBadge>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div class="flex items-center gap-3">
+                        <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                          <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                          </svg>
+                        </div>
+                        <div>
+                          <p class="text-sm font-medium text-gray-500">Date et heure</p>
+                          <p class="text-base font-semibold text-gray-900">{{ formatEventDate(event.startsAt) }}</p>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <div class="flex-shrink-0 w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                          <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          </svg>
+                        </div>
+                        <div>
+                          <p class="text-sm font-medium text-gray-500">Lieu</p>
+                          <p class="text-base font-semibold text-gray-900">{{ event.location }}</p>
+                        </div>
+                      </div>
+                    </div>
+  
+                  </div>
+
+                   <!-- Actions supplémentaires -->
+           <div class="w-full sm:bg-gradient-to-br from-white to-gray-50 rounded-xl sm:border border-gray-200 p-4 sm:shadow-sm">
             <h3 class="text-lg font-semibold text-gray-900 mb-4 text-center flex items-center justify-center gap-2">
               <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
@@ -233,7 +255,7 @@
               Partager, organiser et créer
             </h3>
             
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+             <div class="flex flex-col w-full gap-4 justify-center items-center">
               <EventShare
                 :event-title="event.title"
                 :event-url="fullEventUrl"
@@ -250,7 +272,7 @@
               
               <NuxtLink
                 to="/organisateur"
-                class="bg-secondary-600 text-white px-6 py-3 rounded-lg hover:bg-secondary-700 transition-all duration-200 font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
+                class="w-full bg-secondary-600 text-white px-6 py-3 rounded-lg hover:bg-secondary-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -263,6 +285,11 @@
               Partagez cet événement avec vos amis, ajoutez-le à votre calendrier ou créez votre propre événement
             </p>
           </div>
+             </div>
+           </div>
+
+         
+         
       </div>
 
       <!-- Modal de réservation des tickets -->
@@ -289,6 +316,7 @@
 import type { Event } from '~/types/api'
 import { onMounted, ref, watch, computed, nextTick } from 'vue'
 import { useEvents } from '~/composables/useEvents'
+import { formatMoney } from '~/utils'
 
 
 // Récupération du slug depuis l'URL
@@ -304,8 +332,22 @@ const showTicketModal = ref(false)
 const tickets = ref<any[]>([])
 const ticketsLoading = ref(false)
 const ticketsError = ref<string | null>(null)
-// Sélection quantités
-const ticketQuantities = ref<Record<number, number>>({})
+
+// Utilisation du composable useTickets pour la gestion des quantités
+const {
+  selectedTickets,
+  incrementQuantity: incrementTicketQuantity,
+  decrementQuantity: decrementTicketQuantity,
+  getTicketQuantity,
+  calculateTicketTotal,
+  totalPrice,
+  totalsByCurrency,
+  hasMultipleCurrencies,
+  totalQuantity,
+  currency,
+  hasSelectedTickets,
+  setEvent
+} = useTickets()
 
 // Utilisation du composable useEvents
 const { fetchEventBySlug, fetchEventTickets } = useEvents()
@@ -318,6 +360,10 @@ const fetchEventData = async () => {
     
     const eventData = await fetchEventBySlug(slug)
     event.value = eventData
+    
+    // Synchroniser avec le composable useTickets
+    setEvent(eventData)
+    
     await fetchTickets()
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors du chargement de l\'événement'
@@ -334,12 +380,12 @@ const fetchTickets = async () => {
     ticketsError.value = null
     const res = await fetchEventTickets(slug, { per_page: 50, page: 1 })
     tickets.value = Array.isArray(res.items) ? res.items : []
-    // init quantités à 1
-    const init: Record<number, number> = {}
-    for (const t of tickets.value) {
-      init[t.id] = Math.min(1, Math.max(0, Number(t.quantity) || 1)) || 1
+    
+    // Synchroniser avec le composable useTickets
+    if (event.value) {
+      const eventWithTickets = { ...event.value, tickets: tickets.value }
+      setEvent(eventWithTickets)
     }
-    ticketQuantities.value = init
   } catch (err) {
     ticketsError.value = err instanceof Error ? err.message : 'Erreur chargement billets'
   } finally {
@@ -347,13 +393,10 @@ const fetchTickets = async () => {
   }
 }
 
-const getQuantity = (ticketId: number) => ticketQuantities.value[ticketId] || 1
-const setQuantity = (ticketId: number, value: number, max: number) => {
-  const clamped = Math.max(1, Math.min(Number.isFinite(value) ? value : 1, max || 1))
-  ticketQuantities.value = { ...ticketQuantities.value, [ticketId]: clamped }
-}
-const incrementQuantity = (ticketId: number, max: number) => setQuantity(ticketId, getQuantity(ticketId) + 1, max)
-const decrementQuantity = (ticketId: number) => setQuantity(ticketId, getQuantity(ticketId) - 1, Infinity)
+// Wrapper functions pour maintenir la compatibilité
+const getQuantity = (ticketId: number) => getTicketQuantity(ticketId)
+const incrementQuantity = (ticketId: number, max: number) => incrementTicketQuantity(ticketId)
+const decrementQuantity = (ticketId: number) => decrementTicketQuantity(ticketId)
 
 // Réserver billet (ouvre le modal)
 const onReserve = (ticket: any) => {
@@ -362,13 +405,12 @@ const onReserve = (ticket: any) => {
 
 // Helpers de total/format
 const ticketTotal = (ticket: any) => (Number(ticket?.price) || 0) * getQuantity(ticket?.id)
-const formatCurrency = (amount: number, currency?: string) => {
+
+// Formatage des montants avec gestion des devises différentes
+const formatTicketPrice = (amount: number, currency?: string) => {
+  const formattedAmount = formatMoney(amount)
   const cur = (currency || 'USD').toUpperCase()
-  try {
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: cur }).format(amount || 0)
-  } catch {
-    return `${(amount || 0).toFixed(2)} ${cur}`
-  }
+  return `${formattedAmount} ${cur}`
 }
 // Récupération des données au montage du composant
 onMounted(() => {

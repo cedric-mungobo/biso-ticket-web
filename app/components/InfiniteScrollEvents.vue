@@ -7,6 +7,11 @@
     >
       <!-- Cartes d'événements -->
       <EventCard
+        v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200"
         v-for="(event, index) in allEvents"
         :key="`${event.id}-${index}`"
         :event-id="event.id"
@@ -203,7 +208,7 @@ const loadEvents = async (page: number = 1, append: boolean = false) => {
     }
   } catch (err) {
     console.error('Erreur lors du chargement des événements:', err)
-    error.value = err instanceof Error ? err.message : 'Erreur de chargement'
+    error.value = 'Impossible de charger les événements. Vérifiez votre connexion.'
     emit('error', error.value)
   } finally {
     loading.value = false

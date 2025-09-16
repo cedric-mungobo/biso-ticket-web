@@ -1,64 +1,88 @@
 <template>
-  <div 
-    class="overflow-hidden w-full relative max-w-6xl mx-auto"
-    @mouseenter="setStopScroll(true)"
-    @mouseleave="setStopScroll(false)"
-  >
+  <div class="w-full mx-auto max-w-5xl overflow-hidden relative">
     <!-- Gradient gauche -->
-    <div class="absolute left-0 top-0 h-full w-20 z-10 pointer-events-none bg-gradient-to-r from-white to-transparent dark:from-gray-950 dark:to-transparent" />
+    <div class="absolute left-0 top-0 h-full w-20 z-10 pointer-events-none bg-gradient-to-r from-gray-50 to-transparent"></div>
     
     <!-- Container du marquee -->
     <div 
-      class="marquee-inner flex w-fit"
+      class="marquee-inner flex transform-gpu min-w-[200%] pt-10 pb-5"
       :style="{ 
-        animationPlayState: stopScroll ? 'paused' : 'running',
-        animationDuration: `${cardData.length * 2500}ms`
+        animationPlayState: stopScroll ? 'paused' : 'running'
       }"
     >
-      <div class="flex">
-        <!-- Dupliquer les cartes pour l'effet de boucle -->
-        <div 
-          v-for="(card, index) in [...cardData, ...cardData]" 
-          :key="`${card.id}-${index}`"
-          class="w-56 mx-4 h-80 relative group hover:scale-90 transition-all duration-300 cursor-pointer"
-          @click="handleCardClick(card)"
-        >
-          <!-- Image de la carte -->
-          <NuxtImg
-            :src="card.image"
-            :alt="card.title"
-            class="w-full h-full object-cover rounded-lg"
-            loading="lazy"
-          />
-          
-          <!-- Overlay au hover -->
-          <div class="flex items-center justify-center px-4 opacity-0 group-hover:opacity-100 transition-all duration-300 absolute bottom-0 backdrop-blur-md left-0 w-full h-full bg-black/20 rounded-lg">
-            <p class="text-white text-lg font-semibold text-center">{{ card.title }}</p>
+      <!-- Dupliquer les messages pour l'effet de boucle -->
+      <div 
+        v-for="(message, index) in [...messages, ...messages]" 
+        :key="`${message.id}-${index}`"
+        class="p-4 rounded-lg mx-4 shadow hover:shadow-lg transition-all duration-200 w-72 shrink-0 cursor-pointer"
+        @click="handleMessageClick(message)"
+      >
+        <div class="flex gap-2">
+          <!-- Avatar avec image ou initiales -->
+          <img 
+            v-if="message.authorImage" 
+            class="size-11 rounded-full" 
+            :src="message.authorImage" 
+            :alt="message.authorName || 'Invité'"
+          >
+          <div 
+            v-else
+            class="size-11 rounded-full bg-primary-200 flex items-center justify-center"
+          >
+            <span class="text-primary-600 font-semibold text-sm">
+              {{ message.authorName?.charAt(0)?.toUpperCase() || 'A' }}
+            </span>
           </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1">
+              <p class="font-semibold text-gray-900">{{ message.authorName || 'Invité anonyme' }}</p>
+              <svg class="mt-0.5" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M4.555.72a4 4 0 0 1-.297.24c-.179.12-.38.202-.59.244a4 4 0 0 1-.38.041c-.48.039-.721.058-.922.129a1.63 1.63 0 0 0-.992.992c-.071.2-.09.441-.129.922a4 4 0 0 1-.041.38 1.6 1.6 0 0 1-.245.59 3 3 0 0 1-.239.297c-.313.368-.47.551-.56.743-.213.444-.213.96 0 1.404.09.192.247.375.56.743.125.146.187.219.24.297.12.179.202.38.244.59.018.093.026.189.041.38.039.48.058.721.129.922.163.464.528.829.992.992.2.071.441.09.922.129.191.015.287.023.38.041.21.042.411.125.59.245.078.052.151.114.297.239.368.313.551.47.743.56.444.213.96.213 1.404 0 .192-.09.375-.247.743-.56.146-.125.219-.187.297-.24.179-.12.38-.202.59-.244a4 4 0 0 1 .38-.041c.48-.039.721-.058.922-.129.464-.163.829-.528.992-.992.071-.2.09-.441.129-.922a4 4 0 0 1 .041-.38c.042-.21.125-.411.245-.59.052-.078.114-.151.239-.297.313-.368.47-.551.56-.743.213-.444.213-.96 0-1.404-.09-.192-.247-.375-.56-.743a4 4 0 0 1-.24-.297 1.6 1.6 0 0 1-.244-.59 3 3 0 0 1-.041-.38c-.039-.48-.058-.721-.129-.922a1.63 1.63 0 0 0-.992-.992c-.2-.071-.441-.09-.922-.129a4 4 0 0 1-.38-.041 1.6 1.6 0 0 1-.59-.245A3 3 0 0 1 7.445.72C7.077.407 6.894.25 6.702.16a1.63 1.63 0 0 0-1.404 0c-.192.09-.375.247-.743.56m4.07 3.998a.488.488 0 0 0-.691-.69l-2.91 2.91-.958-.957a.488.488 0 0 0-.69.69l1.302 1.302c.19.191.5.191.69 0z" fill="#8B5CF6" />
+              </svg>
+            </div>
+            <span class="text-xs text-gray-500">Invité</span>
+          </div>
+        </div>
+        <p class="text-sm py-4 text-gray-800">{{ message.content }}</p>
+        <div class="flex items-center justify-end text-gray-500 text-xs">
+          <p>{{ formatDate(message.createdAt) }}</p>
         </div>
       </div>
     </div>
     
     <!-- Gradient droite -->
-    <div class="absolute right-0 top-0 h-full w-20 md:w-40 z-10 pointer-events-none bg-gradient-to-l from-white to-transparent dark:from-gray-950 dark:to-transparent" />
+    <div class="absolute right-0 top-0 h-full w-20 md:w-40 z-10 pointer-events-none bg-gradient-to-l from-gray-50 to-transparent"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { MarqueeCardsProps, MarqueeCardsEmits } from '~/types/marquee'
+interface Message {
+  id: number
+  content: string
+  authorName: string
+  authorImage?: string
+  createdAt: string
+}
 
-const props = withDefaults(defineProps<MarqueeCardsProps>(), {
-  speed: 2500,
+interface MarqueeMessagesProps {
+  messages: Message[]
+  speed?: number
+  pauseOnHover?: boolean
+}
+
+interface MarqueeMessagesEmits {
+  (e: 'message-click', message: Message): void
+}
+
+const props = withDefaults(defineProps<MarqueeMessagesProps>(), {
+  speed: 3000,
   pauseOnHover: true
 })
 
-const emit = defineEmits<MarqueeCardsEmits>()
+const emit = defineEmits<MarqueeMessagesEmits>()
 
 // État pour contrôler la pause
 const stopScroll = ref(false)
-
-// Données des cartes (dupliquées pour l'effet de boucle)
-const cardData = computed(() => props.cards)
 
 /**
  * Définit l'état de pause du scroll
@@ -70,18 +94,26 @@ const setStopScroll = (value: boolean): void => {
 }
 
 /**
- * Gère le clic sur une carte
+ * Gère le clic sur un message
  */
-const handleCardClick = (card: MarqueeCard): void => {
-  emit('card-click', card)
+const handleMessageClick = (message: Message): void => {
+  emit('message-click', message)
+}
+
+/**
+ * Formate la date de création
+ */
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
 }
 </script>
 
 <style scoped>
-.marquee-inner {
-  animation: marqueeScroll linear infinite;
-}
-
 @keyframes marqueeScroll {
   0% {
     transform: translateX(0%);
@@ -91,10 +123,7 @@ const handleCardClick = (card: MarqueeCard): void => {
   }
 }
 
-/* Support du mode sombre */
-@media (prefers-color-scheme: dark) {
-  .marquee-inner {
-    /* Ajustements pour le mode sombre si nécessaire */
-  }
+.marquee-inner {
+  animation: marqueeScroll 25s linear infinite;
 }
 </style>

@@ -1,121 +1,133 @@
 <template>
-  <div class="pt-24 py-8">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- En-tête de la page -->
-      <div class="text-center mb-12">
-        <h1 class="text-3xl font-bold text-gray-900 mb-4">
-          Contactez-nous
-        </h1>
-        <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-          Nous sommes là pour vous aider. N'hésitez pas à nous contacter pour toute question.
-        </p>
-      </div>
+  <!-- Contact Section -->
+  <div    v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200" class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-24">
+    <div class="mb-6 sm:mb-10 max-w-2xl text-center mx-auto">
+      <h2 class="font-medium text-black text-2xl sm:text-4xl dark:text-white">
+        Contacts
+      </h2>
+    </div>
 
-      <!-- Formulaire de contact -->
-      <div class="max-w-2xl mx-auto">
-        <form @submit.prevent="handleSubmit" class="space-y-6">
-          <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-              Nom complet *
-            </label>
-            <input
-              id="name"
-              v-model="formData.name"
-              type="text"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Votre nom"
-            />
-          </div>
+    <div class="max-w-4xl mx-auto">
+      <div class="space-y-8 lg:space-y-12">
+        <div>
+          <h3 class="mb-5 font-semibold text-black dark:text-white">
+            Nos contacts
+          </h3>
 
-          <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-              Email *
-            </label>
-            <input
-              id="email"
-              v-model="formData.email"
-              type="email"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="votre@email.com"
-            />
-          </div>
-
-          <div>
-            <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">
-              Sujet *
-            </label>
-            <select
-              id="subject"
-              v-model="formData.subject"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          <!-- Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+            <!-- WhatsApp Card -->
+            <a 
+              href="https://wa.me/243899267530?text=Bonjour%2C%20je%20souhaite%20obtenir%20des%20informations%20sur%20vos%20services%20de%20billetterie%20BisoTicket."
+              target="_blank"
+              rel="noopener noreferrer"
+              class="block bg-white rounded-xl p-6 hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-green-300 hover:scale-105 cursor-pointer"
             >
-              <option value="">Sélectionnez un sujet</option>
-              <option value="support">Support technique</option>
-              <option value="billing">Facturation</option>
-              <option value="partnership">Partenariat</option>
-              <option value="other">Autre</option>
-            </select>
-          </div>
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0">
+                  <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <h4 class="text-lg font-semibold text-gray-900 mb-1">
+                    WhatsApp
+                  </h4>
+                  <p class="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                    +243 899 267 530
+                  </p>
+                  <p class="text-sm text-gray-500">
+                    Cliquez pour nous contacter
+                  </p>
+                </div>
+                <div class="flex-shrink-0">
+                  <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </div>
+              </div>
+            </a>
 
-          <div>
-            <label for="message" class="block text-sm font-medium text-gray-700 mb-2">
-              Message *
-            </label>
-            <textarea
-              id="message"
-              v-model="formData.message"
-              rows="5"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Votre message..."
-            ></textarea>
+            <!-- Email Card -->
+            <div class="bg-white rounded-xl p-6  hover:shadow-xl transition-shadow duration-300 border border-gray-200 ">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0">
+                  <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6Z"></path>
+                      <path d="m22 10-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 10"></path>
+                    </svg>
+                  </div>
+                </div>
+                  <div class="flex-1">
+                    <h4 class="text-lg font-semibold text-gray-900  mb-1">
+                    Email
+                  </h4>
+                  <p class="text-xl font-medium text-gray-900  mb-2">
+                    <a class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="mailto:contact@bisoticket.com">
+                      contact@bisoticket.com
+                    </a>
+                  </p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Pour les demandes détaillées
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
+          <!-- End Grid -->
+        </div>
 
-          <div class="flex justify-end">
-            <button
-              type="submit"
-              :disabled="loading"
-              class="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <span v-if="loading" class="flex items-center">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Envoi...
-              </span>
-              <span v-else>Envoyer le message</span>
-            </button>
+        <div>
+          <h3 class="mb-5 font-semibold text-black ">
+            Localisation
+          </h3>
+
+          <!-- Location Card -->
+          <div class="bg-white rounded-xl p-6  hover:shadow-xl transition-shadow duration-300 border border-gray-200 ">
+            <div class="flex items-center gap-4">
+              <div class="flex-shrink-0">
+                <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                </div>
+              </div>
+              <div class="flex-1">
+                <h4 class="text-lg font-semibold text-gray-900  mb-1">
+                  📍 Service basé à Kinshasa
+                </h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Disponible partout en RDC
+                </p>
+              </div>
+            </div>
           </div>
-        </form>
+          <!-- End Location Card -->
+        </div>
       </div>
     </div>
   </div>
+  <!-- End Contact -->
 </template>
 
-<script lang="ts" setup>
-// État du formulaire
-const formData = ref({
-  name: '',
-  email: '',
-  subject: '',
-  message: ''
-})
-
-const loading = ref(false)
-
-// Gestion de la soumission
-const handleSubmit = async () => {
-  loading.value = true
-  
-  // Simulation d'envoi (à remplacer par un vrai appel API)
-  setTimeout(() => {
-    alert('Message envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.')
-    formData.value = { name: '', email: '', subject: '', message: '' }
-    loading.value = false
-  }, 1000)
+<script setup lang="ts">
+// Props du composant si nécessaire
+interface Props {
+  // Ajoutez des props ici si besoin
 }
+
+// Définition des props
+const props = defineProps<Props>()
 </script>
+
+<style scoped>
+/* Styles spécifiques au composant si nécessaire */
+</style>

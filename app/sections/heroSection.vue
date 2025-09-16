@@ -12,7 +12,7 @@
       :visible-once="{ opacity: 1, y: 0 }"
       :delay="200"
       :duration="1200"
-      class="group flex items-center gap-2 rounded-full p-1 pr-3 mt-16 mb-8 md:mt-36 text-purple-700 bg-purple-100"
+      class="group flex items-center gap-2 rounded-full p-1 pr-3 mt-16 mb-2 md:mt-36 text-purple-700 bg-purple-100"
     >
         <span class="bg-purple-600 text-white text-xs px-3.5 py-1 rounded-full">
             NEW
@@ -125,7 +125,7 @@
         </div>
         
         <!-- Marquee Cards -->
-        <MarqueeCards 
+        <MarqueeEventCards 
             :cards="displayEvents"
             :speed="3000"
             @card-click="handleEventClick"

@@ -16,42 +16,42 @@
       </div>
       
       <!-- Liste des tickets -->
-      <div v-if="ticketsList.length" class="space-y-1 sm:space-y-4">
+      <div v-if="ticketsList.length" class="space-y-2">
         <div
           v-for="ticket in ticketsList"
           :key="ticket.id"
-          class="bg-gray-50 rounded-lg border border-gray-100 p-2 sm:p-6"
+          class="bg-gray-50 rounded-lg border border-gray-100 p-3"
         >
           <!-- Header du ticket -->
-          <div class="flex justify-between items-start mb-1 sm:mb-4">
-            <h4 class="font-semibold text-gray-900 text-xs sm:text-base pr-1">{{ ticket.name }}</h4>
-            <span class="text-xs sm:text-lg font-semibold text-gray-900 flex-shrink-0">
+          <div class="flex justify-between items-start mb-2">
+            <h4 class="font-semibold text-gray-900 text-sm pr-1">{{ ticket.name }}</h4>
+            <span class="text-sm font-semibold text-gray-900 flex-shrink-0">
               {{ ticket.price }} {{ ticket.currency }}
             </span>
           </div>
 
           <!-- Sélecteur de quantité -->
           <div class="flex items-center justify-between">
-            <span class="text-xs sm:text-sm text-gray-500">Qté</span>
-            <div class="flex items-center gap-1 sm:gap-3">
+            <span class="text-xs text-gray-500">Qté</span>
+            <div class="flex items-center gap-2">
               <button
                 @click="decrementQuantity(ticket.id)"
                 :disabled="getTicketQuantity(ticket.id) <= 0"
-                class="w-5 h-5 sm:w-8 sm:h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                class="w-6 h-6 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <svg class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                 </svg>
               </button>
               
-              <span class="w-5 sm:w-8 text-center font-medium text-xs sm:text-sm">{{ getTicketQuantity(ticket.id) }}</span>
+              <span class="w-6 text-center font-medium text-xs">{{ getTicketQuantity(ticket.id) }}</span>
               
               <button
                 @click="incrementQuantity(ticket.id)"
                 :disabled="getTicketQuantity(ticket.id) >= ticket.quantity"
-                class="w-5 h-5 sm:w-8 sm:h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                class="w-6 h-6 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <svg class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </button>
@@ -73,15 +73,25 @@
           >
             <span class="text-gray-600">{{ ticket.name }} x{{ getTicketQuantity(ticket.id) }}</span>
             <span class="font-medium text-gray-900">
-              {{ calculateTicketTotal(ticket.id) }} {{ ticket.currency || currency }}
+              {{ formatMoney(parseFloat(calculateTicketTotal(ticket.id))) }} {{ ticket.currency || currency }}
             </span>
           </div>
         </div>
         
         <div class="border-t border-gray-200 pt-4">
+          <!-- Total global avec conversion automatique -->
           <div class="flex justify-between text-lg font-semibold">
             <span class="text-gray-900">Total</span>
-            <span class="text-primary-600">{{ totalPrice }} {{ currency }}</span>
+            <span class="text-primary-600">{{ formatMoney(totalPrice) }} {{ currency }}</span>
+          </div>
+          
+          <!-- Détail par devise si plusieurs devises -->
+          <div v-if="hasMultipleCurrencies" class="mt-3 space-y-1">
+            <div class="text-xs text-gray-500 mb-2">Détail par devise :</div>
+            <div v-for="(amount, curr) in totalsByCurrency" :key="curr" class="flex justify-between text-sm text-gray-600">
+              <span>{{ curr }}</span>
+              <span>{{ formatMoney(amount) }} {{ curr }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -123,6 +133,7 @@
 <script setup lang="ts">
 import type { Event } from '~/types/api'
 import { useTickets } from '~/composables/useTickets'
+import { formatMoney } from '~/utils'
 
 interface Props {
   modelValue: boolean
@@ -144,6 +155,8 @@ const {
   getTicketQuantity,
   calculateTicketTotal,
   totalPrice,
+  totalsByCurrency,
+  hasMultipleCurrencies,
   totalQuantity,
   currency,
   hasSelectedTickets,

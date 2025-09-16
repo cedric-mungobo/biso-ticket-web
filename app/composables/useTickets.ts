@@ -138,16 +138,48 @@ export const useTickets = () => {
     return event?.currency || 'USD'
   })
 
+  const totalsByCurrency = computed(() => {
+    const event = currentEvent.value
+    if (!event?.tickets) return {}
+    
+    const totals: Record<string, number> = {}
+    
+    Object.entries(selectedTickets.value).forEach(([ticketIdStr, qty]) => {
+      const ticketId = Number(ticketIdStr)
+      const t = event.tickets!.find(tk => tk.id === ticketId)
+      if (!t || !qty) return
+      
+      const price = typeof t.price === 'string' ? parseFloat(t.price) : (t.price || 0)
+      const currency = t.currency || t.devise || 'USD'
+      const total = price * qty
+      
+      if (totals[currency]) {
+        totals[currency] += total
+      } else {
+        totals[currency] = total
+      }
+    })
+    
+    return totals
+  })
+
   const totalPrice = computed(() => {
     const event = currentEvent.value
     if (!event?.tickets) return 0
+    
+    // Calculer le total en additionnant tous les montants
+    // Le backend gère la conversion de devises
     return Object.entries(selectedTickets.value).reduce((sum, [ticketIdStr, qty]) => {
       const ticketId = Number(ticketIdStr)
       const t = event.tickets!.find(tk => tk.id === ticketId)
-      if (!t) return sum
+      if (!t || !qty) return sum
       const price = typeof t.price === 'string' ? parseFloat(t.price) : (t.price || 0)
-      return sum + price * (qty || 0)
+      return sum + price * qty
     }, 0)
+  })
+
+  const hasMultipleCurrencies = computed(() => {
+    return Object.keys(totalsByCurrency.value).length > 1
   })
 
   const hasSelectedTickets = computed(() => totalQuantity.value > 0)
@@ -439,6 +471,8 @@ export const useTickets = () => {
     // getters
     totalQuantity,
     totalPrice,
+    totalsByCurrency,
+    hasMultipleCurrencies,
     currency,
     hasSelectedTickets,
     hasPaidTickets,

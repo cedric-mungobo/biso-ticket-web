@@ -20,6 +20,11 @@ export const useGuestBook = ({ slug, eventId, token }: UseGuestBookOptions) => {
   const invitationLoading = ref<boolean>(false)
   const invitationError = ref<string>('')
 
+  // Messages des invités
+  const guestMessages = ref<any[]>([])
+  const guestMessagesLoading = ref<boolean>(false)
+  const guestMessagesError = ref<string>('')
+
   // État de confirmation
   const confirming = ref<boolean>(false)
   const isConfirmed = computed<boolean>(() => invitation.value?.status === 'confirmed')
@@ -76,6 +81,37 @@ export const useGuestBook = ({ slug, eventId, token }: UseGuestBookOptions) => {
     }
   }
 
+  // Charger les messages des invités
+  const loadGuestMessages = async (): Promise<void> => {
+    if (!slug.value) {
+      console.warn('Slug d\'événement non disponible, chargement des messages désactivé')
+      guestMessages.value = []
+      return
+    }
+    
+    guestMessagesLoading.value = true
+    guestMessagesError.value = ''
+    
+    try {
+      const res = await $myFetch<any>(`/public/events/${slug.value}/messages?per_page=15`)
+      const data = res?.data || res
+      guestMessages.value = data?.messages || []
+    } catch (e: any) {
+      // Si l'événement n'existe pas (404), initialiser avec un tableau vide
+      if (e?.status === 404) {
+        console.warn('Événement non trouvé, initialisation avec tableau vide')
+        guestMessages.value = []
+        guestMessagesError.value = ''
+      } else {
+        console.warn('Erreur lors du chargement des messages:', e)
+        guestMessages.value = []
+        guestMessagesError.value = e?.message || 'Erreur lors du chargement des messages'
+      }
+    } finally {
+      guestMessagesLoading.value = false
+    }
+  }
+
   const submitGuestBookMessage = async (): Promise<void> => {
     if (!canSubmitMessage.value) return
     try {
@@ -87,6 +123,8 @@ export const useGuestBook = ({ slug, eventId, token }: UseGuestBookOptions) => {
       })
       useToast().add({ title: 'Merci', description: 'Votre message a été enregistré.', color: 'success' })
       guestBookContent.value = ''
+      // Recharger les messages après envoi
+      await loadGuestMessages()
     } catch (e: any) {
       useToast().add({ title: 'Erreur', description: String(e?.message || "Impossible d'envoyer."), color: 'error' })
     } finally {
@@ -104,10 +142,14 @@ export const useGuestBook = ({ slug, eventId, token }: UseGuestBookOptions) => {
     invitationError,
     confirming,
     isConfirmed,
+    guestMessages,
+    guestMessagesLoading,
+    guestMessagesError,
     // actions
     load,
     confirm,
     submitGuestBookMessage,
+    loadGuestMessages,
   }
 }
 

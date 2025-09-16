@@ -102,27 +102,32 @@ export default defineNuxtPlugin((nuxtApp) => {
           // Stocker les erreurs de validation globalement
           validationErrors.value = errorDetails
         } else {
-          errorMessage = 'Données de validation invalides'
+          errorMessage = 'Veuillez vérifier les informations saisies'
         }
       } else if (response.status === 404) {
         console.error('Erreur 404: Ressource non trouvée')
-        errorMessage = 'Ressource non trouvée'
+        errorMessage = 'Contenu non trouvé'
       } else if (response.status >= 500) {
         console.error('Erreur serveur:', response.status)
-        errorMessage = 'Erreur serveur. Veuillez réessayer plus tard.'
+        errorMessage = 'Service temporairement indisponible. Veuillez réessayer.'
+      } else if (response.status === 0 || !response.status) {
+        // Erreur de réseau
+        errorMessage = 'Problème de connexion. Vérifiez votre internet.'
       }
 
-      // Afficher le toast d'erreur
-      try {
-        const toast = useToast()
-        toast.add({
-          title: 'Erreur',
-          description: errorMessage,
-          color: 'error'
-        })
-      } catch (_e) {
-        // Si useToast n'est pas disponible (par exemple côté serveur), ignorer
-        console.warn('Impossible d\'afficher le toast d\'erreur:', _e)
+      // Afficher le toast d'erreur seulement si ce n'est pas une erreur de validation
+      if (response.status !== 422 || Object.keys(errorDetails).length === 0) {
+        try {
+          const toast = useToast()
+          toast.add({
+            title: 'Erreur',
+            description: errorMessage,
+            color: 'error'
+          })
+        } catch (_e) {
+          // Si useToast n'est pas disponible (par exemple côté serveur), ignorer
+          console.warn('Impossible d\'afficher le toast d\'erreur:', _e)
+        }
       }
 
       // Logging dev (erreurs)

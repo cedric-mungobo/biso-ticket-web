@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="px-4 py-8 md:px-8  lg:px-12 container mx-auto">
+    <div class="px-2 py-16 md:px-8  lg:px-12 container mx-auto">
     <!-- En-tête de la page -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Paiement</h1>
@@ -9,7 +9,7 @@
 
     <!-- Informations de l'événement -->
     <div v-if="event" class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-      <h2 class="text-xl font-semibold text-gray-900 mb-4">Détails de l'événement</h2>
+      <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Détails de l'événement</h2>
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <h3 class="font-medium text-gray-900">{{ event.title }}</h3>
@@ -26,104 +26,237 @@
     </div>
 
     <!-- Récapitulatif des tickets -->
-    <div v-if="reservationSummary" class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-      <h2 class="text-xl font-semibold text-gray-900 mb-4">Récapitulatif de votre commande</h2>
+    <div v-if="reservationSummary" class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 mb-6">
+      <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Récapitulatif de votre commande</h2>
       
       <!-- Liste des tickets -->
-      <div class="space-y-3 mb-4">
+      <div class="space-y-2 sm:space-y-3 mb-3 sm:mb-4">
         <div
           v-for="ticketSelection in reservationSummary.selectedTickets"
           :key="ticketSelection.ticketId"
           class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
         >
-          <div>
-            <span class="font-medium text-gray-900">{{ ticketSelection.ticket.name || ticketSelection.ticket.type }}</span>
-            <span class="text-gray-600 text-sm ml-2">x{{ ticketSelection.quantity }}</span>
+          <div class="min-w-0 flex-1 pr-2">
+            <span class="font-medium text-gray-900 text-sm sm:text-base block sm:inline">{{ ticketSelection.ticket.name || ticketSelection.ticket.type }}</span>
+            <span class="text-gray-600 text-xs sm:text-sm ml-0 sm:ml-2 block sm:inline">x{{ ticketSelection.quantity }}</span>
           </div>
-          <span class="font-semibold text-gray-900">
-            {{ (parseFloat(ticketSelection.ticket.price as any) * ticketSelection.quantity).toFixed(2) }} {{ ticketSelection.ticket.currency || ticketSelection.ticket.devise || reservationSummary.currency }}
+          <span class="font-semibold text-gray-900 text-sm sm:text-base whitespace-nowrap">
+            {{ formatMoney(parseFloat(ticketSelection.ticket.price as any) * ticketSelection.quantity) }} {{ ticketSelection.ticket.currency || ticketSelection.ticket.devise || reservationSummary.currency }}
           </span>
         </div>
       </div>
 
       <!-- Total -->
-      <div class="border-t border-gray-200 pt-4">
+      <div class="border-t border-gray-200 pt-3 sm:pt-4">
         <div class="flex justify-between items-center">
-          <span class="text-lg font-semibold text-gray-900">Total à payer</span>
-          <span class="text-2xl font-bold text-primary-600">
-            {{ reservationSummary.totalPrice.toFixed(2) }} {{ reservationSummary.currency }}
+          <span class="text-base sm:text-lg font-semibold text-gray-900">Total à payer</span>
+          <span class="text-xl sm:text-2xl font-bold text-primary-600">
+            {{ formatMoney(reservationSummary.totalPrice) }} {{ reservationSummary.currency }}
           </span>
         </div>
       </div>
     </div>
 
     <!-- Section de paiement (conditionnelle selon le type de ticket) -->
-    <div v-if="hasPaidTickets" class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-      <h2 class="text-xl font-semibold text-gray-900 mb-4">Méthode de Paiement</h2>
+    <div v-if="hasPaidTickets" class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 mb-6">
+      <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Méthode de Paiement</h2>
       
       <!-- Sélection de la méthode -->
-      <div class="mb-6">
-        <h3 class="mb-4 font-semibold text-gray-900 dark:text-white">Choisissez votre méthode de paiement</h3>
-        <ul class="items-center w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg sm:flex dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-          <li class="w-full border-b border-gray-200 sm:border-b-0 sm:border-r dark:border-gray-600">
-            <div class="flex items-center ps-3">
+      <div class="mb-4 sm:mb-6">
+        <h3 class="mb-3 sm:mb-4 font-semibold text-gray-900 dark:text-white text-sm sm:text-base">Choisissez votre méthode de paiement</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <!-- Mobile Money Option -->
+          <label 
+            for="payment-mobile-money" 
+            class="relative flex items-center p-3 sm:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md"
+            :class="paymentMethod === 'mobile_money' 
+              ? 'border-primary-500 bg-primary-50 shadow-md' 
+              : 'border-gray-200 bg-white hover:border-gray-300'"
+          >
               <input 
                 id="payment-mobile-money" 
                 v-model="paymentMethod"
                 type="radio" 
                 value="mobile_money" 
                 name="payment-method" 
-                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
-              >
-              <label for="payment-mobile-money" class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Mobile Money</label>
+              class="sr-only"
+            >
+            <div class="flex items-center space-x-2 sm:space-x-3 w-full">
+              <!-- Custom Radio Button -->
+              <div class="flex-shrink-0">
+                <div 
+                  class="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200"
+                  :class="paymentMethod === 'mobile_money' 
+                    ? 'border-primary-500 bg-primary-500' 
+                    : 'border-gray-300 bg-white'"
+                >
+                  <div 
+                    v-if="paymentMethod === 'mobile_money'"
+                    class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white"
+                  ></div>
+                </div>
+              </div>
+              
+              <!-- Icon and Text -->
+              <div class="flex items-center space-x-2 sm:space-x-3 flex-1">
+                <div class="flex-shrink-0">
+                  <svg class="w-5 h-5 sm:w-6 sm:h-6" :class="paymentMethod === 'mobile_money' ? 'text-primary-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="font-medium text-sm sm:text-base" :class="paymentMethod === 'mobile_money' ? 'text-primary-900' : 'text-gray-900'">
+                    Mobile Money
+                  </div>
+                  <div class="text-xs sm:text-sm" :class="paymentMethod === 'mobile_money' ? 'text-primary-600' : 'text-gray-500'">
+                    Airtel, Orange, Vodacom, Africell
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Check Icon -->
+              <div v-if="paymentMethod === 'mobile_money'" class="flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
             </div>
-          </li>
-          <li class="w-full dark:border-gray-600">
-            <div class="flex items-center ps-3">
+          </label>
+
+          <!-- Card Payment Option -->
+          <label 
+            for="payment-card" 
+            class="relative flex items-center p-3 sm:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md"
+            :class="paymentMethod === 'card' 
+              ? 'border-primary-500 bg-primary-50 shadow-md' 
+              : 'border-gray-200 bg-white hover:border-gray-300'"
+          >
               <input 
                 id="payment-card" 
                 v-model="paymentMethod"
                 type="radio" 
                 value="card" 
                 name="payment-method" 
-                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
-              >
-              <label for="payment-card" class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Carte bancaire</label>
+              class="sr-only"
+            >
+            <div class="flex items-center space-x-2 sm:space-x-3 w-full">
+              <!-- Custom Radio Button -->
+              <div class="flex-shrink-0">
+                <div 
+                  class="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200"
+                  :class="paymentMethod === 'card' 
+                    ? 'border-primary-500 bg-primary-500' 
+                    : 'border-gray-300 bg-white'"
+                >
+                  <div 
+                    v-if="paymentMethod === 'card'"
+                    class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white"
+                  ></div>
+                </div>
+              </div>
+              
+              <!-- Icon and Text -->
+              <div class="flex items-center space-x-2 sm:space-x-3 flex-1">
+                <div class="flex-shrink-0">
+                  <svg class="w-5 h-5 sm:w-6 sm:h-6" :class="paymentMethod === 'card' ? 'text-primary-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="font-medium text-sm sm:text-base" :class="paymentMethod === 'card' ? 'text-primary-900' : 'text-gray-900'">
+                    Carte bancaire
+                  </div>
+                  <div class="text-xs sm:text-sm" :class="paymentMethod === 'card' ? 'text-primary-600' : 'text-gray-500'">
+                    Visa, Mastercard
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Check Icon -->
+              <div v-if="paymentMethod === 'card'" class="flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
             </div>
-          </li>
-        </ul>
+          </label>
+        </div>
       </div>
 
       <!-- Sélection de la devise -->
-      <div v-if="paymentMethod" class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-3">
+      <div v-if="paymentMethod" class="mb-4 sm:mb-6">
+        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
           Devise de paiement
         </label>
-        <div class="flex gap-4">
-          <label class="flex items-center">
+        <div class="flex gap-2 sm:gap-3">
+          <!-- USD Option -->
+          <label class="relative flex items-center px-3 py-2 sm:px-4 sm:py-3 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-sm"
+            :class="paymentCurrency === 'USD' 
+              ? 'border-primary-500 bg-primary-50 shadow-sm' 
+              : 'border-gray-200 bg-white hover:border-gray-300'"
+          >
             <input
               v-model="paymentCurrency"
               type="radio"
               value="USD"
-              class="mr-2"
+              class="sr-only"
             />
-            USD
+            <div class="flex items-center space-x-1.5 sm:space-x-2">
+              <!-- Custom Radio Button -->
+              <div 
+                class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 flex items-center justify-center transition-all duration-200"
+                :class="paymentCurrency === 'USD' 
+                  ? 'border-primary-500 bg-primary-500' 
+                  : 'border-gray-300 bg-white'"
+              >
+                <div 
+                  v-if="paymentCurrency === 'USD'"
+                  class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white"
+                ></div>
+              </div>
+              <span class="font-medium text-sm sm:text-base" :class="paymentCurrency === 'USD' ? 'text-primary-900' : 'text-gray-700'">
+                USD
+              </span>
+            </div>
           </label>
-          <label v-if="paymentMethod === 'mobile_money'" class="flex items-center">
+
+          <!-- CDF Option (only for mobile money) -->
+          <label v-if="paymentMethod === 'mobile_money'" 
+            class="relative flex items-center px-3 py-2 sm:px-4 sm:py-3 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-sm"
+            :class="paymentCurrency === 'CDF' 
+              ? 'border-primary-500 bg-primary-50 shadow-sm' 
+              : 'border-gray-200 bg-white hover:border-gray-300'"
+          >
             <input
               v-model="paymentCurrency"
               type="radio"
               value="CDF"
-              class="mr-2"
+              class="sr-only"
             />
-            CDF
+            <div class="flex items-center space-x-1.5 sm:space-x-2">
+              <!-- Custom Radio Button -->
+              <div 
+                class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 flex items-center justify-center transition-all duration-200"
+                :class="paymentCurrency === 'CDF' 
+                  ? 'border-primary-500 bg-primary-500' 
+                  : 'border-gray-300 bg-white'"
+              >
+                <div 
+                  v-if="paymentCurrency === 'CDF'"
+                  class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white"
+                ></div>
+              </div>
+              <span class="font-medium text-sm sm:text-base" :class="paymentCurrency === 'CDF' ? 'text-primary-900' : 'text-gray-700'">
+                CDF
+              </span>
+            </div>
           </label>
         </div>
       </div>
 
       <!-- Sélection de l'opérateur Mobile Money -->
-      <div v-if="paymentMethod === 'mobile_money'" class="mb-6">
-        <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-2">
+      <div v-if="paymentMethod === 'mobile_money'" class="mb-4 sm:mb-6">
+        <label for="phoneNumber" class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
           Numéro de téléphone
         </label>
         <input
@@ -142,31 +275,31 @@
         v-if="!isWaitingForSMS"
         @click="processPayment"
         :disabled="!canProcessPayment"
-        class="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        class="w-full bg-primary-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-medium text-sm sm:text-base hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         <span v-if="isProcessing">Traitement en cours...</span>
-        <span v-else>Payer {{ reservationSummary?.totalPrice.toFixed(2) }} {{ reservationSummary?.currency }}</span>
+        <span v-else>Payer {{ formatMoney(reservationSummary?.totalPrice) }} {{ reservationSummary?.currency }}</span>
       </button>
 
       <!-- Bouton désactivé pendant l'attente SMS -->
       <button
         v-else
         disabled
-        class="w-full bg-gray-400 text-white py-3 px-6 rounded-lg font-medium cursor-not-allowed"
+        class="w-full bg-gray-400 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-medium text-sm sm:text-base cursor-not-allowed"
       >
         Paiement en cours...
       </button>
     </div>
 
     <!-- Section pour tickets gratuits -->
-    <div v-else-if="reservationSummary" class="bg-white rounded-lg border border-gray-200 p-6">
-      <h2 class="text-xl font-semibold text-gray-900 mb-4">Réservation Gratuite</h2>
-      <p class="text-gray-600 mb-4">Vos tickets sont gratuits. Aucun paiement n'est requis.</p>
+    <div v-else-if="reservationSummary" class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+      <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Réservation Gratuite</h2>
+      <p class="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">Vos tickets sont gratuits. Aucun paiement n'est requis.</p>
       
       <button
         @click="processFreeReservation"
         :disabled="isProcessing"
-        class="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        class="w-full bg-green-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-medium text-sm sm:text-base hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         <span v-if="isProcessing">Traitement en cours...</span>
         <span v-else>Confirmer la réservation gratuite</span>
@@ -699,19 +832,8 @@ const getMessageTextClass = () => {
   }
 }
 
-// Formatage de la date
-const formatDate = (dateString: string) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+// Import des fonctions utilitaires
+import { formatMoney, formatDate } from '~/utils'
 
 // Vérification que l'utilisateur a des tickets sélectionnés
 onMounted(() => {

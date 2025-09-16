@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen ">
+    <div class="min-h-screen  overflow-hidden">
       <!-- Hero Section avec parallaxe simple -->
     <section class="header-image" style="height: 80dvh;">
       <!-- Image de fond avec parallaxe simple -->
@@ -20,22 +20,15 @@
           <div :class="`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`">
             <!-- Titre principal -->
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold mb-4 leading-tight drop-shadow-2xl">
-              Mariage de
+              {{ eventTitle }}
             </h1>
             
-            <!-- Noms des mariés -->
-            <div class="text-3xl sm:text-4xl lg:text-5xl font-serif font-light mb-6">
-              <div class="inline-block transform hover:scale-105 transition-all duration-500">
-                <span class="text-white drop-shadow-2xl font-semibold">{{ groomName }}</span>
-                <span class="mx-4 text-2xl drop-shadow-2xl">&</span>
-                <span class="text-white drop-shadow-2xl font-semibold">{{ brideName }}</span>
-              </div>
-            </div>
+          
             
             <!-- Date et lieu -->
             <div class="text-lg sm:text-xl font-light space-y-1">
-              <p class="font-bold drop-shadow-2xl text-white">{{ eventDateText }}</p>
-              <p class="text-white/90 drop-shadow-2xl">{{ eventLocation }}</p>
+              <p class="font-bold drop-shadow-2xl text-white">{{ eventStartsAt }}</p>
+              <p class="text-white/90 drop-shadow-2xl">{{ eventLocationDisplay }}</p>
             </div>
           </div>
         </div>
@@ -104,7 +97,7 @@
 
     <!-- Section livre d'or -->
     <section 
-      class="py-4 px-4"
+      class="py-4 px-2 relative z-10 bg-white"
       v-motion
       :initial="{ opacity: 0, y: 20 }"
       :visible-once="{ opacity: 1, y: 0 }"
@@ -144,30 +137,73 @@
             </div>
           </div>
 
-        <!-- Messages des autres invités -->
+
         <div 
-          class="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-2xl p-8"
+          class="  rounded-2xl p-0"
           v-motion
           :initial="{ opacity: 0, y: 20 }"
           :visible-once="{ opacity: 1, y: 0 }"
           :delay="200"
           :duration="1200"
         >
-          <h3 class="text-xl font-semibold mb-6 text-gray-800">
+          <h3 class="text-xl font-semibold mb-6 text-gray-800 text-center">
             Messages des invités
           </h3>
           <div v-if="guestMessages.length > 0" class="space-y-4">
-            <div 
-              v-for="(message, index) in guestMessages" 
-              :key="message.id"
-              class="bg-white rounded-lg p-4 shadow-sm border-l-4 border-primary-300 hover:shadow-md transition-all duration-300"
-            >
-              <p class="text-gray-700 italic">"{{ message.content }}"</p>
-              <p class="text-sm text-gray-500 mt-2">{{ message.guest_name || 'Invité anonyme' }}</p>
+            <!-- Première rangée -->
+            <MarqueeCards 
+              :messages="guestMessages"
+              :speed="4000"
+              @message-click="handleMessageClick"
+            />
+            <!-- Deuxième rangée (sens inverse) -->
+            <div class="w-full mx-auto max-w-5xl overflow-hidden relative">
+              <div class="absolute left-0 top-0 h-full w-20 z-10 pointer-events-none bg-gradient-to-r from-gray-50 to-transparent"></div>
+              <div class="marquee-inner marquee-reverse flex transform-gpu min-w-[200%] pt-5 pb-10">
+                <div 
+                  v-for="(message, index) in [...guestMessages, ...guestMessages]" 
+                  :key="`reverse-${message.id}-${index}`"
+                  class="p-4 rounded-lg mx-4 shadow hover:shadow-lg transition-all duration-200 w-72 shrink-0 cursor-pointer"
+                  @click="handleMessageClick(message)"
+                >
+                  <div class="flex gap-2">
+                    <!-- Avatar avec image ou initiales -->
+                    <img 
+                      v-if="message.authorImage" 
+                      class="size-11 rounded-full" 
+                      :src="message.authorImage" 
+                      :alt="message.authorName || 'Invité'"
+                    >
+                    <div 
+                      v-else
+                      class="size-11 rounded-full bg-primary-200 flex items-center justify-center"
+                    >
+                      <span class="text-primary-600 font-semibold text-sm">
+                        {{ message.authorName?.charAt(0)?.toUpperCase() || 'A' }}
+                      </span>
+                    </div>
+                    <div class="flex flex-col">
+                      <div class="flex items-center gap-1">
+                        <p class="font-semibold text-gray-900">{{ message.authorName || 'Invité anonyme' }}</p>
+                        <svg class="mt-0.5" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path fill-rule="evenodd" clip-rule="evenodd" d="M4.555.72a4 4 0 0 1-.297.24c-.179.12-.38.202-.59.244a4 4 0 0 1-.38.041c-.48.039-.721.058-.922.129a1.63 1.63 0 0 0-.992.992c-.071.2-.09.441-.129.922a4 4 0 0 1-.041.38 1.6 1.6 0 0 1-.245.59 3 3 0 0 1-.239.297c-.313.368-.47.551-.56.743-.213.444-.213.96 0 1.404.09.192.247.375.56.743.125.146.187.219.24.297.12.179.202.38.244.59.018.093.026.189.041.38.039.48.058.721.129.922.163.464.528.829.992.992.2.071.441.09.922.129.191.015.287.023.38.041.21.042.411.125.59.245.078.052.151.114.297.239.368.313.551.47.743.56.444.213.96.213 1.404 0 .192-.09.375-.247.743-.56.146-.125.219-.187.297-.24.179-.12.38-.202.59-.244a4 4 0 0 1 .38-.041c.48-.039.721-.058.922-.129.464-.163.829-.528.992-.992.071-.2.09-.441.129-.922a4 4 0 0 1 .041-.38c.042-.21.125-.411.245-.59.052-.078.114-.151.239-.297.313-.368.47-.551.56-.743.213-.444.213-.96 0-1.404-.09-.192-.247-.375-.56-.743a4 4 0 0 1-.24-.297 1.6 1.6 0 0 1-.244-.59 3 3 0 0 1-.041-.38c-.039-.48-.058-.721-.129-.922a1.63 1.63 0 0 0-.992-.992c-.2-.071-.441-.09-.922-.129a4 4 0 0 1-.38-.041 1.6 1.6 0 0 1-.59-.245A3 3 0 0 1 7.445.72C7.077.407 6.894.25 6.702.16a1.63 1.63 0 0 0-1.404 0c-.192.09-.375.247-.743.56m4.07 3.998a.488.488 0 0 0-.691-.69l-2.91 2.91-.958-.957a.488.488 0 0 0-.69.69l1.302 1.302c.19.191.5.191.69 0z" fill="#8B5CF6" />
+                        </svg>
+                      </div>
+                      <span class="text-xs text-gray-500">Invité</span>
+                    </div>
+                  </div>
+                  <p class="text-sm py-4 text-gray-800">{{ message.content }}</p>
+                  <div class="flex items-center justify-end text-gray-500 text-xs">
+                    <p>{{ formatDate(message.createdAt) }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="absolute right-0 top-0 h-full w-20 md:w-40 z-10 pointer-events-none bg-gradient-to-l from-gray-50 to-transparent"></div>
             </div>
           </div>
           <div v-else class="text-center text-gray-500 py-8">
-            <p>Aucun message pour le moment. Soyez le premier à laisser un message !</p>
+            <p>Aucun message pour le moment.</p>
+            <p class="text-sm mt-2">Soyez le premier à laisser un message !</p>
           </div>
         </div>
       </div>
@@ -204,7 +240,6 @@ const props = defineProps<{ invitation: any; event?: any }>()
 
 const scrollY = ref(0)
 const isVisible = ref(false)
-const guestMessages = ref<any[]>([])
 
 // Composable pour la génération d'image Canvas
 const { isGenerating, downloadInvitationImage } = useCanvasImage()
@@ -231,7 +266,26 @@ const eventImage = computed(() => {
   if (eventImg) return eventImg
   
   // Image par défaut pour mariage
-  return 'https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+})
+
+const eventStartsAt = computed(() => {
+  const event = props.event || props.invitation?.event
+  if (event?.startsAt) {
+    return new Date(event.startsAt).toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+  return eventDate.value
+})
+
+const eventLocationDisplay = computed(() => {
+  const event = props.event || props.invitation?.event
+  return event?.location || ''
 })
 
 const eventDateText = computed(() => eventDate.value)
@@ -357,6 +411,9 @@ const handleDownloadImage = () => {
       // Forcer le déclenchement des animations v-motion
       await nextTick()
       
+      // Charger les messages des invités
+      await loadGuestMessages()
+      
       // Confirmation automatique si pas encore confirmé
       await autoConfirmPresence()
 })
@@ -375,7 +432,9 @@ const {
   canSubmitMessage,
   submitGuestBookMessage,
   confirming,
-  confirm: confirmPresenceBase
+  confirm: confirmPresenceBase,
+  guestMessages,
+  loadGuestMessages
 } = useGuestBook({ token: tokenRef, slug: slugRef, eventId: eventIdRef })
 
 // Wrapper pour la fonction de confirmation qui met à jour les props
@@ -412,6 +471,22 @@ const invitationData = computed(() => props.invitation)
 const isConfirmedFromProps = computed(() => invitationData.value?.status === 'confirmed')
 
 const currentYear = computed(() => new Date().getFullYear())
+
+// Gestion du clic sur un message
+const handleMessageClick = (message: any) => {
+  console.log('Message cliqué:', message)
+  // Ici vous pouvez ajouter une logique pour afficher le message complet ou autre action
+}
+
+// Formate la date de création
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
+}
 
 // Computed properties pour les données de l'événement
 const eventTitle = computed(() => `Mariage de ${groomName.value} & ${brideName.value}`)
@@ -529,6 +604,24 @@ const guestMessageText = computed(() => {
   margin-bottom: 0.8rem;
   font-size: 1.1rem;
   color: #794c44;
+}
+
+/* Styles pour le marquee des messages */
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-inner {
+  animation: marqueeScroll 25s linear infinite;
+}
+
+.marquee-reverse {
+  animation-direction: reverse;
 }
 
 </style>
