@@ -30,4 +30,27 @@ export const formatDate = (dateString: string | Date): string => {
     minute: '2-digit'
   })
 }
+
+/**
+ * Calcule la taille de police dynamique selon la longueur du texte
+ * @param text - Le texte à analyser
+ * @returns La taille de police recommandée
+ */
+export const calculateDynamicFontSize = (text: string): number => {
+  if (!text) return 32
+  
+  const textLength = text.length
+  let baseSize = 32
+  
+  if (textLength > 200) baseSize = 28
+  if (textLength > 400) baseSize = 24
+  if (textLength > 600) baseSize = 20
+  if (textLength > 800) baseSize = 18
+  if (textLength > 1000) baseSize = 16
+  
+  return baseSize
+}
+
+
+
   

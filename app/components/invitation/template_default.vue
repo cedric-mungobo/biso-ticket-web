@@ -6,7 +6,7 @@
       <div
         class="absolute inset-0 bg-cover bg-center bg-no-repeat parallax-bg"
         :style="{
-          backgroundImage: `url('${eventImage}')`,
+          backgroundImage: `url('${(event || invitation?.event)?.imageUrl || ''}')`,
           transform: `translateY(${scrollY * 0.5}px)`
         }"
       />
@@ -17,18 +17,22 @@
       <!-- Contenu principal positionné en bas -->
       <div class="absolute bottom-0 left-0 right-0 z-10 pb-16 px-4">
         <div class="text-center text-white max-w-4xl mx-auto">
-          <div :class="`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`">
+          <div v-motion
+            :initial="{ opacity: 0, y: 20 }"
+            :visible="{ opacity: 1, y: 0 }"
+            :delay="200"
+            :duration="1000">
             <!-- Titre principal -->
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold mb-4 leading-tight drop-shadow-2xl">
-              {{ eventTitle }}
+              {{ (event || invitation?.event)?.title || 'Invitation' }}
             </h1>
-            
-          
             
             <!-- Date et lieu -->
             <div class="text-lg sm:text-xl font-light space-y-1">
-              <p class="font-bold drop-shadow-2xl text-white">{{ eventStartsAt }}</p>
-              <p class="text-white/90 drop-shadow-2xl">{{ eventLocationDisplay }}</p>
+              <p class="font-bold drop-shadow-2xl text-white">
+                {{ (event || invitation?.event)?.startsAt ? formatDate((event || invitation?.event).startsAt) : 'Date à confirmer' }}
+              </p>
+              <p class="text-white/90 drop-shadow-2xl">{{ (event || invitation?.event)?.location || '' }}</p>
             </div>
           </div>
         </div>
@@ -40,7 +44,6 @@
     <!-- Section d'invitation simplifiée -->
     <section 
       class="content-section"
-      :key="`invitation-${isVisible}`"
     >
       <div class="invitation-content" v-motion
         :initial="{ opacity: 0, x: 80 }"
@@ -48,30 +51,27 @@
         :delay="600"
         :duration="1800">
           <!-- Titre -->
-          <h2 class="text-5xl font-serif font-bold text-center mb-12 tracking-wide" style="color: #794c44;">
+          <h2 class="text-5xl font-serif font-bold text-center mb-12 tracking-wide" :style="{ color: titleColor }">
             Invitation
           </h2>
           
           <!-- Texte de l'invitation -->
           <div class="text-center">
-            <div class="text-lg sm:text-xl leading-relaxed max-w-3xl mx-auto font-serif" style="color: #794c44;">
-              <p v-if="guestMessageText" class="whitespace-pre-line font-medium">{{ guestMessageText }}</p>
+            <div class="leading-relaxed max-w-3xl mx-auto font-serif" :style="{ color: textColor, fontSize: messageFontSize + 'px' }">
+              <p v-if="guestMessage" class="whitespace-pre-line font-medium">
+                {{ guestMessage }}
+              </p>
                 <template v-else>
-                <p class="text-2xl font-serif mb-6 italic" style="color: #794c44;">
+                <p class="text-2xl font-serif mb-6 italic" :style="{ color: accentColor }">
                   C'est avec une immense joie que nous vous annonçons notre union sacrée devant Dieu.
                 </p>
-                <p class="text-lg mb-4 font-serif" style="color: #794c44;">
+                <p class="text-lg mb-4 font-serif" :style="{ color: textColor }">
                   Nous serions honorés de votre présence pour célébrer notre mariage religieux le 
-                  <strong class="font-semibold" style="color: #794c44;">{{ eventDateText }}</strong> 
-                  en l'église 
-                  <strong class="font-semibold" style="color: #794c44;">{{ churchName }}</strong> 
+                  <strong class="font-semibold" :style="{ color: accentColor }">
+                    {{ (event || invitation?.event)?.startsAt ? formatDate((event || invitation?.event).startsAt) : 'Date à confirmer' }}
+                  </strong> 
                   à 
-                  <strong class="font-semibold" style="color: #794c44;">{{ churchLocation }}</strong>.
-                </p>
-                <p class="text-lg font-serif" style="color: #794c44;">
-                  À l'issue de la cérémonie, nous vous invitons à partager un moment de convivialité 
-                  autour d'un vin d'honneur au 
-                  <strong class="font-semibold" style="color: #794c44;">{{ receptionLocation }}</strong>.
+                  <strong class="font-semibold" :style="{ color: accentColor }">{{ (event || invitation?.event)?.location || '' }}</strong>.
                 </p>
                 </template>
             </div>
@@ -96,150 +96,26 @@
 
 
     <!-- Section livre d'or -->
-    <section 
-      class="py-4 px-2 relative z-10 bg-white"
-      v-motion
-      :initial="{ opacity: 0, y: 20 }"
-      :visible-once="{ opacity: 1, y: 0 }"
-      :delay="200"
-      :duration="1200"
-    >
-      <div class="max-w-4xl mx-auto">
-        <h2 class="text-3xl font-serif font-bold text-center mb-12 text-gray-800">
-          Livre d'Or
-        </h2>
-        
-        <!-- Formulaire de message -->
-        <div class="border-2 border-primary-100 rounded-2xl  p-8 mb-8 hover:shadow-sm transition-all duration-500">
-          <h3 class="text-xl font-semibold mb-4 text-gray-800">
-            Laissez un message 
-          </h3>
-          <p class="text-gray-600 mb-6">
-            Partagez vos vœux et vos félicitations 
-          </p>
-                <textarea
-                  v-model="guestBookContent"
-                  rows="4"
-                  maxlength="2000"
-            placeholder="Votre message pour les mariés (≤ 2000 caractères)"
-            class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-primary-500 focus:ring-primary-500 text-gray-700 transition-all duration-300"
-          />
-          <div class="mt-4 flex items-center justify-between">
-            <span class="text-sm text-gray-500">{{ guestBookContent.length }}/2000</span>
-            <UButton 
-              :disabled="!canSubmitMessage || submittingMessage" 
-              :loading="submittingMessage" 
-              @click="submitGuestBookMessage"
-              color="primary"
-            >
-              {{ submittingMessage ? 'Envoi en cours...' : 'Envoyer le message' }}
-            </UButton>
-            </div>
-          </div>
-
-
-        <div 
-          class="  rounded-2xl p-0"
-          v-motion
-          :initial="{ opacity: 0, y: 20 }"
-          :visible-once="{ opacity: 1, y: 0 }"
-          :delay="200"
-          :duration="1200"
-        >
-          <h3 class="text-xl font-semibold mb-6 text-gray-800 text-center">
-            Messages des invités
-          </h3>
-          <div v-if="guestMessages.length > 0" class="space-y-4">
-            <!-- Première rangée -->
-            <MarqueeCards 
-              :messages="guestMessages"
-              :speed="4000"
-              @message-click="handleMessageClick"
-            />
-            <!-- Deuxième rangée (sens inverse) -->
-            <div class="w-full mx-auto max-w-5xl overflow-hidden relative">
-              <div class="absolute left-0 top-0 h-full w-20 z-10 pointer-events-none bg-gradient-to-r from-gray-50 to-transparent"></div>
-              <div class="marquee-inner marquee-reverse flex transform-gpu min-w-[200%] pt-5 pb-10">
-                <div 
-                  v-for="(message, index) in [...guestMessages, ...guestMessages]" 
-                  :key="`reverse-${message.id}-${index}`"
-                  class="p-4 rounded-lg mx-4 shadow hover:shadow-lg transition-all duration-200 w-72 shrink-0 cursor-pointer"
-                  @click="handleMessageClick(message)"
-                >
-                  <div class="flex gap-2">
-                    <!-- Avatar avec image ou initiales -->
-                    <img 
-                      v-if="message.authorImage" 
-                      class="size-11 rounded-full" 
-                      :src="message.authorImage" 
-                      :alt="message.authorName || 'Invité'"
-                    >
-                    <div 
-                      v-else
-                      class="size-11 rounded-full bg-primary-200 flex items-center justify-center"
-                    >
-                      <span class="text-primary-600 font-semibold text-sm">
-                        {{ message.authorName?.charAt(0)?.toUpperCase() || 'A' }}
-                      </span>
-                    </div>
-                    <div class="flex flex-col">
-                      <div class="flex items-center gap-1">
-                        <p class="font-semibold text-gray-900">{{ message.authorName || 'Invité anonyme' }}</p>
-                        <svg class="mt-0.5" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path fill-rule="evenodd" clip-rule="evenodd" d="M4.555.72a4 4 0 0 1-.297.24c-.179.12-.38.202-.59.244a4 4 0 0 1-.38.041c-.48.039-.721.058-.922.129a1.63 1.63 0 0 0-.992.992c-.071.2-.09.441-.129.922a4 4 0 0 1-.041.38 1.6 1.6 0 0 1-.245.59 3 3 0 0 1-.239.297c-.313.368-.47.551-.56.743-.213.444-.213.96 0 1.404.09.192.247.375.56.743.125.146.187.219.24.297.12.179.202.38.244.59.018.093.026.189.041.38.039.48.058.721.129.922.163.464.528.829.992.992.2.071.441.09.922.129.191.015.287.023.38.041.21.042.411.125.59.245.078.052.151.114.297.239.368.313.551.47.743.56.444.213.96.213 1.404 0 .192-.09.375-.247.743-.56.146-.125.219-.187.297-.24.179-.12.38-.202.59-.244a4 4 0 0 1 .38-.041c.48-.039.721-.058.922-.129.464-.163.829-.528.992-.992.071-.2.09-.441.129-.922a4 4 0 0 1 .041-.38c.042-.21.125-.411.245-.59.052-.078.114-.151.239-.297.313-.368.47-.551.56-.743.213-.444.213-.96 0-1.404-.09-.192-.247-.375-.56-.743a4 4 0 0 1-.24-.297 1.6 1.6 0 0 1-.244-.59 3 3 0 0 1-.041-.38c-.039-.48-.058-.721-.129-.922a1.63 1.63 0 0 0-.992-.992c-.2-.071-.441-.09-.922-.129a4 4 0 0 1-.38-.041 1.6 1.6 0 0 1-.59-.245A3 3 0 0 1 7.445.72C7.077.407 6.894.25 6.702.16a1.63 1.63 0 0 0-1.404 0c-.192.09-.375.247-.743.56m4.07 3.998a.488.488 0 0 0-.691-.69l-2.91 2.91-.958-.957a.488.488 0 0 0-.69.69l1.302 1.302c.19.191.5.191.69 0z" fill="#8B5CF6" />
-                        </svg>
-                      </div>
-                      <span class="text-xs text-gray-500">Invité</span>
-                    </div>
-                  </div>
-                  <p class="text-sm py-4 text-gray-800">{{ message.content }}</p>
-                  <div class="flex items-center justify-end text-gray-500 text-xs">
-                    <p>{{ formatDate(message.createdAt) }}</p>
-                  </div>
-                </div>
-              </div>
-              <div class="absolute right-0 top-0 h-full w-20 md:w-40 z-10 pointer-events-none bg-gradient-to-l from-gray-50 to-transparent"></div>
-            </div>
-          </div>
-          <div v-else class="text-center text-gray-500 py-8">
-            <p>Aucun message pour le moment.</p>
-            <p class="text-sm mt-2">Soyez le premier à laisser un message !</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    <GuestBook 
+      :token="invitation?.token"
+      :slug="(event || invitation?.event)?.slug"
+      :event-id="(event || invitation?.event)?.id"
+    />
 
     <!-- Footer -->
-    <footer class="bg-gradient-to-r from-primary-800 to-primary-900 text-white py-12 px-4">
-      <div class="max-w-4xl mx-auto text-center space-y-4">
-        <h3 class="text-2xl font-serif font-bold">
-          Organisez votre mariage avec Biso Ticket
-        </h3>
-        <p class="opacity-90 max-w-2xl mx-auto">
-          Créez des invitations de mariage élégantes, gérez vos invités et suivez les confirmations en temps réel.
-        </p>
-        <div class="flex items-center justify-center gap-3">
-          <UButton color="secondary" class="text-white" variant="solid" :to="'/organisateur'">Organiser mon mariage</UButton>
-          <UButton color="neutral" class="text-white" variant="solid" :to="'/contact'">Nous contacter</UButton>
-        </div>
-        <p class="text-sm opacity-75">
-          © {{ currentYear }} Biso Ticket. Tous droits réservés.
-        </p>
-      </div>
-    </footer>
+    <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { Star, Heart, Download } from 'lucide-vue-next'
-import { useGuestBook } from '~/composables/useGuestBook'
+import { Download } from 'lucide-vue-next'
 import { useCanvasImage } from '~/composables/useCanvasImage'
+import { formatDate, calculateDynamicFontSize } from '~/utils'
 
 const props = defineProps<{ invitation: any; event?: any }>()
 
 const scrollY = ref(0)
-const isVisible = ref(false)
 
 // Composable pour la génération d'image Canvas
 const { isGenerating, downloadInvitationImage } = useCanvasImage()
@@ -248,270 +124,64 @@ const handleScroll = () => {
   scrollY.value = window.scrollY
 }
 
-// Données dynamiques pour le mariage
-const groomName = computed(() => 'Steve')
-const brideName = computed(() => 'Stéphanie')
-const eventDate = computed(() => 'Samedi 13 Novembre 2025')
-const eventTime = computed(() => '19h30')
-const eventLocation = computed(() => 'Grand Hôtel de Kinshasa')
-const churchName = computed(() => 'Église Notre-Dame de la Paix')
-const churchLocation = computed(() => 'Avenue de la Paix, Kinshasa')
-const receptionLocation = computed(() => 'Grand Hôtel de Kinshasa')
-const receptionTime = computed(() => '21h00')
+const templateBackground = `/models/${(props.event || props.invitation?.event)?.settings?.defaultInvitationTemplate?.designKey || 'template_default'}.png`
 
-// Propriétés pour l'affichage
-const eventImage = computed(() => {
-  // Priorité à l'image de l'événement, sinon image par défaut pour mariage
-  const eventImg = props.event?.imageUrl || props.invitation?.event?.imageUrl
-  if (eventImg) return eventImg
-  
-  // Image par défaut pour mariage
-})
+// Variables dynamiques pour les couleurs et tailles
+const textColor = '#794c44'
+const titleColor = '#794c44'
+const accentColor = '#794c44'
+const signatureColor = '#794c44'
 
-const eventStartsAt = computed(() => {
-  const event = props.event || props.invitation?.event
-  if (event?.startsAt) {
-    return new Date(event.startsAt).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-  return eventDate.value
-})
+// Calcul de la taille de police dynamique
+const guestMessage = computed(() => 
+  (props.event || props.invitation?.event)?.settings?.guestMessage || 
+  (props.event || props.invitation?.event)?.settings?.guest_message
+)
 
-const eventLocationDisplay = computed(() => {
-  const event = props.event || props.invitation?.event
-  return event?.location || ''
-})
-
-const eventDateText = computed(() => eventDate.value)
-
-const templateBackgroundImage = computed(() => {
-  const templateKey = props.invitation?.invitationTemplate?.designKey
-  if (templateKey) {
-    return `/models/${templateKey}.png`
-  }
-  return '/models/template_default.png'
-})
-
-
-// Calculer la taille de police dynamique selon la longueur du texte
-const calculateDynamicFontSize = (text: string) => {
-  if (!text) return 32
-  
-  const textLength = text.length
-  const maxLength = 500 // Longueur maximale pour la plus petite police
-  
-  // Taille de base
-  let baseSize = 32
-  
-  // Réduire la taille si le texte est long
-  if (textLength > 200) {
-    baseSize = 28
-  }
-  if (textLength > 400) {
-    baseSize = 24
-  }
-  if (textLength > 600) {
-    baseSize = 20
-  }
-  if (textLength > 800) {
-    baseSize = 18
-  }
-  if (textLength > 1000) {
-    baseSize = 16
-  }
-  
-  return baseSize
-}
-
-// Test de l'image de fond
-const testBackgroundImage = async () => {
-  const img = new Image()
-  img.onload = () => {
-    console.log('✅ Image de fond chargée:', templateBackgroundImage.value)
-  }
-  img.onerror = () => {
-    console.log('❌ Image de fond non trouvée:', templateBackgroundImage.value)
-  }
-  img.src = templateBackgroundImage.value
-}
+const messageFontSize = computed(() => 
+  calculateDynamicFontSize(guestMessage.value || '')
+)
 
 const handleDownloadInvitation = async () => {
   try {
-    // Tester l'image de fond d'abord
-    await testBackgroundImage()
-    
     const invitationData = {
-      guestMessage: guestMessageText.value || undefined,
-      backgroundImage: templateBackgroundImage.value,
+      guestMessage: guestMessage.value || undefined,
+      backgroundImage: templateBackground,
       textStartY: 200,
-      textColor: '#794c44', // Couleur du message principal
-      titleColor: '#794c44', // Couleur du titre
-      accentColor: '#794c44', // Couleur d'accent
-      signatureColor: '#794c44', // Couleur de la signature (gris)
-      messagePadding: 200, // Padding horizontal de 200px de chaque côté
-      textAlign: 'left' as const, // Alignement du texte à gauche
-      messageFontSize: calculateDynamicFontSize(guestMessageText.value || '') // Taille dynamique selon la longueur
+      textColor: textColor,
+      titleColor: titleColor,
+      accentColor: accentColor,
+      signatureColor: signatureColor,
+      messagePadding: 200,
+      textAlign: 'left' as const,
+      messageFontSize: messageFontSize.value
     }
     
     await downloadInvitationImage(invitationData)
   } catch (error) {
-    // Fallback vers le téléchargement texte
-    const invitationText = `
-MARIAGE DE ${groomName.value.toUpperCase()} & ${brideName.value.toUpperCase()}
-Invitation au Mariage Religieux
-
-Cher(e) ${props.invitation?.guestName || 'Invité'},
-
-C'est avec une immense joie que nous vous annonçons notre union sacrée devant Dieu.
-
-Nous serions honorés de votre présence pour célébrer notre mariage religieux le 
-${eventDate.value} à ${eventTime.value} en l'église ${churchName.value} à ${churchLocation.value}.
-
-À l'issue de la cérémonie, nous vous invitons à partager un moment de convivialité 
-autour d'un vin d'honneur au ${receptionLocation.value}.
-
-Avec toute notre affection,
-${groomName.value} & ${brideName.value}
-    `
-
-    const blob = new Blob([invitationText], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `invitation-mariage-${groomName.value.toLowerCase()}-${brideName.value.toLowerCase()}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    console.error('Erreur lors du téléchargement:', error)
   }
 }
 
-const handleDownloadImage = () => {
-  const link = document.createElement('a')
-  link.href = eventImage.value || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
-  link.download = 'mariage-steve-stephanie.jpg'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
 
-    onMounted(async () => {
+    onMounted(() => {
   window.addEventListener('scroll', handleScroll)
-  // Trigger animations on mount
-  setTimeout(() => {
-    isVisible.value = true
-  }, 100)
-      
-      // Forcer le déclenchement des animations v-motion
-      await nextTick()
-      
-      // Charger les messages des invités
-      await loadGuestMessages()
-      
-      // Confirmation automatique si pas encore confirmé
-      await autoConfirmPresence()
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
-// Guest book (public API) via composable
-const tokenRef = computed(() => props.invitation?.token)
-const slugRef = computed(() => props.event?.slug || props.invitation?.event?.slug)
-const eventIdRef = computed(() => props.event?.id || props.invitation?.event?.id)
-const {
-  guestBookContent,
-  submittingMessage,
-  canSubmitMessage,
-  submitGuestBookMessage,
-  confirming,
-  confirm: confirmPresenceBase,
-  guestMessages,
-  loadGuestMessages
-} = useGuestBook({ token: tokenRef, slug: slugRef, eventId: eventIdRef })
 
-// Wrapper pour la fonction de confirmation qui met à jour les props
-const confirmPresence = async () => {
-  await confirmPresenceBase()
-  // Mettre à jour les données du composant parent
-  if (props.invitation) {
-    props.invitation.status = 'confirmed'
-    props.invitation.confirmedAt = new Date().toISOString()
-  }
-}
 
-// Confirmation automatique au montage
-const autoConfirmPresence = async () => {
-  // Vérifier si pas encore confirmé
-  if (!isConfirmedFromProps.value && tokenRef.value) {
-    try {
-      console.log('Confirmation automatique de la présence...')
-      await confirmPresenceBase()
-      // Mettre à jour les données du composant parent
-      if (props.invitation) {
-        props.invitation.status = 'confirmed'
-        props.invitation.confirmedAt = new Date().toISOString()
-      }
-      console.log('Présence confirmée automatiquement')
-    } catch (error) {
-      console.warn('Erreur lors de la confirmation automatique:', error)
-    }
-  }
-}
 
-// Utiliser les données déjà chargées depuis le composant parent
-const invitationData = computed(() => props.invitation)
-const isConfirmedFromProps = computed(() => invitationData.value?.status === 'confirmed')
 
-const currentYear = computed(() => new Date().getFullYear())
 
-// Gestion du clic sur un message
-const handleMessageClick = (message: any) => {
-  console.log('Message cliqué:', message)
-  // Ici vous pouvez ajouter une logique pour afficher le message complet ou autre action
-}
-
-// Formate la date de création
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  })
-}
-
-// Computed properties pour les données de l'événement
-const eventTitle = computed(() => `Mariage de ${groomName.value} & ${brideName.value}`)
-const guestMessageText = computed(() => {
-  // Priorité à l'événement passé en props
-  if (props.event?.settings?.guestMessage) {
-    return props.event.settings.guestMessage
-  }
-  // Sinon, chercher dans l'invitation
-  if (props.invitation?.event?.settings?.guestMessage) {
-    return props.invitation.event.settings.guestMessage
-  }
-  // Fallback vers les anciennes clés
-  return props.event?.settings?.guest_message || 
-         props.invitation?.event?.settings?.guest_message || 
-         ''
-})
 
 </script>
 
 
 <style scoped>
-.transition-all {
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
 /* Optimisation simple pour le parallaxe */
 .parallax-bg {
@@ -519,40 +189,6 @@ const guestMessageText = computed(() => {
   transform: translateZ(0);
 }
 
-/* Animations personnalisées */
-.animate-fade-in-right {
-  animation: fadeInRight 1.2s ease-out forwards;
-  opacity: 0;
-  transform: translateX(50px);
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 1.2s ease-out forwards;
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-@keyframes fadeInRight {
-  from {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 /* Section de l'image d'en-tête (couple) */
 .header-image {
@@ -593,35 +229,6 @@ const guestMessageText = computed(() => {
   pointer-events: none;
 }
 
-.invitation-content h2 {
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
-  font-style: italic;
-  color: #794c44;
-}
 
-.invitation-content p {
-  margin-bottom: 0.8rem;
-  font-size: 1.1rem;
-  color: #794c44;
-}
-
-/* Styles pour le marquee des messages */
-@keyframes marqueeScroll {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-.marquee-inner {
-  animation: marqueeScroll 25s linear infinite;
-}
-
-.marquee-reverse {
-  animation-direction: reverse;
-}
 
 </style>
