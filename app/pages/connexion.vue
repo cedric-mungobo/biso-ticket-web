@@ -26,6 +26,11 @@
           />
         </div>
 
+        <!-- Debug Google Auth (dev seulement) -->
+        <div v-if="isDev" class="mb-6">
+          <GoogleAuthDebug />
+        </div>
+
         <!-- Séparateur -->
         <div class="relative mb-6">
           <div class="absolute inset-0 flex items-center">
@@ -139,6 +144,7 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const emailRegex = /[^\s@]+@[^\s@]+\.[^\s@]+/
 const phoneIntl = /^\+?[1-9][0-9]{6,14}$/
+const isDev = process.dev
 
 // Composables
 const { login } = useAuth()
@@ -149,6 +155,7 @@ const toast = useToast()
 
 // Import explicite du composant GoogleAuthButton
 import GoogleAuthButton from '~/components/auth/GoogleAuthButton.vue'
+import GoogleAuthDebug from '~/components/GoogleAuthDebug.vue'
 
 // Extrait un message lisible depuis les erreurs ofetch/backend (incl. 422)
 const extractErrorMessage = (e: any): string => {

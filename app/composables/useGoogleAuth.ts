@@ -3,7 +3,7 @@ import { useAuthState } from "./useAuthState"
 import type { GoogleAuthResponse, GoogleCallbackResponse } from '~/types/api'
 
 export const useGoogleAuth = () => {
-  const { $customFetch } = useNuxtApp()
+  const { $myFetch } = useNuxtApp()
   const { redirectAfterAuth } = useAuthRedirect()
   const { isGoogleUser } = useAuthState()
   const router = useRouter()
@@ -16,7 +16,7 @@ export const useGoogleAuth = () => {
   const loginWithGoogle = async (): Promise<void> => {
     try {
       // 1. Récupérer l'URL de redirection depuis l'API
-      const response = await $customFetch<GoogleAuthResponse>('/auth/google')
+      const response = await $myFetch<GoogleAuthResponse>('/auth/google')
       
       if (!response.status) {
         throw new Error(response.message || 'Erreur lors de la récupération de l\'URL de redirection')
@@ -55,9 +55,20 @@ export const useGoogleAuth = () => {
    */
   const handleGoogleCallback = async (code: string, state: string): Promise<GoogleCallbackResponse['data']> => {
     try {
+      console.log('🔍 [GoogleAuth] Début du callback avec:', { 
+        code: code?.substring(0, 20) + '...', 
+        state: state?.substring(0, 10) + '...' 
+      })
+
       // Vérifier le state pour la sécurité
       const stateCookie = useCookie('google_oauth_state')
       const storedState = stateCookie.value
+      console.log('🔍 [GoogleAuth] State validation:', { 
+        received: state?.substring(0, 10) + '...', 
+        stored: storedState?.substring(0, 10) + '...',
+        valid: state === storedState
+      })
+
       if (!state || !storedState || state !== storedState) {
         throw new Error('State invalide - sécurité compromise')
       }
@@ -65,9 +76,19 @@ export const useGoogleAuth = () => {
       // Nettoyer le state
       stateCookie.value = null
 
+      // Construire l'URL de callback
+      const callbackUrl = `/auth/google/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`
+      console.log('🔍 [GoogleAuth] Appel API:', callbackUrl)
+
       // Appeler l'API backend pour finaliser l'authentification
-      const response = await $customFetch<GoogleCallbackResponse>(`/auth/google/callback?code=${code}&state=${state}`)
+      const response = await $myFetch<GoogleCallbackResponse>(callbackUrl)
       
+      console.log('🔍 [GoogleAuth] Réponse API:', { 
+        status: response.status, 
+        hasData: !!response.data,
+        message: response.message 
+      })
+
       if (!response.status) {
         throw new Error(response.message || 'Erreur lors de l\'authentification Google')
       }
@@ -75,8 +96,14 @@ export const useGoogleAuth = () => {
       return response.data
 
     } catch (error: any) {
-      console.error('Erreur callback Google:', error)
-      const message = error?.data?.message || error?.message || 'Erreur lors de l\'authentification Google'
+      console.error('❌ [GoogleAuth] Erreur callback:', {
+        message: error?.message,
+        status: error?.status,
+        data: error?.data,
+        response: error?.response?._data
+      })
+      
+      const message = error?.data?.message || error?.response?._data?.message || error?.message || 'Erreur lors de l\'authentification Google'
       toast.add({ 
         title: 'Erreur d\'authentification', 
         description: message, 
@@ -91,7 +118,7 @@ export const useGoogleAuth = () => {
    */
   const logoutGoogle = async (): Promise<void> => {
     try {
-      await $customFetch('/auth/google/logout', {
+      await $myFetch('/auth/google/logout', {
         method: 'POST'
       })
     } catch (error: any) {
