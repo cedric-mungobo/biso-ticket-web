@@ -108,11 +108,5 @@
 </template>
 
 <script setup lang="ts">
-// Métadonnées de la section
-useHead({
-  title: 'Fonctionnalités - Biso Ticket',
-  meta: [
-    { name: 'description', content: 'Découvrez toutes les fonctionnalités de Biso Ticket : billetterie en ligne, invitations digitales, application mobile, analytics et plus encore.' }
-  ]
-})
+// Section fonctionnalités - pas de métadonnées SEO nécessaires
 </script>

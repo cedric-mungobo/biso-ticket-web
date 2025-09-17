@@ -10,6 +10,11 @@ import { useSEO } from '~/composables/useSEO'
 const { setHomeSEO } = useSEO()
 setHomeSEO()
 
+// Debug SEO en développement
+if (process.dev) {
+  console.log('🔍 SEO Home page configuré')
+}
+
 // Utilisation du composable useEvents
 const { fetchPublicEvents, formatDate } = useEvents()
 

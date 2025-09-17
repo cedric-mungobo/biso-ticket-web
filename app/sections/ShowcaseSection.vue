@@ -72,13 +72,7 @@
 </template>
 
 <script setup lang="ts">
-// Métadonnées de la section
-useHead({
-  title: 'Showcase - Biso Ticket',
-  meta: [
-    { name: 'description', content: 'Découvrez l\'interface de Biso Ticket : une plateforme complète pour organiser vos événements et maximiser vos revenus.' }
-  ]
-})
+// Section showcase - pas de métadonnées SEO nécessaires
 </script>
 
 <style scoped>

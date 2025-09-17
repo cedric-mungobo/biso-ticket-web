@@ -160,19 +160,25 @@ export const useSEO = () => {
    */
   const setHomeSEO = () => {
     const homeConfig: Partial<SEOConfig> = {
-      title: 'Plateforme de billetterie et gestion d\'événements',
-      description: 'Biso Ticket - La plateforme de référence pour créer, gérer et vendre des billets d\'événements en RDC. Outils complets pour organisateurs et expérience fluide pour participants.',
+      title: 'Passez au digital pour vos événements avec Biso Ticket',
+      description: 'Tout ce dont vous avez besoin pour gérer un événement : vendre vos billets en ligne et envoyer des invitations digitales. Recevez les paiements mobile money, achetez les billets en ligne via mobile money, configuration en 3 minutes.',
       keywords: [
-        'billet événement',
+        'événements digitaux',
+        'billets en ligne',
+        'invitations digitales',
+        'mobile money',
+        'paiement mobile',
         'gestion événement',
-        'plateforme billetterie',
-        'vente billet',
+        'vente billets',
         'réservation événement',
         'Kinshasa',
         'RDC',
         'Congo',
         'organisateur événement',
-        'ticket en ligne'
+        'ticket en ligne',
+        'Orange Money',
+        'Airtel Money',
+        'M-Pesa'
       ],
       image: '/images/hero.jpg',
       type: 'website'
