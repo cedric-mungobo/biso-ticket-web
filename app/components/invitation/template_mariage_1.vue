@@ -64,7 +64,7 @@
           
           <!-- Texte de l'invitation -->
           <div class="text-center">
-            <div class="leading-relaxed max-w-3xl mx-auto font-serif" :style="{ color: textColor }">
+            <div class="leading-relaxed max-w-3xl mx-auto font-serif" :style="{ color: textColor, fontSize: messageFontSize + 'px' }">
               <p v-if="guestMessage" class="whitespace-pre-line font-medium">
                 {{ guestMessage }}
               </p>
@@ -148,9 +148,11 @@ const guestMessage = computed(() =>
   (props.event || props.invitation?.event)?.settings?.guest_message
 )
 
-const messageFontSize = computed(() => 
-  calculateDynamicFontSize(guestMessage.value || '')
-)
+const messageFontSize = computed(() => {
+  const fontSize = calculateDynamicFontSize(guestMessage.value || '')
+  console.log('📏 Taille de police calculée (mariage):', fontSize, 'pour le texte:', guestMessage.value?.substring(0, 50) + '...')
+  return fontSize
+})
 
 const handleDownloadInvitation = async () => {
   try {
@@ -166,6 +168,11 @@ const handleDownloadInvitation = async () => {
       textAlign: 'left' as const,
       messageFontSize: messageFontSize.value
     }
+    
+    console.log('📤 Données envoyées au canvas (mariage):', {
+      messageFontSize: invitationData.messageFontSize,
+      guestMessage: invitationData.guestMessage?.substring(0, 50) + '...'
+    })
     
     await downloadInvitationImage(invitationData)
   } catch (error) {

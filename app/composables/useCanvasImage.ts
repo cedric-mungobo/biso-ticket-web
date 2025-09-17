@@ -208,9 +208,9 @@ export const useCanvasImage = () => {
         }
         
         // Utiliser la fonction drawText améliorée pour gérer les retours à la ligne
-        const messageFontSize = invitationData.messageFontSize || 20
-        console.log('🎨 Taille de police du message:', messageFontSize)
-        currentY = drawText(invitationData.guestMessage, textX, currentY, messageWidth, messageFontSize, primaryFont, primaryColor, textAlign)
+        const fontSize = invitationData.messageFontSize || 20
+        console.log('🎨 Taille de police du message:', fontSize)
+        currentY = drawText(invitationData.guestMessage, textX, currentY, messageWidth, fontSize, primaryFont, primaryColor, textAlign)
       }
 
       currentY += 80

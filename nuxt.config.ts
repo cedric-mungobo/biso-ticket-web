@@ -91,7 +91,10 @@ export default defineNuxtConfig({
     public: {
       apiBaseUrl: 'https://api.bisoticket.com/api',
       recaptchaSiteKey: '6LfnSMkrAAAAAEuOzQY-COgBmEk-oUtxaiSTgTm4', // Remplacez par votre clé site
-      siteUrl: 'https://bisoticket.com'
+      siteUrl: 'https://bisoticket.com',
+      site: {
+        url: 'https://bisoticket.com'
+      }
     }
   },
 
