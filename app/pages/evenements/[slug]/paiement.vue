@@ -1,5 +1,14 @@
 <template>
   <div>
+    <!-- Loading Overlay pour le traitement des paiements -->
+    <LoadingOverlay 
+      :show="isProcessing"
+      title="Traitement du paiement..."
+      description="Veuillez patienter pendant que nous traitons votre paiement."
+      variant="branded"
+      :size="56"
+    />
+    
     <div class="px-2 py-16 md:px-8  lg:px-12 container mx-auto">
     <!-- En-tête de la page -->
     <div class="mb-8">
@@ -418,6 +427,7 @@
 <script setup lang="ts">
 import type { Event } from '~/types/api'
 import Modal from '~/components/Modal.vue'
+import LoadingOverlay from '~/components/LoadingOverlay.vue'
 
 // useTickets and useUserPreferences are auto-imported by Nuxt from app/composables
 // so no manual import is needed

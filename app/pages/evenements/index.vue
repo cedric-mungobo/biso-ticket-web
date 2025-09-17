@@ -27,11 +27,14 @@
       </div>
 
       <!-- État de chargement optimisé -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="inline-flex items-center space-x-2">
-          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
-          <span class="text-neutral-600">Chargement des événements...</span>
-        </div>
+      <div v-if="loading">
+        <LoadingOverlay 
+          :show="true"
+          title="Chargement des événements..."
+          description="Récupération de la liste des événements disponibles..."
+          variant="branded"
+          :size="56"
+        />
       </div>
 
       <!-- Message d'erreur -->
@@ -71,6 +74,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useSEO } from '~/composables/useSEO'
+import LoadingOverlay from '~/components/LoadingOverlay.vue'
 
 // SEO pour la page événements
 const { setEventsSEO } = useSEO()

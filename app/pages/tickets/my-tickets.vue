@@ -7,11 +7,13 @@
     </div>
 
     <!-- État de chargement -->
-    <div v-if="isLoading" class="text-center py-16">
-      <div class="animate-spin rounded-full h-16 w-16 border-4 border-primary-200 border-t-primary-600 mx-auto mb-6"></div>
-      <h3 class="text-xl font-semibold text-gray-900 mb-2">Chargement en cours...</h3>
-      <p class="text-gray-600">Récupération de vos billets</p>
-    </div>
+    <LoadingOverlay 
+      :show="isLoading"
+      title="Chargement de vos billets..."
+      description="Récupération de vos billets en cours..."
+      variant="branded"
+      :size="56"
+    />
 
     <!-- Message d'erreur -->
     <div v-if="errorMessage" class="text-center py-16">
@@ -73,6 +75,7 @@
 <script setup lang="ts">
 import { useClientTickets, type ClientTicketItem } from '~/composables/useClientTickets'
 import { useSEO } from '~/composables/useSEO'
+import LoadingOverlay from '~/components/LoadingOverlay.vue'
 
 definePageMeta({
   middleware: ['authenticated'],

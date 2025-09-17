@@ -12,15 +12,16 @@
     </div>
     
     <!-- Loading State -->
-    <div v-if="isLoading" class="min-h-screen flex items-center justify-center">
-      <div class="text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-        <p class="text-gray-600">Chargement de l'article...</p>
-      </div>
-    </div>
+    <LoadingOverlay 
+      :show="isLoading"
+      title="Chargement de l'article..."
+      description="Préparation de votre lecture..."
+      variant="branded"
+      :size="56"
+    />
 
     <!-- Error State -->
-    <div v-else-if="error" class="min-h-screen flex items-center justify-center">
+    <div v-if="error" class="min-h-screen flex items-center justify-center">
       <div class="text-center">
         <Icon name="lucide:alert-circle" class="w-16 h-16 text-red-500 mx-auto mb-4" />
         <h1 class="text-xl font-bold text-gray-900 mb-2">Oups !</h1>
@@ -232,6 +233,7 @@
 
 <script setup lang="ts">
 import { useSEO } from '~/composables/useSEO'
+import LoadingOverlay from '~/components/LoadingOverlay.vue'
 
 // Récupération du slug depuis la route
 const route = useRoute()

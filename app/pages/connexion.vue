@@ -18,6 +18,13 @@
         </div>
 
      
+        <LoadingOverlay 
+          :show="isLoading" 
+          title="Connexion en cours..."
+          description="Veuillez patienter pendant que nous vous connectons."
+          variant="branded"
+          :size="56"
+        />
 
         <!-- Bouton Google -->
         <div class="mb-6">

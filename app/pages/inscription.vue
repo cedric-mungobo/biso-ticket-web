@@ -17,6 +17,14 @@
           <p class="text-gray-600">Créez votre compte pour commencer.</p>
         </div>
 
+        <!-- Loading Overlay -->
+        <LoadingOverlay 
+          :show="isLoading" 
+          title="Création du compte..."
+          description="Veuillez patienter pendant que nous créons votre compte."
+          variant="branded"
+          :size="56"
+        />
 
         <!-- Bouton Google -->
         <div class="mb-6">
@@ -292,8 +300,9 @@ const handleRegister = async () => {
   }
 }
 
-// Import du composant
+// Import des composants
 import GoogleLoginButton from '~/components/GoogleLoginButton.vue'
+import LoadingOverlay from '~/components/LoadingOverlay.vue'
 </script>
 
 <style scoped>

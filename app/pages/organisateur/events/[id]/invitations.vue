@@ -1,5 +1,14 @@
 <template>
   <OrganizerNavigation>
+    <!-- Loading Overlay pour les actions importantes -->
+    <LoadingOverlay 
+      :show="templateSubmitting || importSubmitting || buySubmitting"
+      :title="templateSubmitting ? 'Sélection du template...' : importSubmitting ? 'Importation des invitations...' : 'Achat de crédits...'"
+      :description="templateSubmitting ? 'Application du template sélectionné...' : importSubmitting ? 'Traitement de vos invitations...' : 'Finalisation de votre achat...'"
+      variant="branded"
+      :size="56"
+    />
+    
     <div class="container mx-auto px-2 sm:px-6 lg:px-8 ">
       <div class="mb-6">
         <NuxtLink :to="backUrl" class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 mb-3">
@@ -366,6 +375,7 @@ const currentView = ref<any | null>(null)
 const openView = (inv: any) => { currentView.value = inv; showView.value = true }
 
 import type { DropdownMenuItem } from '@nuxt/ui'
+import LoadingOverlay from '~/components/LoadingOverlay.vue'
 const shareItems = (inv?: any): DropdownMenuItem[] => [
   {
     label: 'Partager le lien',

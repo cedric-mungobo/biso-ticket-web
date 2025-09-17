@@ -4,15 +4,16 @@
     
 
       <!-- Loading State -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="inline-flex items-center gap-2">
-          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
-          <span class="text-gray-600">Chargement de l'événement...</span>
-        </div>
-      </div>
+      <LoadingOverlay 
+        :show="loading"
+        title="Chargement de l'événement..."
+        description="Préparation des détails de l'événement..."
+        variant="branded"
+        :size="56"
+      />
 
       <!-- Error State -->
-      <div v-else-if="error" class="text-center py-10">
+      <div v-if="error" class="text-center py-10">
         <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
           <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
             <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -318,6 +319,7 @@ import { onMounted, ref, watch, computed, nextTick } from 'vue'
 import { useEvents } from '~/composables/useEvents'
 import { formatMoney } from '~/utils'
 import { useSEO } from '~/composables/useSEO'
+import LoadingOverlay from '~/components/LoadingOverlay.vue'
 
 
 // Récupération du slug depuis l'URL
