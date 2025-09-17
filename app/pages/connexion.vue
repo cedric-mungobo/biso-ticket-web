@@ -147,6 +147,9 @@ const router = useRouter()
 const route = useRoute()
 const toast = useToast()
 
+// Import explicite du composant GoogleAuthButton
+import GoogleAuthButton from '~/components/auth/GoogleAuthButton.vue'
+
 // Extrait un message lisible depuis les erreurs ofetch/backend (incl. 422)
 const extractErrorMessage = (e: any): string => {
   // Formats possibles: e.data.message, e.response._data.message, e.message
