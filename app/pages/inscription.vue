@@ -18,6 +18,24 @@
           <p class="text-gray-600">Créez votre compte pour commencer.</p>
         </div>
 
+        <!-- Bouton Google -->
+        <div class="mb-6">
+          <GoogleAuthButton 
+            @error="handleGoogleError"
+            loading-text="Inscription avec Google..."
+          />
+        </div>
+
+        <!-- Séparateur -->
+        <div class="relative mb-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-300" />
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-white text-gray-500">ou</span>
+          </div>
+        </div>
+
         <!-- Formulaire -->
         <form @submit.prevent="handleRegister" class="space-y-4">
           <!-- Champ honeypot caché pour les bots -->
@@ -130,6 +148,7 @@ definePageMeta({
 
 // SEO pour la page d'inscription
 import { useSEO } from '~/composables/useSEO'
+import { useAuthRedirect } from '~/composables/useAuthRedirect'
 const { setAuthSEO } = useSEO()
 setAuthSEO('register')
 
@@ -153,6 +172,7 @@ const submissionCount = ref(0)
 
 // Composables
 const { register } = useAuth()
+const { redirectAfterAuth } = useAuthRedirect()
 const router = useRouter()
 const toast = useToast()
 const { public: { recaptchaSiteKey } } = useRuntimeConfig()
@@ -264,7 +284,7 @@ const handleRegister = async () => {
     })
     success.value = 'Compte créé avec succès ! Redirection...'
     toast.add({ title: 'Bienvenue', description: 'Votre compte a été créé.' })
-    await router.push('/')
+    await redirectAfterAuth()
   } catch (e: any) {
     const message = extractErrorMessage(e)
     toast.add({ title: 'Inscription échouée', description: message, color: 'error' })
@@ -273,6 +293,11 @@ const handleRegister = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+// Gestion des erreurs Google
+const handleGoogleError = (error: string) => {
+  toast.add({ title: 'Erreur Google', description: error, color: 'error' })
 }
 </script>
 

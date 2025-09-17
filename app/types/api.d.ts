@@ -15,6 +15,7 @@ export interface User {
   email: string
   telephone?: string
   phone_number?: string
+  google_id?: string
   role?: string
   created_at: string
   updated_at: string
@@ -296,6 +297,25 @@ export interface PayoutBalance {
 // Types de presets
 export interface EventCategoriesPreset {
   categories: string[]
+}
+
+// Types d'authentification Google
+export interface GoogleAuthResponse {
+  status: boolean
+  message: string
+  data: {
+    redirect_url: string
+    state: string
+  }
+}
+
+export interface GoogleCallbackResponse {
+  status: boolean
+  message: string
+  data: {
+    user: User
+    token: string
+  }
 }
 
 // Types d'erreurs

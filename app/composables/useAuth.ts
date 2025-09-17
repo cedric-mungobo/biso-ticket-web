@@ -1,32 +1,62 @@
+import { useAuthState } from "./useAuthState"
 import type { User, AuthResponse, LoginRequest, RegisterRequest, ProfileUpdateRequest } from '~/types/api'
+
+// Interface pour l'authentification Google
+interface GoogleLoginRequest {
+  identifier: string
+  password: string
+  googleAuth?: boolean
+  user?: User
+  token?: string
+}
 
 // Composable de type repository (pas de state/loading/error internes)
 export const useAuth = () => {
   const { $myFetch } = useNuxtApp()
+  const { setAuth, clearAuth, updateUser } = useAuthState()
 
   const register = async (userData: RegisterRequest): Promise<AuthResponse> => {
     const response = await $myFetch<any>('/register', {
       method: 'POST',
       body: userData
     })
-    const token = useCookie('auth_token', { 
-      path: '/', 
-      maxAge: 30 * 24 * 60 * 60 // 30 jours (1 mois) en secondes
-    })
-    token.value = (response as any)?.token ?? (response as any)?.data?.token ?? null
+    
+    const tokenValue = (response as any)?.token ?? (response as any)?.data?.token ?? null
+    const userValue = (response as any)?.user ?? (response as any)?.data?.user ?? null
+    
+    if (tokenValue && userValue) {
+      setAuth(userValue, tokenValue)
+    }
+    
     return response as AuthResponse
   }
 
-  const login = async (credentials: LoginRequest): Promise<AuthResponse> => {
+  const login = async (credentials: LoginRequest | GoogleLoginRequest): Promise<AuthResponse> => {
+    // Si c'est une authentification Google, on stocke directement les données
+    if ('googleAuth' in credentials && credentials.googleAuth) {
+      if (credentials.token && credentials.user) {
+        setAuth(credentials.user, credentials.token)
+      }
+      
+      return {
+        user: credentials.user || {} as User,
+        token: credentials.token || ''
+      }
+    }
+
+    // Authentification classique
     const response = await $myFetch<any>('/login', {
       method: 'POST',
       body: credentials
     })
-    const token = useCookie('auth_token', { 
-      path: '/', 
-      maxAge: 30 * 24 * 60 * 60 // 30 jours (1 mois) en secondes
-    })
-    token.value = (response as any)?.token ?? (response as any)?.data?.token ?? null
+    
+    const tokenValue = (response as any)?.token ?? (response as any)?.data?.token ?? null
+    const userValue = (response as any)?.user ?? (response as any)?.data?.user ?? null
+    
+    if (tokenValue && userValue) {
+      setAuth(userValue, tokenValue)
+    }
+    
     return response as AuthResponse
   }
 
@@ -34,8 +64,7 @@ export const useAuth = () => {
     try {
       await $myFetch('/logout', { method: 'POST' })
     } finally {
-      const token = useCookie('auth_token')
-      token.value = null
+      clearAuth()
     }
   }
 
@@ -54,6 +83,12 @@ export const useAuth = () => {
       method: 'PUT',
       body: profileData
     })
+    
+    // Mettre à jour l'état local
+    if (response.user) {
+      updateUser(response.user)
+    }
+    
     return response.user
   }
 

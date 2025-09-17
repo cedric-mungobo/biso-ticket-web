@@ -18,6 +18,24 @@
           <p class="text-gray-600">Entrez vos identifiants pour accéder à votre compte.</p>
         </div>
 
+        <!-- Bouton Google -->
+        <div class="mb-6">
+          <GoogleAuthButton 
+            @error="handleGoogleError"
+            loading-text="Connexion avec Google..."
+          />
+        </div>
+
+        <!-- Séparateur -->
+        <div class="relative mb-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-300" />
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-white text-gray-500">ou</span>
+          </div>
+        </div>
+
         <!-- Form -->
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <!-- Email ou Téléphone -->
@@ -109,6 +127,7 @@ definePageMeta({
 
 // SEO pour la page de connexion
 import { useSEO } from '~/composables/useSEO'
+import { useAuthRedirect } from '~/composables/useAuthRedirect'
 const { setAuthSEO } = useSEO()
 setAuthSEO('login')
 
@@ -123,6 +142,7 @@ const phoneIntl = /^\+?[1-9][0-9]{6,14}$/
 
 // Composables
 const { login } = useAuth()
+const { redirectAfterAuth } = useAuthRedirect()
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
@@ -159,18 +179,18 @@ const handleSubmit = async () => {
     }
     isLoading.value = true
     await login({ identifier: value, password: password.value.trim() })
-    const redirectUrl = route.query.redirect as string
-    if (redirectUrl && redirectUrl !== '/connexion') {
-      await router.push(decodeURIComponent(redirectUrl))
-    } else {
-      await router.push('/')
-    }
+    await redirectAfterAuth()
   } catch (err: any) {
     const message = extractErrorMessage(err)
     toast.add({ title: 'Connexion échouée', description: message, color: 'error' })
   } finally {
     isLoading.value = false
   }
+}
+
+// Gestion des erreurs Google
+const handleGoogleError = (error: string) => {
+  toast.add({ title: 'Erreur Google', description: error, color: 'error' })
 }
 </script>
 
