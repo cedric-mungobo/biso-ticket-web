@@ -126,9 +126,7 @@ interface Props {
 
 // Définition des props
 const props = defineProps<Props>()
-</script>
 
-<script setup lang="ts">
 // SEO pour la page contact
 import { useSEO } from '~/composables/useSEO'
 const { setSEO } = useSEO()
