@@ -97,6 +97,11 @@
 </template>
 
 <script setup lang="ts">
+// Meta de la page - protection par authentification
+definePageMeta({
+  middleware: 'auth'
+})
+
 // SEO pour la page app
 import { useSEO } from '~/composables/useSEO'
 
@@ -107,4 +112,11 @@ setSEO({
   keywords: ['app mobile', 'application', 'iOS', 'Android', 'télécharger', 'mobile money', 'QR code', 'hors ligne', 'Biso Ticket'],
   type: 'website'
 })
+
+// Récupérer les informations de l'utilisateur connecté
+const { getCurrentUser } = useGoogleAuth()
+const user = getCurrentUser()
+
+// Log pour debug
+console.log('Utilisateur connecté:', user)
 </script>

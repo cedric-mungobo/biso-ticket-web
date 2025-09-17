@@ -20,8 +20,9 @@
 
         <!-- Bouton Google -->
         <div class="mb-6">
-          <GoogleAuthButton 
+          <GoogleLoginButton 
             @error="handleGoogleError"
+            @success="handleGoogleSuccess"
             loading-text="Inscription avec Google..."
           />
         </div>
@@ -143,7 +144,7 @@ import { ref, reactive, computed } from 'vue'
 
 // Meta
 definePageMeta({
-  middleware: ['guest']
+  middleware: 'guest'
 })
 
 // SEO pour la page d'inscription
@@ -295,9 +296,18 @@ const handleRegister = async () => {
   }
 }
 
+// Import du composant GoogleLoginButton
+import GoogleLoginButton from '~/components/GoogleLoginButton.vue'
+
 // Gestion des erreurs Google
 const handleGoogleError = (error: string) => {
   toast.add({ title: 'Erreur Google', description: error, color: 'error' })
+}
+
+// Gestion du succès Google
+const handleGoogleSuccess = (user: any) => {
+  console.log('Inscription Google réussie:', user)
+  // La redirection est gérée automatiquement dans le composant
 }
 </script>
 

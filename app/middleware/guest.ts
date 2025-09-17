@@ -1,7 +1,8 @@
-export default defineNuxtRouteMiddleware(() => {
-  const token = useCookie('auth_token')
-
-  if (token.value) {
-    return navigateTo('/')
+export default defineNuxtRouteMiddleware((to) => {
+  const { isAuthenticated } = useAuthState()
+  
+  // Rediriger les utilisateurs connectés vers l'app
+  if (isAuthenticated.value) {
+    return navigateTo('/profile')
   }
 })

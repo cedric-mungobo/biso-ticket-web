@@ -77,6 +77,13 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { href: 'https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap', rel: 'stylesheet' }
+      ],
+      script: [
+        {
+          src: 'https://accounts.google.com/gsi/client',
+          async: true,
+          defer: true
+        }
       ]
     }
   },
@@ -86,11 +93,13 @@ export default defineNuxtConfig({
     // Variables privées (côté serveur uniquement)
     apiSecret: '',
     recaptchaSecretKey: '6LfnSMkrAAAAAGlONNhD7Ec3pBPoTGuwbHo2SXgb', // Remplacez par votre clé secrète
+    googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     
     // Variables publiques (côté client et serveur)
     public: {
       apiBaseUrl: 'https://api.bisoticket.com/api',
       recaptchaSiteKey: '6LfnSMkrAAAAAEuOzQY-COgBmEk-oUtxaiSTgTm4', // Remplacez par votre clé site
+      googleClientId:  "35309590308-vs79kc9pb1tpi0577l0dvpsllvjh3vfu.apps.googleusercontent.com",
       siteUrl: 'https://bisoticket.com',
       site: {
         url: 'https://bisoticket.com'

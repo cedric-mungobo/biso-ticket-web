@@ -84,7 +84,7 @@ const isOpen = ref(false)
 // Composables
 const { user, isGoogleUser } = useAuthState()
 const { logout } = useAuth()
-const { logoutGoogle } = useGoogleAuth()
+const { logout: logoutGoogle } = useGoogleAuth()
 const router = useRouter()
 const toast = useToast()
 
@@ -106,7 +106,7 @@ const handleLogout = async () => {
     toast.add({ 
       title: 'Déconnexion', 
       description: 'Vous avez été déconnecté avec succès.', 
-      color: 'green' 
+      color: 'success' 
     })
     
     // Rediriger vers la page d'accueil

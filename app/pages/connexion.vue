@@ -18,18 +18,17 @@
           <p class="text-gray-600">Entrez vos identifiants pour accéder à votre compte.</p>
         </div>
 
-        <!-- Bouton Google -->
-        <div class="mb-6">
-          <GoogleAuthButton 
-            @error="handleGoogleError"
-            loading-text="Connexion avec Google..."
-          />
+        <!-- Debug Google OAuth (temporaire) -->
+        <div class="mb-6" v-if="showDebug">
+          <GoogleOAuthDebug />
         </div>
 
-        <!-- Debug Google Auth (dev seulement) -->
-        <div v-if="isDev" class="mb-6">
-          <GoogleAuthDebug />
+        <!-- Bouton Google -->
+        <div class="mb-6">
+          <GoogleLoginButton />
         </div>
+
+        
 
         <!-- Séparateur -->
         <div class="relative mb-6">
@@ -153,9 +152,12 @@ const router = useRouter()
 const route = useRoute()
 const toast = useToast()
 
-// Import explicite du composant GoogleAuthButton
-import GoogleAuthButton from '~/components/auth/GoogleAuthButton.vue'
-import GoogleAuthDebug from '~/components/GoogleAuthDebug.vue'
+// Import explicite du composant GoogleLoginButton
+import GoogleLoginButton from '~/components/GoogleLoginButton.vue'
+import GoogleOAuthDebug from '~/components/GoogleOAuthDebug.vue'
+
+// Variable pour afficher le debug (temporaire)
+const showDebug = ref(true) // Changez à false en production
 
 // Extrait un message lisible depuis les erreurs ofetch/backend (incl. 422)
 const extractErrorMessage = (e: any): string => {
@@ -201,6 +203,12 @@ const handleSubmit = async () => {
 // Gestion des erreurs Google
 const handleGoogleError = (error: string) => {
   toast.add({ title: 'Erreur Google', description: error, color: 'error' })
+}
+
+// Gestion du succès Google
+const handleGoogleSuccess = (user: any) => {
+  console.log('Connexion Google réussie:', user)
+  // La redirection est gérée automatiquement dans le composant
 }
 </script>
 
