@@ -20,15 +20,15 @@
 
       <!-- Features Grid -->
       <div 
-        v-motion
-        :initial="{ opacity: 0, y: 50 }"
-        :visible-once="{ opacity: 1, y: 0 }"
-        :delay="200"
-        :duration="1200"
+      
         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto"
       >
         <!-- Feature 1 -->
-        <div class="group p-6 rounded-2xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
+        <div v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200" class="group p-6 rounded-2xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
           <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
             <Icon name="lucide:ticket" class="w-6 h-6 text-purple-600" />
           </div>
@@ -53,7 +53,12 @@
         </div>
 
         <!-- Feature 2 -->
-        <div class="group p-6 rounded-2xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
+        <div v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200" 
+        class="group p-6 rounded-2xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
           <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
             <Icon name="lucide:mail" class="w-6 h-6 text-purple-600" />
           </div>
@@ -78,7 +83,12 @@
         </div>
 
         <!-- Feature 3 -->
-        <div class="group p-6 rounded-2xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
+        <div v-motion
+        :initial="{ opacity: 0, y: 50 }"
+        :visible-once="{ opacity: 1, y: 0 }"
+        :delay="200"
+        :duration="1200" 
+        class="group p-6 rounded-2xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300">
           <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
             <Icon name="lucide:smartphone" class="w-6 h-6 text-purple-600" />
           </div>
