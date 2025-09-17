@@ -18,6 +18,28 @@
           <NuxtLink to="/tickets/my-tickets" class="hover:text-purple-500 transition">
             Mes billets
           </NuxtLink>
+          
+          <!-- Menu Ressources avec dropdown -->
+          <div class="relative group">
+            <button class="flex items-center gap-1 hover:text-purple-500 transition">
+              Ressources
+              <Icon name="lucide:chevron-down" class="w-4 h-4" />
+            </button>
+            <div class="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div class="py-2">
+                <a href="/blog" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition">
+                  Blog
+                </a>
+                <a href="/app" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition">
+                  Biso Ticket App
+                </a>
+                <a href="/app/access" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition">
+                  Biso Ticket Access App
+                </a>
+              </div>
+            </div>
+          </div>
+          
           <NuxtLink to="/contact" class="hover:text-purple-500 transition">
             Contact
           </NuxtLink>
@@ -171,12 +193,29 @@
       <NuxtLink to="/tickets/my-tickets" @click="closeMobileMenu">
         Mes billets
       </NuxtLink>
+      
+      <!-- Section Ressources dans le menu mobile -->
+      <div class="text-center">
+        <h3 class="text-sm font-semibold text-gray-300 mb-3">Ressources</h3>
+        <div class="space-y-2">
+          <a href="/blog" @click="closeMobileMenu" class="block text-gray-300 hover:text-white transition">
+            Blog
+          </a>
+          <a href="/app" @click="closeMobileMenu" class="block text-gray-300 hover:text-white transition">
+            Biso Ticket App
+          </a>
+          <a href="/app/access" @click="closeMobileMenu" class="block text-gray-300 hover:text-white transition">
+            Biso Ticket Access App
+          </a>
+        </div>
+      </div>
+      
       <NuxtLink to="/contact" @click="closeMobileMenu">
         Contact
       </NuxtLink>
       <NuxtLink to="/organisateur" @click="closeMobileMenu">
         Organisateur
-            </NuxtLink>
+      </NuxtLink>
       
       <!-- Affichage conditionnel selon l'état de connexion -->
       <template v-if="!isAuthenticated">
