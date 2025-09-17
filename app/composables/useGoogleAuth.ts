@@ -111,10 +111,11 @@ export const useGoogleAuth = () => {
       // Appeler l'API backend pour finaliser l'authentification
       const response = await $myFetch<GoogleCallbackResponse>(callbackUrl)
       
-      console.log('🔍 [GoogleAuth] Réponse API:', { 
+      console.log('🔍 [GoogleAuth] Réponse API complète:', { 
         status: response.status, 
         hasData: !!response.data,
-        message: response.message 
+        message: response.message,
+        fullResponse: response
       })
 
       if (!response.status) {

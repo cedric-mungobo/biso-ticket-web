@@ -22,16 +22,29 @@
       <!-- Test de l'endpoint Google Auth -->
       <div>
         <h4 class="font-medium mb-2">Test endpoint Google Auth</h4>
-        <UButton 
-          @click="testGoogleAuthEndpoint" 
-          :loading="testingGoogle"
-          size="sm"
-          color="primary"
-        >
-          Tester /auth/google
-        </UButton>
+        <div class="space-y-2">
+          <UButton 
+            @click="testGoogleAuthEndpoint" 
+            :loading="testingGoogle"
+            size="sm"
+            color="primary"
+          >
+            Tester /auth/google
+          </UButton>
+          <UButton 
+            @click="testGoogleCallbackEndpoint" 
+            :loading="testingCallback"
+            size="sm"
+            color="warning"
+          >
+            Tester /auth/google/callback (test)
+          </UButton>
+        </div>
         <div v-if="googleTestResult" class="mt-2 p-2 rounded text-sm" :class="googleTestResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
           {{ googleTestResult.message }}
+        </div>
+        <div v-if="callbackTestResult" class="mt-2 p-2 rounded text-sm" :class="callbackTestResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+          {{ callbackTestResult.message }}
         </div>
       </div>
 
@@ -66,8 +79,10 @@ const toast = useToast()
 // State
 const testingApi = ref(false)
 const testingGoogle = ref(false)
+const testingCallback = ref(false)
 const apiTestResult = ref<{ success: boolean; message: string } | null>(null)
 const googleTestResult = ref<{ success: boolean; message: string } | null>(null)
+const callbackTestResult = ref<{ success: boolean; message: string } | null>(null)
 const debugLogs = ref<string[]>([])
 
 // Cookie state
@@ -127,6 +142,31 @@ const testGoogleAuthEndpoint = async () => {
     }
   } finally {
     testingGoogle.value = false
+  }
+}
+
+// Test de l'endpoint Google Callback (avec des paramètres de test)
+const testGoogleCallbackEndpoint = async () => {
+  testingCallback.value = true
+  callbackTestResult.value = null
+  addLog('Test endpoint /auth/google/callback...')
+  
+  try {
+    const testUrl = '/auth/google/callback?code=TEST_CODE&state=TEST_STATE'
+    const response = await $myFetch<any>(testUrl)
+    addLog(`Google Callback Response: ${JSON.stringify(response)}`)
+    callbackTestResult.value = {
+      success: true,
+      message: `Endpoint accessible - Status: ${response.status}`
+    }
+  } catch (error: any) {
+    addLog(`Erreur Google Callback: ${error.message}`)
+    callbackTestResult.value = {
+      success: false,
+      message: `Erreur: ${error.message} (Status: ${error.status})`
+    }
+  } finally {
+    testingCallback.value = false
   }
 }
 
