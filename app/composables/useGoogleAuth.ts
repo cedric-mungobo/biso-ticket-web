@@ -107,6 +107,13 @@ export const useGoogleAuth = () => {
       // Construire l'URL de callback
       const callbackUrl = `/auth/google/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`
       console.log('🔍 [GoogleAuth] Appel API:', callbackUrl)
+      console.log('🔍 [GoogleAuth] Payload complet envoyé au backend:', {
+        url: callbackUrl,
+        code: code,
+        state: state,
+        codeLength: code?.length,
+        stateLength: state?.length
+      })
 
       // Appeler l'API backend pour finaliser l'authentification
       const response = await $myFetch<GoogleCallbackResponse>(callbackUrl)
