@@ -10,10 +10,40 @@ interface GoogleLoginRequest {
   token?: string
 }
 
-// Composable de type repository (pas de state/loading/error internes)
+// Composable de type repository avec gestion localStorage comme dans l'exemple
 export const useAuth = () => {
   const { $myFetch } = useNuxtApp()
   const { setAuth, clearAuth, updateUser } = useAuthState()
+  
+  // State pour la gestion de l'authentification (pattern Next.js)
+  const user = ref<User | null>(null)
+  const token = ref<string | null>(null)
+  const loading = ref(true)
+
+  // Initialiser l'état depuis localStorage au montage
+  onMounted(() => {
+    if (process.client) {
+      const storedToken = localStorage.getItem('auth_token')
+      const storedUserData = localStorage.getItem('user_data')
+      
+        if (storedToken && storedUserData) {
+          try {
+            token.value = storedToken
+            const parsedUser = JSON.parse(storedUserData) as User
+            user.value = parsedUser
+            // Synchroniser avec useAuthState
+            setAuth(parsedUser, token.value)
+          } catch (error) {
+            console.error('Erreur lors du parsing des données utilisateur:', error)
+            // Nettoyer les données corrompues
+            localStorage.removeItem('auth_token')
+            localStorage.removeItem('user_data')
+          }
+        }
+      
+      loading.value = false
+    }
+  })
 
   const register = async (userData: RegisterRequest): Promise<AuthResponse> => {
     const response = await $myFetch<any>('/register', {
@@ -26,6 +56,11 @@ export const useAuth = () => {
     
     if (tokenValue && userValue) {
       setAuth(userValue, tokenValue)
+      // Stocker dans localStorage
+      if (process.client) {
+        localStorage.setItem('auth_token', tokenValue)
+        localStorage.setItem('user_data', JSON.stringify(userValue))
+      }
     }
     
     return response as AuthResponse
@@ -36,6 +71,11 @@ export const useAuth = () => {
     if ('googleAuth' in credentials && credentials.googleAuth) {
       if (credentials.token && credentials.user) {
         setAuth(credentials.user, credentials.token)
+        // Stocker dans localStorage
+        if (process.client) {
+          localStorage.setItem('auth_token', credentials.token)
+          localStorage.setItem('user_data', JSON.stringify(credentials.user))
+        }
       }
       
       return {
@@ -55,6 +95,11 @@ export const useAuth = () => {
     
     if (tokenValue && userValue) {
       setAuth(userValue, tokenValue)
+      // Stocker dans localStorage
+      if (process.client) {
+        localStorage.setItem('auth_token', tokenValue)
+        localStorage.setItem('user_data', JSON.stringify(userValue))
+      }
     }
     
     return response as AuthResponse
@@ -65,6 +110,11 @@ export const useAuth = () => {
       await $myFetch('/logout', { method: 'POST' })
     } finally {
       clearAuth()
+      // Nettoyer localStorage
+      if (process.client) {
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('user_data')
+      }
     }
   }
 
@@ -87,6 +137,10 @@ export const useAuth = () => {
     // Mettre à jour l'état local
     if (response.user) {
       updateUser(response.user)
+      // Mettre à jour localStorage
+      if (process.client) {
+        localStorage.setItem('user_data', JSON.stringify(response.user))
+      }
     }
     
     return response.user
@@ -100,6 +154,11 @@ export const useAuth = () => {
   }
 
   return {
+    // State (pattern Next.js)
+    user: readonly(user),
+    token: readonly(token),
+    loading: readonly(loading),
+    // Actions
     register,
     login,
     logout,
