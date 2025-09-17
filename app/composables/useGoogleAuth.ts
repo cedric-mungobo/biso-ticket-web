@@ -4,7 +4,7 @@ export const useGoogleAuth = () => {
   
   const loginWithGoogle = async (idToken: string) => {
     try {
-      const response = await $myFetch<any>('/api/auth/google', {
+      const response = await $myFetch<any>('/auth/google', {
         method: 'POST',
         body: {
           token: idToken
@@ -34,7 +34,7 @@ export const useGoogleAuth = () => {
       const { token } = useAuthState()
       
       if (token.value) {
-        await $myFetch<any>('/api/auth/google/logout', {
+        await $myFetch<any>('/auth/google/logout', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token.value}`
