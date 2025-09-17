@@ -78,7 +78,7 @@
             </svg>
           </a>
           <a 
-            href="https://tiktok.com" 
+            href="https://www.tiktok.com/@biso.ticket?_t=ZM-8znivtWzpSi&_r=1" 
             target="_blank" 
             rel="noopener noreferrer"
             class="p-2 text-gray-600 hover:text-black transition-colors"
@@ -134,7 +134,7 @@
             </svg>
           </a>
           <a 
-            href="https://tiktok.com" 
+            href="https://www.tiktok.com/@biso.ticket?_t=ZM-8znivtWzpSi&_r=1" 
             target="_blank" 
             rel="noopener noreferrer"
             class="p-1.5 text-gray-600 hover:text-black transition-colors"
