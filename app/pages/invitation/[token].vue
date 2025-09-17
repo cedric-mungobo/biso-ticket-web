@@ -1,5 +1,5 @@
 <template>
-  <div class="relative min-h-screen">
+  <div class="relative min-h-screen overflow-hidden">
     <!-- Overlay de chargement -->
     <LoadingOverlay 
       :show="isLoading"
