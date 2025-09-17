@@ -32,6 +32,7 @@ declare global {
 }
 
 const { loginWithGoogle } = useGoogleAuth()
+const { redirectAfterAuth } = useAuthRedirect()
 const googleSignInButton = ref<HTMLElement>()
 const isInitialized = ref(false)
 const retryCount = ref(0)
@@ -151,7 +152,7 @@ const handleCredentialResponse = async (response: GoogleCredentialResponse) => {
     const result = await loginWithGoogle(response.credential)
     
     if (result.success) {
-      await navigateTo('/app')
+      await redirectAfterAuth('/profile')
     }
   } catch (err) {
     // Erreur silencieuse
