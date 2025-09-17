@@ -23,7 +23,7 @@
     <div v-else-if="error" class="min-h-screen flex items-center justify-center">
       <div class="text-center">
         <Icon name="lucide:alert-circle" class="w-16 h-16 text-red-500 mx-auto mb-4" />
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Oups !</h1>
+        <h1 class="text-xl font-bold text-gray-900 mb-2">Oups !</h1>
         <p class="text-gray-600 mb-6">{{ error }}</p>
         <NuxtLink 
           to="/blog" 
@@ -495,22 +495,35 @@ const copyToClipboard = async () => {
 
 <style scoped>
 .prose h2 {
-  @apply text-2xl font-bold text-gray-900 mt-8 mb-4;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 
 .prose h3 {
-  @apply text-xl font-semibold text-gray-900 mt-6 mb-3;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .prose p {
-  @apply text-gray-700 leading-relaxed mb-4;
+  color: #374151;
+  line-height: 1.625;
+  margin-bottom: 1rem;
 }
 
 .prose ul {
-  @apply list-disc list-inside text-gray-700 mb-4;
+  list-style-type: disc;
+  list-style-position: inside;
+  color: #374151;
+  margin-bottom: 1rem;
 }
 
 .prose li {
-  @apply mb-2;
+  margin-bottom: 0.5rem;
 }
 </style>
