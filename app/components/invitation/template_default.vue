@@ -57,8 +57,8 @@
           
           <!-- Texte de l'invitation -->
           <div class="text-center">
-            <div class="leading-relaxed max-w-3xl mx-auto font-serif" :style="{ color: textColor, fontSize: messageFontSize + 'px' }">
-              <p v-if="guestMessage" class="whitespace-pre-line font-medium">
+            <div class="leading-relaxed max-w-3xl mx-auto font-serif" :style="{ color: textColor }">
+              <p v-if="guestMessage" class="whitespace-pre-line font-medium text-balance text-base">
                 {{ guestMessage }}
               </p>
                 <template v-else>
