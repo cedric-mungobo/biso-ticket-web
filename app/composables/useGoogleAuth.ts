@@ -24,15 +24,16 @@ export const useGoogleAuth = () => {
 
       const { redirect_url, state } = response.data
 
-      // 2. Stocker le state en cookie pour validation
-      const stateCookie = useCookie('google_oauth_state', { 
-        path: '/', 
-        maxAge: 10 * 60, // 10 minutes
-        httpOnly: false, // Accessible côté client
-        secure: true, // HTTPS uniquement en production
-        sameSite: 'lax'
+      // 2. Stocker le state en localStorage pour validation
+      if (process.client) {
+        localStorage.setItem('google_oauth_state', state)
+        localStorage.setItem('google_oauth_state_timestamp', Date.now().toString())
+      }
+      
+      console.log('🔍 [GoogleAuth] State stocké:', {
+        state: state?.substring(0, 10) + '...',
+        localStorageExists: process.client ? !!localStorage.getItem('google_oauth_state') : 'N/A'
       })
-      stateCookie.value = state
 
       // 3. Rediriger vers Google
       window.location.href = redirect_url
@@ -60,21 +61,48 @@ export const useGoogleAuth = () => {
         state: state?.substring(0, 10) + '...' 
       })
 
-      // Vérifier le state pour la sécurité
-      const stateCookie = useCookie('google_oauth_state')
-      const storedState = stateCookie.value
+      // Vérifier le state pour la sécurité (localStorage uniquement)
+      let storedState = null
+      
+      if (process.client) {
+        const timestamp = localStorage.getItem('google_oauth_state_timestamp')
+        const now = Date.now()
+        const maxAge = 10 * 60 * 1000 // 10 minutes en millisecondes
+        
+        // Vérifier que le state n'a pas expiré
+        if (timestamp && (now - parseInt(timestamp)) < maxAge) {
+          storedState = localStorage.getItem('google_oauth_state')
+        } else {
+          console.log('🔍 [GoogleAuth] State localStorage expiré')
+        }
+      }
+      
       console.log('🔍 [GoogleAuth] State validation:', { 
         received: state?.substring(0, 10) + '...', 
         stored: storedState?.substring(0, 10) + '...',
-        valid: state === storedState
+        receivedLength: state?.length,
+        storedLength: storedState?.length,
+        valid: state === storedState,
+        localStorageExists: process.client ? !!localStorage.getItem('google_oauth_state') : 'N/A'
       })
 
-      if (!state || !storedState || state !== storedState) {
+      if (!state) {
+        throw new Error('State manquant dans la réponse Google')
+      }
+      
+      if (!storedState) {
+        throw new Error('State manquant - session expirée')
+      }
+      
+      if (state !== storedState) {
         throw new Error('State invalide - sécurité compromise')
       }
 
-      // Nettoyer le state
-      stateCookie.value = null
+      // Nettoyer le state (localStorage uniquement)
+      if (process.client) {
+        localStorage.removeItem('google_oauth_state')
+        localStorage.removeItem('google_oauth_state_timestamp')
+      }
 
       // Construire l'URL de callback
       const callbackUrl = `/auth/google/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`

@@ -68,12 +68,19 @@ export const useErrorMessages = () => {
   const getGoogleAuthErrorMessage = (error: any): string => {
     if (error?.status === 500) {
       return 'Service temporairement indisponible. Veuillez réessayer dans quelques instants.'
+    } else if (error?.status === 400) {
+      if (error?.message?.includes('State invalide') || error?.data?.message?.includes('State invalide')) {
+        return 'Session de sécurité expirée. Veuillez réessayer.'
+      }
+      return 'Données de connexion invalides. Veuillez réessayer.'
     } else if (error?.message?.includes('State invalide')) {
       return 'Session de sécurité expirée. Veuillez réessayer.'
     } else if (error?.message?.includes('Paramètres de callback manquants')) {
       return 'Données de connexion manquantes. Veuillez réessayer.'
     } else if (error?.message?.includes('Authentification Google annulée')) {
       return 'Connexion annulée. Veuillez réessayer si vous souhaitez vous connecter.'
+    } else if (error?.message?.includes('State manquant')) {
+      return 'Session expirée. Veuillez réessayer.'
     }
     
     return getUserFriendlyMessage(error, 'Erreur lors de la connexion avec Google')
