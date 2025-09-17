@@ -96,17 +96,12 @@ export const useGoogleAuth = () => {
       return response.data
 
     } catch (error: any) {
-      console.error('❌ [GoogleAuth] Erreur callback:', {
-        message: error?.message,
-        status: error?.status,
-        data: error?.data,
-        response: error?.response?._data
-      })
+      const { getGoogleAuthErrorMessage } = useErrorMessages()
+      const userMessage = getGoogleAuthErrorMessage(error)
       
-      const message = error?.data?.message || error?.response?._data?.message || error?.message || 'Erreur lors de l\'authentification Google'
       toast.add({ 
-        title: 'Erreur d\'authentification', 
-        description: message, 
+        title: 'Erreur de connexion', 
+        description: userMessage, 
         color: 'error' 
       })
       throw error

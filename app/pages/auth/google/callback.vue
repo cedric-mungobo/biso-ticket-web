@@ -137,8 +137,25 @@ const processGoogleCallback = async () => {
     }, 2000)
 
   } catch (err: any) {
+    // Log technique détaillé (dev seulement)
     console.error('Erreur callback Google:', err)
-    error.value = err.message || 'Une erreur est survenue lors de la connexion'
+    
+    // Message utilisateur-friendly (pas d'erreur technique)
+    let userMessage = 'Une erreur est survenue lors de la connexion'
+    
+    if (err?.status === 500) {
+      userMessage = 'Service temporairement indisponible. Veuillez réessayer dans quelques instants.'
+    } else if (err?.status === 401) {
+      userMessage = 'Session expirée. Veuillez vous reconnecter.'
+    } else if (err?.status === 403) {
+      userMessage = 'Accès refusé. Veuillez contacter le support.'
+    } else if (err?.status === 404) {
+      userMessage = 'Service non trouvé. Veuillez réessayer.'
+    } else if (err?.status === 0 || !err?.status) {
+      userMessage = 'Problème de connexion. Vérifiez votre internet.'
+    }
+    
+    error.value = userMessage
     isLoading.value = false
   }
 }

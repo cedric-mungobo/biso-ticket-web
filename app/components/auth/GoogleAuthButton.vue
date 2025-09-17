@@ -54,11 +54,28 @@ const handleGoogleLogin = async () => {
     await loginWithGoogle()
     // La redirection se fait automatiquement dans loginWithGoogle
   } catch (error: any) {
-    const message = error?.message || 'Erreur lors de la connexion Google'
-    emit('error', message)
+    // Log technique détaillé (dev seulement)
+    console.error('Erreur GoogleAuthButton:', error)
+    
+    // Message utilisateur-friendly (pas d'erreur technique)
+    let userMessage = 'Erreur lors de la connexion Google'
+    
+    if (error?.status === 500) {
+      userMessage = 'Service temporairement indisponible. Veuillez réessayer dans quelques instants.'
+    } else if (error?.status === 401) {
+      userMessage = 'Session expirée. Veuillez vous reconnecter.'
+    } else if (error?.status === 403) {
+      userMessage = 'Accès refusé. Veuillez contacter le support.'
+    } else if (error?.status === 404) {
+      userMessage = 'Service non trouvé. Veuillez réessayer.'
+    } else if (error?.status === 0 || !error?.status) {
+      userMessage = 'Problème de connexion. Vérifiez votre internet.'
+    }
+    
+    emit('error', userMessage)
     toast.add({ 
       title: 'Erreur de connexion', 
-      description: message, 
+      description: userMessage, 
       color: 'error' 
     })
   } finally {
