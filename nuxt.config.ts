@@ -117,36 +117,17 @@ export default defineNuxtConfig({
   },
 
   // Configuration du sitemap
-  sitemap: {
-    hostname: 'https://bisoticket.com',
-    gzip: true,
-    routes: async () => {
-      // Routes statiques
-      const staticRoutes = [
+  ...({
+    sitemap: {
+      hostname: 'https://bisoticket.com',
+      gzip: true,
+      routes: [
         '/',
         '/evenements',
         '/connexion',
         '/inscription',
         '/contact'
       ]
-      
-      // Récupération des événements depuis l'API
-      try {
-        const { $myFetch } = useNuxtApp()
-        const eventsResponse = await $myFetch('/public/events', {
-          method: 'GET',
-          params: { per_page: 1000, status: 'active' }
-        })
-        
-        const eventRoutes = eventsResponse?.data?.items?.map((event: any) => 
-          `/evenements/${event.slug}`
-        ) || []
-        
-        return [...staticRoutes, ...eventRoutes]
-      } catch (error) {
-        console.error('Erreur lors de la génération du sitemap:', error)
-        return staticRoutes
-      }
     }
-  }
+  } as any)
 })

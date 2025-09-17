@@ -13,6 +13,7 @@
     "@nuxt/image": "^1.11.0",
     "@nuxt/scripts": "^0.11.10",
     "@nuxt/ui": "^4.0.0-alpha.0",
+    "@nuxtjs/sitemap": "^7.4.7",
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@tailwindcss/vite": "^4.1.11",
     "@types/qrcode": "^1.5.5",
