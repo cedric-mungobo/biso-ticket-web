@@ -104,10 +104,13 @@
 <script lang="ts" setup>
 // Meta de la page
 definePageMeta({
-  title: 'Connexion - Biso Ticket',
-  description: 'Connectez-vous à votre compte Biso Ticket',
   middleware: ['guest']
 })
+
+// SEO pour la page de connexion
+import { useSEO } from '~/composables/useSEO'
+const { setAuthSEO } = useSEO()
+setAuthSEO('login')
 
 // State
 const identifier = ref('')

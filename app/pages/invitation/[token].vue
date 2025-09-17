@@ -40,6 +40,8 @@
 </template>
 
 <script setup lang="ts">
+import { useSEO } from '~/composables/useSEO'
+
 definePageMeta({ 
   layout: false, 
   ssr: false,
@@ -48,6 +50,9 @@ definePageMeta({
 
 const route = useRoute()
 const token = computed(() => String(route.params.token || ''))
+
+// SEO pour la page d'invitation (dynamique selon l'événement)
+const { setSEO } = useSEO()
 
 const { $myFetch } = useNuxtApp()
 const toast = useToast()
@@ -112,6 +117,25 @@ const load = async () => {
     
     // Charger le template approprié
     await loadTemplate()
+    
+    // Configurer le SEO dynamique pour l'invitation
+    if (invitation.value && event.value) {
+      setSEO({
+        title: `Invitation - ${event.value.title}`,
+        description: `Vous êtes invité(e) à ${event.value.title} le ${formatEventDate(event.value.startsAt)} à ${event.value.location}. Confirmez votre présence.`,
+        image: event.value.imageUrl || '/images/event-default.jpg',
+        type: 'article',
+        noindex: true, // Invitations privées
+        keywords: [
+          'invitation',
+          'événement',
+          event.value.title,
+          event.value.location,
+          'confirmation',
+          'RSVP'
+        ]
+      })
+    }
   } catch (error: any) {
     console.error('Erreur lors du chargement de l\'invitation:', error)
     hasError.value = true
@@ -150,6 +174,23 @@ const loadTemplate = async () => {
     // Fallback vers le template par défaut
     const fallback = await import('~/components/invitation/template_default.vue')
     currentTemplate.value = markRaw(fallback.default || fallback)
+  }
+}
+
+// Fonction de formatage de date pour le SEO
+const formatEventDate = (dateString: string) => {
+  try {
+    const date = new Date(dateString.replace(' ', 'T'))
+    return date.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch {
+    return 'Date à définir'
   }
 }
 

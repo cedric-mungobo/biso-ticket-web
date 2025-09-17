@@ -1,2 +1,19 @@
 User-Agent: *
-Disallow:
+Allow: /
+
+# Sitemap
+Sitemap: https://bisoticket.com/api/sitemap.xml
+
+# Pages privées à ne pas indexer
+Disallow: /organisateur/
+Disallow: /profile
+Disallow: /tickets/
+Disallow: /invitation/
+
+# Fichiers techniques
+Disallow: /api/
+Disallow: /_nuxt/
+Disallow: /admin/
+
+# Crawl delay pour éviter la surcharge
+Crawl-delay: 1

@@ -100,6 +100,9 @@ definePageMeta({
   middleware: 'authenticated'
 })
 
-// Page organisateur
+// SEO pour l'espace organisateur
+import { useSEO } from '~/composables/useSEO'
+const { setOrganizerSEO } = useSEO()
+setOrganizerSEO('Tableau de bord')
 </script>
   

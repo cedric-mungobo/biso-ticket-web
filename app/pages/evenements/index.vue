@@ -70,6 +70,11 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useSEO } from '~/composables/useSEO'
+
+// SEO pour la page événements
+const { setEventsSEO } = useSEO()
+setEventsSEO()
 
 // Filtres locaux pour l'infinite scroll
 type DateFilter = 'today' | 'tomorrow' | 'this_week' | 'all'

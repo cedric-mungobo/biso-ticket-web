@@ -128,6 +128,18 @@ interface Props {
 const props = defineProps<Props>()
 </script>
 
+<script setup lang="ts">
+// SEO pour la page contact
+import { useSEO } from '~/composables/useSEO'
+const { setSEO } = useSEO()
+setSEO({
+  title: 'Contact - Biso Ticket',
+  description: 'Contactez l\'équipe Biso Ticket pour toute question sur nos services de billetterie et gestion d\'événements. Support client disponible via WhatsApp, email et téléphone.',
+  keywords: ['contact', 'support', 'aide', 'billetterie', 'événement', 'Kinshasa', 'RDC'],
+  type: 'website'
+})
+</script>
+
 <style scoped>
 /* Styles spécifiques au composant si nécessaire */
 </style>

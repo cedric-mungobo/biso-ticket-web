@@ -348,9 +348,19 @@
   
   <script setup lang="ts">
   import { ref, watch } from 'vue'
+  import { useSEO } from '~/composables/useSEO'
 
   definePageMeta({
     middleware: 'authenticated'
+  })
+
+  // SEO pour la page profil (privée - noindex)
+  const { setSEO } = useSEO()
+  setSEO({
+    title: 'Mon Profil - Biso Ticket',
+    description: 'Gérez vos informations personnelles et vos événements sur Biso Ticket.',
+    noindex: true,
+    type: 'website'
   })
   
   // Composables

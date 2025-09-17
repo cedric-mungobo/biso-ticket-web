@@ -125,10 +125,13 @@ import { ref, reactive, computed } from 'vue'
 
 // Meta
 definePageMeta({
-  title: 'Inscription - Biso Ticket',
-  description: 'Créez votre compte Biso Ticket',
   middleware: ['guest']
 })
+
+// SEO pour la page d'inscription
+import { useSEO } from '~/composables/useSEO'
+const { setAuthSEO } = useSEO()
+setAuthSEO('register')
 
 // Form state
 const form = reactive({

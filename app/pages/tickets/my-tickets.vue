@@ -72,10 +72,19 @@
 
 <script setup lang="ts">
 import { useClientTickets, type ClientTicketItem } from '~/composables/useClientTickets'
-
+import { useSEO } from '~/composables/useSEO'
 
 definePageMeta({
   middleware: ['authenticated'],
+})
+
+// SEO pour la page mes billets (privée - noindex)
+const { setSEO } = useSEO()
+setSEO({
+  title: 'Mes Billets - Biso Ticket',
+  description: 'Consultez et gérez vos réservations de tickets en toute simplicité.',
+  noindex: true,
+  type: 'website'
 })
 
 interface Pagination { currentPage: number; lastPage: number; perPage: number; total: number }

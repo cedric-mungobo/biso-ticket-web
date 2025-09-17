@@ -317,6 +317,7 @@ import type { Event } from '~/types/api'
 import { onMounted, ref, watch, computed, nextTick } from 'vue'
 import { useEvents } from '~/composables/useEvents'
 import { formatMoney } from '~/utils'
+import { useSEO } from '~/composables/useSEO'
 
 
 // Récupération du slug depuis l'URL
@@ -476,16 +477,13 @@ const formatDate = (dateString: string) => {
   }
 }
 
-// Métadonnées de la page
-useHead({
-  title: computed(() => event.value ? `${event.value.title} - Biso Ticket` : 'Événement - Biso Ticket'),
-  meta: [
-    {
-      name: 'description',
-      content: computed(() => event.value?.description || 'Découvrez cet événement exceptionnel')
-    }
-  ]
-})
+// SEO pour la page événement
+const { setEventSEO } = useSEO()
+watch(event, (newEvent) => {
+  if (newEvent) {
+    setEventSEO(newEvent)
+  }
+}, { immediate: true })
 
 // Computed property pour l'URL complète de l'événement
 const fullEventUrl = computed(() => {

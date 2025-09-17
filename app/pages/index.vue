@@ -4,6 +4,12 @@ import FeaturesSection from '@/sections/FeaturesSection.vue'
 import ShowcaseSection from '@/sections/ShowcaseSection.vue'
 import TestimonialsSection from '@/sections/TestimonialsSection.vue'
 import CtaSection from '@/sections/CtaSection.vue'
+import { useSEO } from '~/composables/useSEO'
+
+// SEO pour la page d'accueil
+const { setHomeSEO } = useSEO()
+setHomeSEO()
+
 // Utilisation du composable useEvents
 const { fetchPublicEvents, formatDate } = useEvents()
 
