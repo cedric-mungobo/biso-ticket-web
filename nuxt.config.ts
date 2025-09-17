@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -9,9 +10,13 @@ export default defineNuxtConfig({
   plugins: [
     '~/plugins/preline.client.ts',
   ],
+  vite: {
+    plugins: [
+      tailwindcss(),
+    ],
+  },
  
   modules: [
-    '@nuxtjs/tailwindcss',
     '@nuxt/image',
     '@nuxt/scripts',
     '@nuxt/ui',
