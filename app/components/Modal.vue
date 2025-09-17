@@ -19,12 +19,12 @@
         
         <!-- Modal Content -->
         <div
-          class="relative w-full max-w-md transform overflow-visible rounded-2xl bg-white shadow-xl my-8"
+          class="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-xl my-8 flex flex-col max-h-[90vh]"
           @click.stop
           style="touch-action: manipulation;"
         >
           <!-- Header -->
-          <div v-if="$slots.header || title" class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+          <div v-if="$slots.header || title" class="flex items-center justify-between border-b border-gray-200 px-6 py-4 flex-shrink-0">
             <slot name="header">
               <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
             </slot>
@@ -41,12 +41,12 @@
           </div>
           
           <!-- Body -->
-          <div class="px-6 py-4">
+          <div class="px-6 py-4 flex-1 overflow-y-auto">
             <slot />
           </div>
           
           <!-- Footer -->
-          <div v-if="$slots.footer" class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4">
+          <div v-if="$slots.footer" class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 flex-shrink-0">
             <slot name="footer" />
           </div>
         </div>
@@ -119,7 +119,7 @@ onUnmounted(() => {
     margin: 0;
     width: calc(100vw - 0.5rem);
     max-height: calc(100vh - 2rem);
-    height: auto;
+    height: calc(100vh - 2rem);
     min-height: auto;
   }
   
@@ -137,7 +137,7 @@ onUnmounted(() => {
   
   /* Assurer que le contenu ne dépasse pas */
   .relative {
-    max-height: calc(100vh - 8rem);
+    max-height: calc(100vh - 2rem);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -153,11 +153,12 @@ onUnmounted(() => {
   .max-w-md {
     max-width: calc(100vw - 0.25rem);
     width: calc(100vw - 0.25rem);
-    max-height: calc(100vh - 1rem);
+    max-height: calc(100vh - 2rem);
+    height: calc(100vh - 2rem);
   }
   
   .relative {
-    max-height: calc(100vh - 6rem);
+    max-height: calc(100vh - 4rem);
   }
 }
 

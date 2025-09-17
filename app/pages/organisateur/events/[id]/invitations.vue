@@ -8,17 +8,18 @@
           </svg>
           Retour à l'évènement
         </NuxtLink>
+       
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Invitations</h1>
-          <div class="flex flex-wrap gap-2 w-full sm:w-auto sm:justify-end items-center">
-            <div class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
-              <span class="font-medium">{{ credits?.balance ?? 0 }}</span> crédits
-            </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
             <UButton size="sm" color="primary" @click="showAddGuest=true"><UIcon name="i-heroicons-user-plus" class="w-4 h-4 mr-1" /> Ajouter invité</UButton>
             <UButton size="sm" color="neutral" @click="showImport=true"><UIcon name="i-heroicons-arrow-up-tray" class="w-4 h-4 mr-1" /> Importer liste</UButton>
             <UButton size="sm" color="warning" @click="showTemplate=true"><UIcon name="i-heroicons-swatch" class="w-4 h-4 mr-1" /> Modèle d'invitation</UButton>
-            <UButton size="sm" color="neutral" @click="showMessage=true"><UIcon name="i-heroicons-cog-6-tooth" class="w-4 h-4 mr-1" /> Configuration du message</UButton>
+            <UButton size="sm" color="secondary" @click="showMessage=true"><UIcon name="i-heroicons-cog-6-tooth" class="w-4 h-4 mr-1" /> Configuration du message</UButton>
             <UButton size="sm" color="success" @click="openBuyCredits"><UIcon name="i-heroicons-credit-card" class="w-4 h-4 mr-1" /> Acheter crédits</UButton>
+            <div class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
+              <span class="font-medium">{{ credits?.balance ?? 0 }}</span> crédits d'invitation
+            </div>
           </div>
         </div>
       </div>
@@ -155,10 +156,45 @@
         </template>
       </Modal>
 
-      <Modal v-model="showMessage" title="Message invité (évènement)">
-        <div class="space-y-3">
-          <label class="block text-sm text-gray-700">Message</label>
-          <textarea v-model="guestMessage" rows="6" placeholder="Message destiné aux invités (affiché sur l'invitation)" class="rounded-lg border border-gray-300 px-3 py-2 w-full" />
+      <Modal size="xl" v-model="showMessage" title="Message invité (évènement)">
+        <div class="space-y-4">
+          <!-- Sélecteur de modèles -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Modèles prédéfinis</label>
+            <InvitationTemplateSelector 
+              v-model="guestMessage"
+              :event-data="{
+                date: currentEvent?.startsAt ? formatDate(currentEvent.startsAt) : undefined,
+                location: currentEvent?.location,
+                years: 5 // Exemple pour anniversaire
+              }"
+              @template-selected="onTemplateSelected"
+            />
+          </div>
+
+          <!-- Séparateur -->
+          <div class="border-t border-gray-200 pt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Ou personnaliser votre message</label>
+            <textarea 
+              v-model="guestMessage" 
+              rows="8" 
+              placeholder="Message destiné aux invités (affiché sur l'invitation)" 
+              class="rounded-lg border border-gray-300 px-3 py-2 w-full" 
+            />
+            
+            <!-- Variables disponibles -->
+            <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Variables disponibles :</h4>
+              <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                <div><code class="bg-white px-1 py-0.5 rounded">[DATE]</code> - Date de l'événement</div>
+                <div><code class="bg-white px-1 py-0.5 rounded">[TIME]</code> - Heure de l'événement</div>
+                <div><code class="bg-white px-1 py-0.5 rounded">[LOCATION]</code> - Lieu de l'événement</div>
+                <div><code class="bg-white px-1 py-0.5 rounded">[GUEST_NAME]</code> - Nom de l'invité</div>
+                <div><code class="bg-white px-1 py-0.5 rounded">[EVENT_TITLE]</code> - Titre de l'événement</div>
+                <div><code class="bg-white px-1 py-0.5 rounded">[ORGANIZER_NAME]</code> - Nom de l'organisateur</div>
+              </div>
+            </div>
+          </div>
         </div>
         <template #footer>
           <UButton variant="ghost" @click="showMessage=false">Fermer</UButton>
@@ -351,7 +387,7 @@ const shareItems = (inv?: any): DropdownMenuItem[] => [
     kbds: ['meta','w'],
     onSelect: () => {
       const url = `${location.origin}/invitation/${inv?.token || inv?.id}`
-      const eventName = currentEvent.value?.title || 'événement'
+      const eventName = currentEvent.value?.name || 'événement'
       const message = `Bonjour,\n\n Vous êtes specialement invité(e)  à l'événement "${eventName}" !\n\nCliquez sur le lien ci-dessous pour voir votre invitation :\n${url}`
       const text = encodeURIComponent(message)
       const wa = `https://wa.me/?text=${text}`
@@ -471,6 +507,16 @@ const saveGuestMessage = async () => {
     const msg = data?.message || e?.message || 'Impossible d\'enregistrer.'
     toast.add({ title: 'Erreur', description: String(msg), color: 'error' })
   }
+}
+
+// Gestion des modèles de texte
+const onTemplateSelected = (template: any, message: string) => {
+  guestMessage.value = message
+  toast.add({ 
+    title: 'Modèle appliqué', 
+    description: `Le modèle "${template.title}" a été appliqué.`, 
+    color: 'success' 
+  })
 }
 
 // Acheter crédits
