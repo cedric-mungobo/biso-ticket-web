@@ -5,9 +5,8 @@
         <!-- Icône utilisateur -->
         <div class="flex justify-center mb-6">
           <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-           
             <Logo
-              class="w-10 h-10 object-contain"
+              class="w-10  object-cover"
             />
           </div>
         </div>
@@ -18,13 +17,10 @@
           <p class="text-gray-600">Créez votre compte pour commencer.</p>
         </div>
 
+
         <!-- Bouton Google -->
         <div class="mb-6">
-          <GoogleLoginButton 
-            @error="handleGoogleError"
-            @success="handleGoogleSuccess"
-            loading-text="Inscription avec Google..."
-          />
+          <GoogleLoginButton />
         </div>
 
         <!-- Séparateur -->
@@ -296,19 +292,8 @@ const handleRegister = async () => {
   }
 }
 
-// Import du composant GoogleLoginButton
+// Import du composant
 import GoogleLoginButton from '~/components/GoogleLoginButton.vue'
-
-// Gestion des erreurs Google
-const handleGoogleError = (error: string) => {
-  toast.add({ title: 'Erreur Google', description: error, color: 'error' })
-}
-
-// Gestion du succès Google
-const handleGoogleSuccess = (user: any) => {
-  console.log('Inscription Google réussie:', user)
-  // La redirection est gérée automatiquement dans le composant
-}
 </script>
 
 <style scoped>

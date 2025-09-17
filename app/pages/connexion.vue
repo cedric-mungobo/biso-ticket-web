@@ -5,9 +5,8 @@
         <!-- User Icon -->
         <div class="flex justify-center mb-6">
           <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-
             <Logo
-              class="w-10 h-10 object-contain"
+              class="w-10  object-cover"
             />
           </div>
         </div>
@@ -18,10 +17,7 @@
           <p class="text-gray-600">Entrez vos identifiants pour accéder à votre compte.</p>
         </div>
 
-        <!-- Debug Google OAuth (temporaire) -->
-        <div class="mb-6" v-if="showDebug">
-          <GoogleOAuthDebug />
-        </div>
+     
 
         <!-- Bouton Google -->
         <div class="mb-6">
@@ -154,7 +150,6 @@ const toast = useToast()
 
 // Import explicite du composant GoogleLoginButton
 import GoogleLoginButton from '~/components/GoogleLoginButton.vue'
-import GoogleOAuthDebug from '~/components/GoogleOAuthDebug.vue'
 
 // Variable pour afficher le debug (temporaire)
 const showDebug = ref(true) // Changez à false en production

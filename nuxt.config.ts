@@ -111,6 +111,15 @@ export default defineNuxtConfig({
   nitro: {
     prerender: {
       routes: ['/sitemap.xml']
+    },
+    routeRules: {
+      // Headers de sécurité pour Google OAuth
+      '/**': {
+        headers: {
+          'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+          'Cross-Origin-Embedder-Policy': 'unsafe-none'
+        }
+      }
     }
   },
 
