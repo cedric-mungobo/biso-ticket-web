@@ -193,7 +193,7 @@ const handleSubmit = async () => {
     }
     isLoading.value = true
     await login({ identifier: value, password: password.value.trim() })
-    await redirectAfterAuth('/profile')
+    await redirectAfterAuth('/organisateur')
   } catch (err: any) {
     const message = extractErrorMessage(err)
     toast.add({ title: 'Connexion échouée', description: message, color: 'error' })

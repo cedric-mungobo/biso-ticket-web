@@ -110,7 +110,8 @@ export default defineNuxtConfig({
   // Configuration SEO et performances
   nitro: {
     prerender: {
-      routes: ['/sitemap.xml']
+      routes: ['/sitemap.xml'],
+      ignore: ['/app']
     },
     routeRules: {
       // Headers de sécurité pour Google OAuth

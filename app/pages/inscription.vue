@@ -289,7 +289,7 @@ const handleRegister = async () => {
     })
     success.value = 'Compte créé avec succès ! Redirection...'
     toast.add({ title: 'Bienvenue', description: 'Votre compte a été créé.' })
-    await redirectAfterAuth('/profile')
+    await redirectAfterAuth('/organisateur')
   } catch (e: any) {
     const message = extractErrorMessage(e)
     toast.add({ title: 'Inscription échouée', description: message, color: 'error' })

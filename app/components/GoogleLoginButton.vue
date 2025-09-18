@@ -4,7 +4,8 @@
     <div 
       v-show="isClientIdConfigured"
       ref="googleSignInButton"
-      class="w-full min-h-[40px]"
+      class="w-full h-[40px] flex items-center justify-center"
+      style="min-width: 100%; min-height: 40px; max-height: 40px;"
     ></div>
   </div>
 </template>
@@ -131,6 +132,7 @@ const initializeGoogleSignIn = () => {
         theme: 'outline',
         size: 'large',
         width: '100%',
+        height: '40px',
         text: 'signin_with',
         shape: 'rectangular',
         logo_alignment: 'left'
@@ -161,9 +163,15 @@ const handleCredentialResponse = async (response: GoogleCredentialResponse) => {
 </script>
 
 <style scoped>
-/* Fix pour le conflit de color-scheme */
+/* Fix pour le conflit de color-scheme et redimensionnement */
 :deep(.gsi-button) {
   color-scheme: auto;
   width: 100% !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 </style>
