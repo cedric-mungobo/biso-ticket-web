@@ -25,7 +25,17 @@
   
   <!-- Contenu scrollable -->
   <div class="relative z-10 min-h-screen">
-    <UApp>
+    <UApp
+      :toaster="{
+        position: 'top-right',
+        expand: true,
+        progress: true,
+        portal: true,
+        duration: 5000,
+        swipeThreshold: 50,
+        label: 'Notification'
+      }"
+    >
       <NuxtLayout>
         <NuxtPage />
       </NuxtLayout>

@@ -58,3 +58,44 @@
   
   /* Defaults hover styles on all devices */
   @custom-variant hover (&:hover);
+
+/* Configuration des toasts pour garantir la visibilité */
+[data-headlessui-portal] {
+  z-index: 100 !important;
+}
+
+/* Toasts Nuxt UI - s'assurer qu'ils sont au-dessus des modals */
+[data-headlessui-portal] > div {
+  z-index: 100 !important;
+}
+
+/* Notifications/toasts spécifiques */
+[data-headlessui-portal] [role="alert"] {
+  z-index: 100 !important;
+}
+
+/* Configuration spécifique pour le toaster Nuxt UI */
+[data-headlessui-portal] [data-sonner-toaster] {
+  z-index: 100 !important;
+}
+
+/* Améliorer l'apparence des toasts */
+[data-headlessui-portal] [data-sonner-toast] {
+  z-index: 100 !important;
+  /* Améliorer la lisibilité sur mobile */
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* Configuration pour l'expansion des toasts */
+[data-headlessui-portal] [data-sonner-toaster][data-expand="true"] {
+  /* S'assurer que l'expansion fonctionne correctement */
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+/* Améliorer les interactions tactiles sur mobile */
+[data-headlessui-portal] [data-sonner-toast] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}

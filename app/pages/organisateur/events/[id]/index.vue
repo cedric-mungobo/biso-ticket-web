@@ -118,6 +118,12 @@
       </div>
 
         <div v-else-if="event" class="space-y-6 py-2">
+          <!-- Bannière d'alerte pour événement non approuvé -->
+          <EventApprovalBanner 
+            :event="event" 
+            :is-event-approved="isEventApproved" 
+          />
+
           <UCard class="overflow-hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
               <!-- Image à gauche -->
@@ -366,6 +372,19 @@ const actionButtons = computed(() => [
 
 const { pending } = await useAsyncData(`organizer-event-${eventId}`, async () => {
   await fetchEventWithState(eventId)
+  
+  // Debug : afficher la structure complète de l'événement pour identifier les champs d'approbation
+  if (process.client && process.dev && currentEvent.value) {
+    console.log('[DEBUG] Structure complète de l\'événement organisateur:', JSON.stringify(currentEvent.value, null, 2))
+    console.log('[DEBUG] Champ d\'approbation principal:', {
+      approvedAt: currentEvent.value.approvedAt,
+      isApproved: !!currentEvent.value.approvedAt,
+      status: currentEvent.value.status,
+      is_public: currentEvent.value.is_public
+    })
+    console.log('[DEBUG] Tous les champs disponibles:', Object.keys(currentEvent.value))
+  }
+  
   return currentEvent.value
 })
 const pageLoading = computed(() => loading.value || pending.value)
@@ -483,9 +502,9 @@ const handleCreateTicket = async (payload: any) => {
     await addTicket(eventId, payload)
     showTicketCreate.value = false
     await refreshTickets()
-    toast.add({ title: 'Ticket ajouté', description: 'Le ticket a été créé avec succès.', color: 'success' })
+    useAppToast().showSuccess('Ticket ajouté', 'Le ticket a été créé avec succès.')
   } catch (e: any) {
-    toast.add({ title: 'Erreur lors de la création du ticket', description: getApiErrorMessage(e), color: 'error' })
+    useAppToast().showError('Erreur lors de la création du ticket', getApiErrorMessage(e))
   } finally {
     ticketSubmitting.value = false
   }
@@ -499,9 +518,9 @@ const handleUpdateTicket = async (payload: any) => {
     await updateTicket(eventId, currentTicket.value.id, payload)
     showTicketEdit.value = false
     await refreshTickets()
-    toast.add({ title: 'Ticket mis à jour', description: 'Le ticket a été modifié avec succès.', color: 'success' })
+    useAppToast().showSuccess('Ticket mis à jour', 'Le ticket a été modifié avec succès.')
   } catch (e: any) {
-    toast.add({ title: 'Erreur lors de la mise à jour', description: getApiErrorMessage(e), color: 'error' })
+    useAppToast().showError('Erreur lors de la mise à jour', getApiErrorMessage(e))
   } finally {
     ticketSubmitting.value = false
   }
@@ -514,14 +533,17 @@ const handleDeleteTicket = async () => {
     await deleteTicket(eventId, currentTicket.value.id)
     showTicketDelete.value = false
     await refreshTickets()
-    toast.add({ title: 'Ticket supprimé', description: 'Le ticket a été supprimé avec succès.', color: 'success' })
+    useAppToast().showSuccess('Ticket supprimé', 'Le ticket a été supprimé avec succès.')
   } catch (e: any) {
-    toast.add({ title: 'Erreur lors de la suppression', description: getApiErrorMessage(e), color: 'error' })
+    useAppToast().showError('Erreur lors de la suppression', getApiErrorMessage(e))
   } finally {
     ticketSubmitting.value = false
   }
 }
 
+// Logique d'approbation de l'événement
+const { isEventApproved: checkEventApproval } = useEventApproval()
+const isEventApproved = computed(() => checkEventApproval(event.value))
 
 </script>
 

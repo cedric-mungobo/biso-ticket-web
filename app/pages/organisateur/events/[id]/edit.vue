@@ -277,11 +277,7 @@ onMounted(async () => {
       }
     })
   } catch (error) {
-    toast.add({
-      title: 'Erreur',
-      description: 'Impossible de charger les données de l\'événement',
-      color: 'error'
-    })
+    useAppToast().showError('Erreur', 'Impossible de charger les données de l\'événement')
   }
 })
 
@@ -307,11 +303,7 @@ const handleSubmit = preventMultipleSubmissions(async (data: any) => {
     const event = await updateEvent(eventId, apiBody, data.image, imageToRemove.value)
     
     if (event) {
-      toast.add({
-        title: 'Succès',
-        description: 'L\'événement a été modifié avec succès',
-        color: 'success'
-      })
+      useAppToast().showSuccess('Succès', 'L\'événement a été modifié avec succès')
       await router.push(`/organisateur/events/${event.id}`)
     }
   }, 'Modification de l\'événement...').catch((error: any) => {

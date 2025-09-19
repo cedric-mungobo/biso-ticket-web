@@ -280,11 +280,7 @@ const toggleFilters = () => {
 
 const handleDeleteEvent = (eventId: number) => {
   if (!eventId || isNaN(eventId)) {
-    toast.add({
-      title: 'Erreur',
-      description: 'ID d\'événement invalide',
-      color: 'error'
-    })
+    useAppToast().showError('Erreur', 'ID d\'événement invalide')
     return
   }
   eventToDelete.value = eventId
@@ -298,11 +294,7 @@ const confirmDeleteEvent = async () => {
     isDeleting.value = eventToDelete.value
     await deleteEvent(eventToDelete.value)
     
-    toast.add({
-      title: 'Succès',
-      description: 'Événement supprimé avec succès',
-      color: 'success'
-    })
+    useAppToast().showSuccess('Succès', 'Événement supprimé avec succès')
     
     await loadEvents()
   } catch (error: any) {
@@ -311,11 +303,7 @@ const confirmDeleteEvent = async () => {
     else if (error?.message?.includes('403')) errorMessage = 'Permissions insuffisantes'
     else if (error?.message?.includes('422')) errorMessage = 'Impossible de supprimer (réservations existantes)'
     
-    toast.add({
-      title: 'Erreur',
-      description: errorMessage,
-      color: 'error'
-    })
+    useAppToast().showError('Erreur', errorMessage)
   } finally {
     isDeleting.value = null
     showDeleteModal.value = false
@@ -330,11 +318,7 @@ const cancelDeleteEvent = () => {
 
 const handleEditEvent = (eventId: number) => {
   if (!eventId || isNaN(eventId)) {
-    toast.add({
-      title: 'Erreur',
-      description: 'ID d\'événement invalide',
-      color: 'error'
-    })
+    useAppToast().showError('Erreur', 'ID d\'événement invalide')
     return
   }
   
@@ -362,11 +346,7 @@ const loadEvents = async () => {
     await fetchMyEvents()
   } catch (err: any) {
     console.error('Erreur lors du chargement des événements:', err)
-    toast.add({
-      title: 'Erreur de chargement',
-      description: err?.message || 'Impossible de charger les événements. Veuillez réessayer.',
-      color: 'error'
-    })
+    useAppToast().showError('Erreur de chargement', err?.message || 'Impossible de charger les événements. Veuillez réessayer.')
   }
 }
 
@@ -376,22 +356,14 @@ const copyEventLink = async (eventId: number) => {
     await navigator.clipboard.writeText(eventUrl)
     copiedEventId.value = eventId
     
-    toast.add({
-      title: 'Lien copié',
-      description: 'Le lien de l\'événement a été copié dans le presse-papiers',
-      color: 'success'
-    })
+    useAppToast().showSuccess('Lien copié', 'Le lien de l\'événement a été copié dans le presse-papiers')
     
     setTimeout(() => {
       copiedEventId.value = null
     }, 2000)
   } catch (err) {
     console.error('Erreur lors de la copie:', err)
-    toast.add({
-      title: 'Erreur',
-      description: 'Impossible de copier le lien. Veuillez réessayer.',
-      color: 'error'
-    })
+    useAppToast().showError('Erreur', 'Impossible de copier le lien. Veuillez réessayer.')
   }
 }
 

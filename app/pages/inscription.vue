@@ -194,20 +194,12 @@ const onCaptchaVerify = (token: string) => {
 
 const onCaptchaExpired = () => {
   recaptchaToken.value = ''
-  toast.add({ 
-    title: 'Vérification expirée', 
-    description: 'Veuillez refaire la vérification.', 
-    color: 'warning' 
-  })
+  useAppToast().showWarning('Vérification expirée', 'Veuillez refaire la vérification.')
 }
 
 const onCaptchaError = () => {
   recaptchaToken.value = ''
-  toast.add({ 
-    title: 'Erreur de vérification', 
-    description: 'Une erreur est survenue. Veuillez réessayer.', 
-    color: 'error' 
-  })
+  useAppToast().showError('Erreur de vérification', 'Une erreur est survenue. Veuillez réessayer.')
 }
 
 // Vérifier le taux de soumission (max 3 par minute)
@@ -257,11 +249,7 @@ const handleRegister = async () => {
     }
     
     if (!checkSubmissionRate()) {
-      return toast.add({ 
-        title: 'Trop de tentatives', 
-        description: 'Veuillez attendre avant de réessayer.', 
-        color: 'error' 
-      })
+      return useAppToast().showError('Trop de tentatives', 'Veuillez attendre avant de réessayer.')
     }
     
     // reCAPTCHA temporairement désactivé
@@ -274,10 +262,10 @@ const handleRegister = async () => {
     // }
     
     // Validations classiques
-    if (!form.name.trim()) return toast.add({ title: 'Nom requis', description: 'Veuillez saisir votre nom.', color: 'warning' })
-    if (!emailRegex.test(form.email.trim())) return toast.add({ title: 'Email invalide', description: 'Saisissez une adresse email valide.', color: 'error' })
-    if (!phoneIntl.test(form.telephone.replace(/\s/g, ''))) return toast.add({ title: 'Téléphone invalide', description: 'Saisissez un numéro valide (international).', color: 'error' })
-    if (form.password.length < 8) return toast.add({ title: 'Mot de passe trop court', description: 'Le mot de passe doit contenir au moins 8 caractères.', color: 'error' })
+    if (!form.name.trim()) return useAppToast().showWarning('Nom requis', 'Veuillez saisir votre nom.')
+    if (!emailRegex.test(form.email.trim())) return useAppToast().showError('Email invalide', 'Saisissez une adresse email valide.')
+    if (!phoneIntl.test(form.telephone.replace(/\s/g, ''))) return useAppToast().showError('Téléphone invalide', 'Saisissez un numéro valide (international).')
+    if (form.password.length < 8) return useAppToast().showError('Mot de passe trop court', 'Le mot de passe doit contenir au moins 8 caractères.')
     
     isLoading.value = true
     await register({
@@ -288,11 +276,11 @@ const handleRegister = async () => {
       // recaptcha_token: recaptchaToken.value // Temporairement désactivé
     })
     success.value = 'Compte créé avec succès ! Redirection...'
-    toast.add({ title: 'Bienvenue', description: 'Votre compte a été créé.' })
+    useAppToast().showSuccess('Bienvenue', 'Votre compte a été créé.')
     await redirectAfterAuth('/organisateur')
   } catch (e: any) {
     const message = extractErrorMessage(e)
-    toast.add({ title: 'Inscription échouée', description: message, color: 'error' })
+    useAppToast().showError('Inscription échouée', message)
     // reCAPTCHA temporairement désactivé - pas de réinitialisation nécessaire
     // recaptchaToken.value = ''
   } finally {

@@ -138,11 +138,7 @@ const load = async () => {
   } catch (error: any) {
     console.error('Erreur lors du chargement de l\'invitation:', error)
     hasError.value = true
-    toast.add({ 
-      title: 'Erreur', 
-      description: error?.message || 'Impossible de charger l\'invitation. Veuillez réessayer.', 
-      color: 'error' 
-    })
+    useAppToast().showError('Erreur', error?.message || 'Impossible de charger l\'invitation. Veuillez réessayer.')
   } finally {
     isLoading.value = false
   }

@@ -386,13 +386,8 @@ export const useTickets = () => {
           
           // Notifier l'utilisateur du nettoyage (optionnel)
           if (process.client) {
-            const toast = useToast()
             try {
-              toast.add({
-                title: 'Tickets mis à jour',
-                description: `Certains tickets n'étaient plus disponibles et ont été retirés de votre sélection.`,
-                color: 'warning'
-              })
+              useAppToast().showWarning('Tickets mis à jour', `Certains tickets n'étaient plus disponibles et ont été retirés de votre sélection.`)
             } catch (e) {
               // Toast non disponible, ignorer
             }

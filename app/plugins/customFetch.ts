@@ -118,12 +118,8 @@ export default defineNuxtPlugin((nuxtApp) => {
       // Afficher le toast d'erreur seulement si ce n'est pas une erreur de validation
       if (response.status !== 422 || Object.keys(errorDetails).length === 0) {
         try {
-          const toast = useToast()
-          toast.add({
-            title: 'Erreur',
-            description: errorMessage,
-            color: 'error'
-          })
+          const { showError } = useAppToast()
+          showError('Erreur', errorMessage)
         } catch (_e) {
           // Si useToast n'est pas disponible (par exemple côté serveur), ignorer
           console.warn('Impossible d\'afficher le toast d\'erreur:', _e)

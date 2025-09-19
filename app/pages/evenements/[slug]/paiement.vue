@@ -528,7 +528,7 @@ const startCountdown = () => {
       stopCountdown()
       const timeoutMsg = 'Paiement échoué: délai de confirmation dépassé. Veuillez réessayer.'
       paymentError.value = timeoutMsg
-      try { toast.add({ title: 'Paiement échoué', description: timeoutMsg, color: 'error' }) } catch {}
+      try { useAppToast().showError('Paiement échoué', timeoutMsg) } catch {}
     }
   }, 1000)
   
@@ -551,10 +551,7 @@ const startPaymentStatusPolling = () => {
     const successMessage = `🎉 Paiement réussi !\n\n${statusResult.message || 'Vos billets sont maintenant disponibles.'}`
     paymentError.value = successMessage
     try { 
-      toast.add({ 
-        title: 'Paiement réussi', 
-        description: statusResult.message || 'Vos billets sont disponibles.' 
-      }) 
+      useAppToast().showSuccess('Paiement réussi', statusResult.message || 'Vos billets sont disponibles.')
     } catch {}
     stopCountdown()
     // Nettoyer l'état de panier/réservation après succès
@@ -568,11 +565,7 @@ const startPaymentStatusPolling = () => {
     const errMsg = `Paiement échoué: ${statusResult.message || 'Transaction non confirmée.'}`
     paymentError.value = errMsg
     try { 
-      toast.add({ 
-        title: 'Paiement échoué', 
-        description: statusResult.message || 'Veuillez réessayer.', 
-        color: 'error' 
-      }) 
+      useAppToast().showError('Paiement échoué', statusResult.message || 'Veuillez réessayer.')
     } catch {}
   }
 

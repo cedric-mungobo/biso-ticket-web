@@ -121,12 +121,12 @@ export const useGuestBook = ({ slug, eventId, token }: UseGuestBookOptions) => {
         method: 'POST',
         body: { token: token.value, content: guestBookContent.value.trim() }
       })
-      useToast().add({ title: 'Merci', description: 'Votre message a été enregistré.', color: 'success' })
+      useAppToast().showSuccess('Merci', 'Votre message a été enregistré.')
       guestBookContent.value = ''
       // Recharger les messages après envoi
       await loadGuestMessages()
     } catch (e: any) {
-      useToast().add({ title: 'Erreur', description: String(e?.message || "Impossible d'envoyer."), color: 'error' })
+      useAppToast().showError('Erreur', String(e?.message || "Impossible d'envoyer."))
     } finally {
       submittingMessage.value = false
     }

@@ -250,11 +250,7 @@ const handleSubmit = preventMultipleSubmissions(async (data: any) => {
     
     if (event) {
       console.log('Événement créé avec succès:', event)
-      toast.add({
-        title: 'Succès',
-        description: 'L\'événement a été créé avec succès',
-        color: 'success'
-      })
+      useAppToast().showSuccess('Succès', 'L\'événement a été créé avec succès')
       await router.push(`/organisateur/events/${event.id}`)
     }
   }, 'Création de l\'événement...').catch((error: any) => {

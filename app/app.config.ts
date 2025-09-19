@@ -14,7 +14,8 @@ export default defineAppConfig({
       slots: {
         base: 'font-semibold'
       }
-    }
+    },
+    // Configuration toaster déplacée dans app.vue pour plus de flexibilité
   }
 })
 

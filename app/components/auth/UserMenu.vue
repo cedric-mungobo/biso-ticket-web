@@ -103,22 +103,14 @@ const handleLogout = async () => {
     // Déconnexion générale
     await logout()
     
-    toast.add({ 
-      title: 'Déconnexion', 
-      description: 'Vous avez été déconnecté avec succès.', 
-      color: 'success' 
-    })
+    useAppToast().showSuccess('Déconnexion', 'Vous avez été déconnecté avec succès.')
     
     // Rediriger vers la page d'accueil
     await router.push('/')
     
   } catch (error: any) {
     console.error('Erreur lors de la déconnexion:', error)
-    toast.add({ 
-      title: 'Erreur de déconnexion', 
-      description: 'Une erreur est survenue lors de la déconnexion.', 
-      color: 'error' 
-    })
+    useAppToast().showError('Erreur de déconnexion', 'Une erreur est survenue lors de la déconnexion.')
   }
 }
 

@@ -490,11 +490,7 @@
       
       await updateProfile(updateData)
       
-      toast.add({
-        title: 'Succès',
-        description: 'Profil mis à jour avec succès',
-        color: 'success'
-      })
+      useAppToast().showSuccess('Succès', 'Profil mis à jour avec succès')
       
       showEditModal.value = false
       await refresh() // Rafraîchir les données du profil
@@ -503,11 +499,7 @@
       console.error('Erreur lors de la mise à jour du profil:', error)
       
       // Toast d'erreur
-      toast.add({
-        title: 'Erreur',
-        description: error?.message || 'Une erreur est survenue lors de la mise à jour du profil',
-        color: 'error'
-      })
+      useAppToast().showError('Erreur', error?.message || 'Une erreur est survenue lors de la mise à jour du profil')
       
       // Gestion des erreurs de validation
       if (error?.data?.errors) {
@@ -558,11 +550,7 @@
       const response = await changePassword(passwordData)
       
       // Toast de succès
-      toast.add({
-        title: 'Succès',
-        description: 'Mot de passe modifié avec succès',
-        color: 'success'
-      })
+      useAppToast().showSuccess('Succès', 'Mot de passe modifié avec succès')
       
       // Réinitialiser le formulaire
       passwordForm.value = {
@@ -578,11 +566,7 @@
       console.error('Erreur lors de la modification du mot de passe:', error)
       
       // Toast d'erreur
-      toast.add({
-        title: 'Erreur',
-        description: error?.message || 'Une erreur est survenue lors de la modification du mot de passe',
-        color: 'error'
-      })
+      useAppToast().showError('Erreur', error?.message || 'Une erreur est survenue lors de la modification du mot de passe')
       
       // Gestion des erreurs de validation
       if (error?.data?.errors) {
@@ -602,11 +586,7 @@
       
       await logout()
       
-      toast.add({
-        title: 'Déconnexion réussie',
-        description: 'Vous avez été déconnecté avec succès',
-        color: 'success'
-      })
+      useAppToast().showSuccess('Déconnexion réussie', 'Vous avez été déconnecté avec succès')
       
       // Rediriger vers la page d'accueil
       await router.push('/')
@@ -614,11 +594,7 @@
     } catch (error: any) {
       console.error('Erreur lors de la déconnexion:', error)
       
-      toast.add({
-        title: 'Erreur de déconnexion',
-        description: error?.message || 'Une erreur est survenue lors de la déconnexion',
-        color: 'error'
-      })
+      useAppToast().showError('Erreur de déconnexion', error?.message || 'Une erreur est survenue lors de la déconnexion')
     } finally {
       isLoggingOut.value = false
     }

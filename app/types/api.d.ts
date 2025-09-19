@@ -71,6 +71,8 @@ export interface Event {
     defaultInvitationTemplateId?: number
     defaultInvitationTemplate?: InvitationTemplate
   }
+ 
+  approvedAt?: string
   createdAt: string
   updatedAt: string
 }

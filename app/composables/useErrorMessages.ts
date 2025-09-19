@@ -52,14 +52,10 @@ export const useErrorMessages = () => {
    * @param defaultMessage - Message par défaut (optionnel)
    */
   const showErrorToast = (error: any, title: string = 'Erreur', defaultMessage?: string) => {
-    const toast = useToast()
+    const { showError } = useAppToast()
     const message = getUserFriendlyMessage(error, defaultMessage)
     
-    toast.add({
-      title,
-      description: message,
-      color: 'error'
-    })
+    showError(title, message)
   }
 
   /**

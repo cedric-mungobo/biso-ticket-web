@@ -19,7 +19,7 @@
             </svg>
           </div>
           <h3 class="text-lg font-medium text-red-800 mb-2">Événement non trouvé</h3>
-          <p class="text-red-600 mb-4">{{ error }}</p>
+          <p class="text-red-600 mb-4">Désolé, cet événement n'existe pas ou n'est plus disponible.</p>
           <div class="space-y-2">
             <button 
               @click="() => fetchEventData()"
@@ -367,9 +367,11 @@ const fetchEventData = async () => {
     
     await fetchTickets()
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors du chargement de l\'événement'
-    error.value = errorMessage
+    // Log l'erreur technique en console pour le debug
     console.error('Erreur lors du chargement de l\'événement:', err)
+    
+    // Afficher un message convivial à l'utilisateur
+    error.value = 'Événement introuvable'
   } finally {
     loading.value = false
   }
@@ -388,7 +390,11 @@ const fetchTickets = async () => {
       setEvent(eventWithTickets)
     }
   } catch (err) {
-    ticketsError.value = err instanceof Error ? err.message : 'Erreur chargement billets'
+    // Log l'erreur technique en console pour le debug
+    console.error('Erreur lors du chargement des billets:', err)
+    
+    // Afficher un message convivial à l'utilisateur
+    ticketsError.value = 'Impossible de charger les billets'
   } finally {
     ticketsLoading.value = false
   }

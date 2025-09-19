@@ -5,12 +5,7 @@ export default defineNuxtRouteMiddleware((to) => {
   if (!token.value) {
     const redirectUrl = to.fullPath
 
-    const toast = useToast()
-    toast.add({
-      title: 'Vous devez être connecté pour accéder à cette page',
-      description: 'Veuillez vous connecter pour accéder à cette page',
-      color: 'error'
-    })
+    useAppToast().showError('Vous devez être connecté pour accéder à cette page', 'Veuillez vous connecter pour accéder à cette page')
     return navigateTo(`/connexion?redirect=${encodeURIComponent(redirectUrl)}`)
   }
 })

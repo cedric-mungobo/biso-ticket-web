@@ -46,6 +46,9 @@ export const useOrganizerEvents = () => {
       image_url: apiEvent.imageUrl,
       status: apiEvent.status,
       is_public: apiEvent.isPublic,
+      // Champs d'approbation (seul approvedAt détermine l'approbation)
+      approvedAt: (apiEvent as any).approvedAt,
+    
       settings: apiEvent.settings || {}
     }
   }
@@ -136,7 +139,19 @@ export const useOrganizerEvents = () => {
 
   const fetchEvent = async (eventId: number): Promise<Event> => {
     const res = await $myFetch<any>(`/events/${eventId}`, { method: 'GET' })
-    return unwrap<Event>(res)
+    const event = unwrap<Event>(res)
+    
+    // Debug : afficher la réponse brute de l'API
+    if (process.client && process.dev) {
+      console.log('[API] /events/:id - Réponse brute:', JSON.stringify(res, null, 2))
+      console.log('[API] /events/:id - Événement déballé:', JSON.stringify(event, null, 2))
+      console.log('[API] /events/:id - Champ d\'approbation principal:', {
+        approvedAt: event.approvedAt,
+        isApproved: !!event.approvedAt
+      })
+    }
+    
+    return event
   }
 
   const updateEvent = async (eventId: number, eventData: Partial<EventCreateRequest>, image?: File, removeImage?: boolean): Promise<Event> => {
@@ -236,8 +251,40 @@ export const useOrganizerEvents = () => {
       quantity: Number((ticketData as any).quantity || 0),
       commissionRate: (ticketData as any).commissionRate
     }
-    const response = await $myFetch<{ ticket: Ticket }>(`/events/${eventId}/tickets`, { method: 'POST', body: normalized })
-    return response.ticket
+    
+    // Debug logs
+    if (process.dev) {
+      console.log('[API] addTicket - Original payload:', ticketData)
+      console.log('[API] addTicket - Normalized payload:', normalized)
+    }
+    
+    try {
+      const response = await $myFetch<{ ticket: Ticket }>(`/events/${eventId}/tickets`, { method: 'POST', body: normalized })
+      return response.ticket
+    } catch (error: any) {
+      // Log détaillé de l'erreur pour debug
+      if (process.dev) {
+        console.error('[API] addTicket - Error details:', {
+          status: error?.status || error?.response?.status,
+          message: error?.message,
+          data: error?.data || error?.response?.data,
+          url: `/events/${eventId}/tickets`,
+          payload: normalized
+        })
+      }
+      
+      // Gestion spécifique des erreurs
+      const status = error?.status || error?.response?.status
+      if (status === 404) {
+        throw new Error(`L'événement avec l'ID ${eventId} n'existe pas ou vous n'avez pas les permissions pour y accéder.`)
+      } else if (status === 403) {
+        throw new Error(`Vous n'avez pas les permissions pour créer des tickets pour cet événement.`)
+      } else if (status === 500) {
+        throw new Error(`Erreur serveur lors de la création du ticket. Veuillez vérifier que l'événement existe et réessayer.`)
+      }
+      
+      throw error
+    }
   }
 
   const fetchEventTickets = async (eventId: number): Promise<any[]> => {
@@ -363,6 +410,16 @@ export const useOrganizerEvents = () => {
     return unwrap<any>(res)
   }
 
+  // Fonction utilitaire pour vérifier si l'utilisateur a des événements
+  const checkUserHasEvents = async (): Promise<boolean> => {
+    try {
+      const userEvents = await fetchEvents({ per_page: 1 })
+      return userEvents.items && userEvents.items.length > 0
+    } catch {
+      return false
+    }
+  }
+
   return {
     // low-level
     fetchEvents,
@@ -383,6 +440,7 @@ export const useOrganizerEvents = () => {
     updateTicket,
     deleteTicket,
     fetchEventCategories,
+    checkUserHasEvents,
     // crédits
     purchaseCredits,
     getCreditBalance,

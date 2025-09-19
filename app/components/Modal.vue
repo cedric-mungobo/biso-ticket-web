@@ -15,14 +15,28 @@
         style="touch-action: manipulation;"
       >
         <!-- Overlay -->
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+        <div 
+          class="absolute inset-0 transition-all duration-300"
+          :class="{
+            'bg-black/40 backdrop-blur-sm': !isMobile,
+            'bg-black/20 backdrop-blur-none': isMobile
+          }"
+        />
         
         <!-- Modal Content -->
         <div
           class="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-xl my-8 flex flex-col max-h-[90vh]"
+          :class="{
+            'mobile-bottom-sheet': isMobile
+          }"
           @click.stop
           style="touch-action: manipulation;"
         >
+          <!-- Mobile Handle -->
+          <div v-if="isMobile" class="flex justify-center pt-3 pb-2 flex-shrink-0">
+            <div class="w-12 h-1 bg-gray-300 rounded-full"></div>
+          </div>
+          
           <!-- Header -->
           <div v-if="$slots.header || title" class="flex items-center justify-between border-b border-gray-200 px-6 py-4 flex-shrink-0">
             <slot name="header">
@@ -72,6 +86,13 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 
+// Détection mobile
+const isMobile = ref(false)
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
+
 const handleBackdropClick = () => {
   if (props.closeOnBackdrop) {
     emit('update:modelValue', false)
@@ -87,10 +108,13 @@ const handleEscape = (event: KeyboardEvent) => {
 
 onMounted(() => {
   document.addEventListener('keydown', handleEscape)
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscape)
+  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
@@ -106,20 +130,54 @@ onUnmounted(() => {
   }
 }
 
+/* Bottom Sheet sur mobile */
+.mobile-bottom-sheet {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: auto !important;
+  margin: 0 !important;
+  max-width: 100vw !important;
+  width: 100vw !important;
+  max-height: 85vh !important;
+  height: auto !important;
+  border-radius: 1rem 1rem 0 0 !important;
+  transform: translateY(0) !important;
+  animation: slideUp 0.3s ease-out !important;
+}
+
+/* Overlay mobile - pas de blur pour un effet plus natif */
+@media (max-width: 768px) {
+  .backdrop-blur-none {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 /* Optimisations pour mobile */
 @media (max-width: 768px) {
   .fixed {
-    padding: 0.25rem;
-    align-items: flex-start;
-    padding-top: 2rem;
+    padding: 0;
+    align-items: flex-end;
+    padding-top: 0;
   }
   
   .max-w-md {
-    max-width: calc(100vw - 0.5rem);
+    max-width: 100vw;
     margin: 0;
-    width: calc(100vw - 0.5rem);
-    max-height: calc(100vh - 2rem);
-    height: calc(100vh - 2rem);
+    width: 100vw;
+    max-height: 85vh;
+    height: auto;
     min-height: auto;
   }
   
@@ -137,7 +195,7 @@ onUnmounted(() => {
   
   /* Assurer que le contenu ne dépasse pas */
   .relative {
-    max-height: calc(100vh - 2rem);
+    max-height: 85vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -146,25 +204,29 @@ onUnmounted(() => {
 /* Optimisations pour très petits écrans */
 @media (max-width: 480px) {
   .fixed {
-    padding: 0.125rem;
-    padding-top: 1rem;
+    padding: 0;
+    padding-top: 0;
   }
   
   .max-w-md {
-    max-width: calc(100vw - 0.25rem);
-    width: calc(100vw - 0.25rem);
-    max-height: calc(100vh - 2rem);
-    height: calc(100vh - 2rem);
+    max-width: 100vw;
+    width: 100vw;
+    max-height: 90vh;
+    height: auto;
   }
   
   .relative {
-    max-height: calc(100vh - 4rem);
+    max-height: 90vh;
+  }
+  
+  .mobile-bottom-sheet {
+    max-height: 90vh !important;
   }
 }
 
 /* Prévenir les problèmes de z-index */
 .fixed {
-  z-index: 9999;
+  z-index: 50;
 }
 
 /* Améliorer l'accessibilité */

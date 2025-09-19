@@ -181,14 +181,14 @@ const extractErrorMessage = (e: any): string => {
 const handleSubmit = async () => {
   try {
     if (!identifier.value || !password.value) {
-      toast.add({ title: 'Champs requis', description: 'Veuillez remplir tous les champs.', color: 'warning' })
+      useAppToast().showWarning('Champs requis', 'Veuillez remplir tous les champs.')
       return
     }
     const value = identifier.value.trim()
     const isEmail = emailRegex.test(value)
     const isPhone = phoneIntl.test(value.replace(/\s/g, ''))
     if (!isEmail && !isPhone) {
-      toast.add({ title: 'Identifiant invalide', description: 'Saisissez un email ou un numéro de téléphone valide.', color: 'error' })
+      useAppToast().showError('Identifiant invalide', 'Saisissez un email ou un numéro de téléphone valide.')
       return
     }
     isLoading.value = true
@@ -196,7 +196,7 @@ const handleSubmit = async () => {
     await redirectAfterAuth('/organisateur')
   } catch (err: any) {
     const message = extractErrorMessage(err)
-    toast.add({ title: 'Connexion échouée', description: message, color: 'error' })
+    useAppToast().showError('Connexion échouée', message)
   } finally {
     isLoading.value = false
   }
@@ -204,7 +204,7 @@ const handleSubmit = async () => {
 
 // Gestion des erreurs Google
 const handleGoogleError = (error: string) => {
-  toast.add({ title: 'Erreur Google', description: error, color: 'error' })
+  useAppToast().showError('Erreur Google', error)
 }
 
 // Gestion du succès Google

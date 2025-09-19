@@ -385,9 +385,9 @@ const shareItems = (inv?: any): DropdownMenuItem[] => [
       try {
         const url = `${location.origin}/invitation/${inv?.token || inv?.id}`
         await navigator.clipboard.writeText(url)
-        toast.add({ title: 'Lien copié', description: 'Le lien a été copié dans le presse-papiers.', color: 'success' })
+        useAppToast().showSuccess('Lien copié', 'Le lien a été copié dans le presse-papiers.')
       } catch (_) {
-        toast.add({ title: 'Impossible de copier', description: 'Copiez manuellement le lien.', color: 'warning' })
+        useAppToast().showWarning('Impossible de copier', 'Copiez manuellement le lien.')
       }
     }
   },
@@ -417,7 +417,7 @@ const onShare = async (inv: any) => {
   try {
     sendingIds.add(inv.id)
     await shareInvitation(eventId, inv.id)
-    toast.add({ title: 'Invitation envoyée', description: `Partage effectué pour ${inv.guestName || 'invité'}.`, color: 'success' })
+    useAppToast().showSuccess('Invitation envoyée', `Partage effectué pour ${inv.guestName || 'invité'}.`)
     await refresh()
     await refreshCredits()
   } catch (_e) {
@@ -425,7 +425,7 @@ const onShare = async (inv: any) => {
     const resp = e?.response
     const data = resp?._data || resp?.data || {}
     const msg = data?.message || e?.message || 'Une erreur est survenue.'
-    toast.add({ title: 'Erreur', description: String(msg), color: 'error' })
+    useAppToast().showError('Erreur', String(msg))
   } finally {
     sendingIds.delete(inv.id)
   }
@@ -463,17 +463,13 @@ const selectTemplate = async (templateId: number) => {
         default_invitation_template_id: templateId 
       } 
     })
-    toast.add({ 
-      title: 'Template sélectionné', 
-      description: 'Le template d\'invitation par défaut a été mis à jour.', 
-      color: 'success' 
-    })
+    useAppToast().showSuccess('Template sélectionné', 'Le template d\'invitation par défaut a été mis à jour.')
     showTemplate.value = false
   } catch (e: any) {
     const resp = e?.response
     const data = resp?._data || resp?.data || {}
     const msg = data?.message || e?.message || 'Impossible de sélectionner le template.'
-    toast.add({ title: 'Erreur', description: String(msg), color: 'error' })
+    useAppToast().showError('Erreur', String(msg))
   } finally {
     templateSubmitting.value = false
   }
@@ -508,25 +504,21 @@ const saveGuestMessage = async () => {
       method: 'PUT',
       body: { settings: { guest_message: guestMessage.value } }
     })
-    toast.add({ title: 'Message enregistré', description: 'Le message invité a été mis à jour.', color: 'success' })
+    useAppToast().showSuccess('Message enregistré', 'Le message invité a été mis à jour.')
     showMessage.value = false
   } catch (_e) {
     const e: any = _e
     const resp = e?.response
     const data = resp?._data || resp?.data || {}
     const msg = data?.message || e?.message || 'Impossible d\'enregistrer.'
-    toast.add({ title: 'Erreur', description: String(msg), color: 'error' })
+    useAppToast().showError('Erreur', String(msg))
   }
 }
 
 // Gestion des modèles de texte
 const onTemplateSelected = (template: any, message: string) => {
   guestMessage.value = message
-  toast.add({ 
-    title: 'Modèle appliqué', 
-    description: `Le modèle "${template.title}" a été appliqué.`, 
-    color: 'success' 
-  })
+  useAppToast().showSuccess('Modèle appliqué', `Le modèle "${template.title}" a été appliqué.`)
 }
 
 // Acheter crédits
@@ -555,24 +547,24 @@ const startCountdown = () => {
 }
 const submitBuyCredits = async () => {
   if (!buy.phone || !/^\d{12}$/.test(buy.phone)) {
-    toast.add({ title: 'Téléphone invalide', description: 'Format attendu: 243XXXXXXXXX', color: 'warning' })
+    useAppToast().showWarning('Téléphone invalide', 'Format attendu: 243XXXXXXXXX')
     return
   }
   if (!buy.credits || buy.credits < 1) {
-    toast.add({ title: 'Crédits invalides', description: 'Saisissez un nombre de crédits ≥ 1.', color: 'warning' })
+    useAppToast().showWarning('Crédits invalides', 'Saisissez un nombre de crédits ≥ 1.')
     return
   }
   try {
     buySubmitting.value = true
     await purchaseAndPayCredits({ credits: buy.credits as any, currency: buy.currency as any, phone: buy.phone })
-    toast.add({ title: 'Paiement initié', description: 'Une notification de paiement a été envoyée. Veuillez confirmer.', color: 'success' })
+    useAppToast().showSuccess('Paiement initié', 'Une notification de paiement a été envoyée. Veuillez confirmer.')
     startCountdown()
   } catch (_e) {
     const e: any = _e
     const resp = e?.response
     const data = resp?._data || resp?.data || {}
     const msg = data?.message || e?.message || 'Une erreur est survenue.'
-    toast.add({ title: 'Erreur', description: String(msg), color: 'error' })
+    useAppToast().showError('Erreur', String(msg))
   } finally {
     buySubmitting.value = false
   }
@@ -584,7 +576,7 @@ const newGuest = reactive({ name: '', email: '', phone: '', table: '' })
 const addSubmitting = ref(false)
 const addGuest = async () => {
   if (!newGuest.name?.trim()) {
-    toast.add({ title: 'Nom requis', description: 'Veuillez saisir le nom de l\'invité.', color: 'warning' })
+    useAppToast().showWarning('Nom requis', 'Veuillez saisir le nom de l\'invité.')
     return
   }
   try {
@@ -595,7 +587,7 @@ const addGuest = async () => {
       guestPhone: newGuest.phone?.trim() || undefined,
       guestTableName: newGuest.table?.trim() || undefined
     })
-    toast.add({ title: 'Invité ajouté', description: 'L\'invité a été ajouté avec succès.', color: 'success' })
+    useAppToast().showSuccess('Invité ajouté', 'L\'invité a été ajouté avec succès.')
     showAddGuest.value = false
     newGuest.name = ''; newGuest.email = ''; newGuest.phone = ''; newGuest.table = ''
     await refresh()
@@ -605,7 +597,7 @@ const addGuest = async () => {
     const resp = e?.response
     const data = resp?._data || resp?.data || {}
     const msg = data?.message || e?.message || 'Une erreur est survenue.'
-    toast.add({ title: 'Erreur', description: String(msg), color: 'error' })
+    useAppToast().showError('Erreur', String(msg))
   } finally {
     addSubmitting.value = false
   }
@@ -674,13 +666,13 @@ const onImportFile = (e: Event) => {
       }).filter(i => i.guestName)
       parsedBatch.splice(0, parsedBatch.length, ...batch)
       if (parsedBatch.length === 0) {
-        toast.add({ title: 'Fichier vide', description: 'Aucune ligne valide détectée.', color: 'warning' })
+        useAppToast().showWarning('Fichier vide', 'Aucune ligne valide détectée.')
       } else {
-        toast.add({ title: 'Fichier analysé', description: `${parsedBatch.length} lignes détectées. Cliquez Importer.`, color: 'success' })
+        useAppToast().showSuccess('Fichier analysé', `${parsedBatch.length} lignes détectées. Cliquez Importer.`)
       }
     } catch (_e) {
       const e: any = _e
-      toast.add({ title: 'Erreur import', description: e?.message || 'Impossible de traiter le CSV.', color: 'error' })
+      useAppToast().showError('Erreur import', e?.message || 'Impossible de traiter le CSV.')
     }
   }
   reader.readAsText(file)
@@ -705,7 +697,7 @@ const importParsedBatch = async () => {
       console.log('[Invitations] Payload batch → POST /events/' + eventId + '/invitations', payload)
     }
     await createInvitationsBatch(eventId, parsedBatch as any)
-    toast.add({ title: 'Import réussi', description: `${parsedBatch.length} invités importés.`, color: 'success' })
+    useAppToast().showSuccess('Import réussi', `${parsedBatch.length} invités importés.`)
     parsedBatch.splice(0, parsedBatch.length)
     showImport.value = false
     await refresh()
@@ -715,7 +707,7 @@ const importParsedBatch = async () => {
     const resp = e?.response
     const data = resp?._data || resp?.data || {}
     const msg = data?.message || e?.message || 'Une erreur est survenue.'
-    toast.add({ title: 'Erreur import', description: String(msg), color: 'error' })
+    useAppToast().showError('Erreur import', String(msg))
   } finally {
     importSubmitting.value = false
   }
