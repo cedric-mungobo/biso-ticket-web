@@ -1,8 +1,6 @@
 <template>
   <main class="px-2 py-14 ">
     <div class="mx-auto container">
-    
-
       <!-- Loading State -->
       <LoadingOverlay 
         :show="loading"

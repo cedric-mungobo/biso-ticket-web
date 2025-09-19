@@ -44,8 +44,7 @@ import { useSEO } from '~/composables/useSEO'
 
 definePageMeta({ 
   layout: false, 
-  ssr: false,
-  client: true 
+  ssr: false
 })
 
 const route = useRoute()

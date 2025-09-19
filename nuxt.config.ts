@@ -107,13 +107,48 @@ export default defineNuxtConfig({
     }
   },
 
-  // Configuration SEO et performances
+  // Configuration pour hébergement mutualisé (fichiers statiques)
   nitro: {
     prerender: {
-      routes: ['/sitemap.xml'],
+      routes: [
+        '/sitemap.xml',
+        // Routes statiques principales
+        '/',
+        '/evenements',
+        '/connexion',
+        '/inscription',
+        '/contact',
+        '/conditions',
+        '/confidentialite',
+        '/blog',
+        '/organisateur',
+        '/profile',
+        '/tickets/my-tickets',
+        '/check-in'
+      ],
       ignore: ['/app']
     },
     routeRules: {
+      // Pages statiques - pré-générées au build time
+      '/': { prerender: true },
+      '/evenements': { prerender: true },
+      '/connexion': { prerender: true },
+      '/inscription': { prerender: true },
+      '/contact': { prerender: true },
+      '/conditions': { prerender: true },
+      '/confidentialite': { prerender: true },
+      '/blog': { prerender: true },
+      '/organisateur': { prerender: true },
+      '/profile': { prerender: true },
+      '/tickets/my-tickets': { prerender: true },
+      '/check-in': { prerender: true },
+      
+      // Pages dynamiques - rendues côté client uniquement (SPA)
+      '/evenements/**': { ssr: false },
+      '/invitation/**': { ssr: false },
+      '/blog/**': { ssr: false },
+      '/organisateur/**': { ssr: false },
+      
       // Headers de sécurité pour Google OAuth
       '/**': {
         headers: {
