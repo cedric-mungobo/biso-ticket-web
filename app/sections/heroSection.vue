@@ -177,16 +177,18 @@ const displayEvents = computed(() => {
     return []
   }
 
-  // Transformation des données API
-  return events.map((event: any) => ({
-    id: event.id,
-    title: event.title,
-    image: event.imageUrl || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&auto=format&fit=crop&q=60',
-    category: event.settings?.categories?.[0] || 'Événement',
-    date: event.startsAt,
-    location: event.location,
-    slug: event.slug
-  }))
+  // Transformation des données API - uniquement les vrais événements
+  return events
+    .filter((event: any) => event && event.id && event.title) // Filtrer les événements valides
+    .map((event: any) => ({
+      id: event.id,
+      title: event.title,
+      image: event.imageUrl || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&auto=format&fit=crop&q=60',
+      category: event.settings?.categories?.[0] || 'Événement',
+      date: event.startsAt,
+      location: event.location,
+      slug: event.slug
+    }))
 })
 
 /**
@@ -205,4 +207,4 @@ const handleEventClick = (card: MarqueeCard): void => {
 * {
   font-family: 'Poppins', sans-serif;
 }
-</style>
+</style>s

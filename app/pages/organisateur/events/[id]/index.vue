@@ -108,7 +108,7 @@
         <LoadingOverlay
           :show="pageLoading"
           title="Chargement de l'événement..."
-          description="Veuillez patienter"
+          description="Veuillez patienter ..."
           color="primary"
           :size="48"
         />

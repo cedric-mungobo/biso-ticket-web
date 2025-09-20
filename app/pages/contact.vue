@@ -100,14 +100,7 @@
                   </svg>
                 </div>
               </div>
-              <div class="flex-1">
-                <h4 class="text-lg font-semibold text-gray-900  mb-1">
-                  📍 Service basé à Kinshasa
-                </h4>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Disponible partout en RDC
-                </p>
-              </div>
+           
             </div>
           </div>
           <!-- End Location Card -->
