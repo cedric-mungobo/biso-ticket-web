@@ -97,10 +97,10 @@
         <!-- Formulaire de réservation -->
         <UCard>
           <template #header>
-            <h3 class="text-lg font-semibold text-gray-900">Informations de réservation</h3>
-          </template>
+            <h3 class="text-lg font-semibold text-gray-900">Informations  du participant</h3>
+          </template> 
 
-          <form @submit.prevent="handleSubmit" class="space-y-6">
+          <form @submit.prevent="handleSubmit" class="space-y-6" novalidate>
             <!-- Champs du formulaire -->
             <div v-for="field in sortedFields" :key="field.id" class="space-y-2">
                   <label :for="field.name" class="block text-sm font-medium text-gray-700">
@@ -110,13 +110,15 @@
               
               <!-- Champ texte -->
               <UInput
-                v-if="field.type === 'text' || field.type === 'email' || field.type === 'tel'"
+                v-if="field.type === 'text' || field.type === 'email' || field.type === 'tel' || field.type === 'phone'"
                 :id="field.name"
                 v-model="formData[field.name]"
-                :type="field.type"
+                :type="field.type === 'phone' ? 'tel' : field.type"
                 :placeholder="field.placeholder"
-                :required="field.is_required || field.required"
                 :error="validationErrors[field.name]?.[0]"
+                @blur="validateField(field.name)"
+                @input="validateField(field.name)"
+                formnovalidate
                 class="w-full"
               />
               
@@ -127,8 +129,10 @@
                 v-model="formData[field.name]"
                 type="number"
                 :placeholder="field.placeholder"
-                :required="field.is_required || field.required"
                 :error="validationErrors[field.name]?.[0]"
+                @blur="validateField(field.name)"
+                @input="validateField(field.name)"
+                formnovalidate
                 class="w-full"
               />
               
@@ -138,8 +142,10 @@
                 :id="field.name"
                 v-model="formData[field.name]"
                 :placeholder="field.placeholder"
-                :required="field.is_required || field.required"
                 :error="validationErrors[field.name]?.[0]"
+                @blur="validateField(field.name)"
+                @input="validateField(field.name)"
+                formnovalidate
                 class="w-full"
                 :rows="4"
               />
@@ -150,49 +156,101 @@
                 :id="field.name"
                 v-model="formData[field.name]"
                 type="date"
-                :required="field.is_required || field.required"
                 :error="validationErrors[field.name]?.[0]"
+                @blur="validateField(field.name)"
+                @change="validateField(field.name)"
+                formnovalidate
                 class="w-full"
               />
               
               <!-- Sélection -->
-              <USelect
-                v-else-if="field.type === 'select'"
-                :id="field.name"
-                v-model="formData[field.name]"
-                :options="field.options || []"
-                :placeholder="field.placeholder"
-                :required="field.is_required || field.required"
-                :error="validationErrors[field.name]?.[0]"
-                class="w-full"
-              />
-              
-              <!-- Checkbox -->
-              <div v-else-if="field.type === 'checkbox'" class="flex items-center">
-                <UCheckbox
+              <div v-else-if="field.type === 'select'" class="space-y-2">
+                <!-- Texte d'aide pour les sélections -->
+                <div class="text-xs text-gray-500">
+                  <UIcon name="i-heroicons-information-circle" class="w-4 h-4 inline mr-1" />
+                  <span v-if="field.is_required || field.required">
+                    Sélectionnez une option
+                  </span>
+                  <span v-else>
+                    Optionnel - sélectionnez une option
+                  </span>
+                </div>
+                
+                <USelect
                   :id="field.name"
                   v-model="formData[field.name]"
-                  :required="field.is_required || field.required"
+                  :options="field.options || []"
+                  :placeholder="field.placeholder"
                   :error="validationErrors[field.name]?.[0]"
+                  @change="validateField(field.name)"
+                  formnovalidate
+                  class="w-full"
                 />
-                <label :for="field.name" class="ml-2 text-sm text-gray-700">
-                  {{ field.label }}
-                </label>
               </div>
               
-              <!-- Radio -->
-              <div v-else-if="field.type === 'radio'" class="space-y-2">
+              <!-- Checkbox (multiple options) -->
+              <div v-else-if="field.type === 'checkbox'" class="space-y-2">
+                <!-- Texte d'aide pour les checkboxes -->
+                <div class="text-xs text-gray-500 mb-2">
+                  <UIcon name="i-heroicons-information-circle" class="w-4 h-4 inline mr-1" />
+                  <span v-if="field.is_required || field.required">
+                    Sélectionnez au moins une option
+                  </span>
+                  <span v-else>
+                    Optionnel - sélectionnez une ou plusieurs options
+                  </span>
+                </div>
+                
                 <div v-for="option in field.options" :key="option.value" class="flex items-center">
-                  <URadio
+                  <input
                     :id="`${field.name}-${option.value}`"
-                    v-model="formData[field.name]"
-                    :value="option.value"
-                    :required="field.is_required || field.required"
-                    :error="validationErrors[field.name]?.[0]"
+                    type="checkbox"
+                    :checked="formData[field.name]?.includes(option.value) || false"
+                    @change="(e) => toggleCheckbox(field.name, option.value, (e.target as HTMLInputElement).checked)"
+                    formnovalidate
+                    class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
                   />
                   <label :for="`${field.name}-${option.value}`" class="ml-2 text-sm text-gray-700">
                     {{ option.label }}
                   </label>
+                </div>
+                <!-- Affichage des erreurs pour les checkboxes -->
+                <div v-if="validationErrors[field.name]?.[0]" class="text-sm text-red-600 mt-1">
+                  {{ validationErrors[field.name]?.[0] }}
+                </div>
+              </div>
+              
+              <!-- Radio -->
+              <div v-else-if="field.type === 'radio'" class="space-y-2">
+                <!-- Texte d'aide pour les radios -->
+                <div class="text-xs text-gray-500 mb-2">
+                  <UIcon name="i-heroicons-information-circle" class="w-4 h-4 inline mr-1" />
+                  <span v-if="field.is_required || field.required">
+                    Sélectionnez une option
+                  </span>
+                  <span v-else>
+                    Optionnel - sélectionnez une option
+                  </span>
+                </div>
+                
+                <div v-for="option in field.options" :key="option.value" class="flex items-center">
+                  <input
+                    :id="`${field.name}-${option.value}`"
+                    type="radio"
+                    :name="field.name"
+                    :value="option.value"
+                    :checked="formData[field.name] === option.value"
+                    @change="(e) => selectRadio(field.name, (e.target as HTMLInputElement).value)"
+                    formnovalidate
+                    class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 focus:ring-primary-500 focus:ring-2"
+                  />
+                  <label :for="`${field.name}-${option.value}`" class="ml-2 text-sm text-gray-700">
+                    {{ option.label }}
+                  </label>
+                </div>
+                <!-- Affichage des erreurs pour les radios -->
+                <div v-if="validationErrors[field.name]?.[0]" class="text-sm text-red-600 mt-1">
+                  {{ validationErrors[field.name]?.[0] }}
                 </div>
               </div>
               
@@ -209,13 +267,28 @@
                 v-model="paymentMethod"
                 :options="paymentMethods"
                 placeholder="Sélectionnez une méthode de paiement"
-                required
                 class="w-full"
               />
             </div>
 
+            <!-- Résumé des erreurs de validation -->
+            <div v-if="Object.keys(validationErrors).length > 0" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <div class="flex items-start">
+                <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" />
+                <div>
+                  <h4 class="text-sm font-medium text-red-800 mb-2">Veuillez corriger les erreurs suivantes :</h4>
+                  <ul class="text-sm text-red-700 space-y-1">
+                    <li v-for="(errors, fieldName) in validationErrors" :key="fieldName">
+                      <span v-for="error in errors" :key="error" class="block">• {{ error }}</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
             <!-- Bouton de soumission -->
             <div class="flex justify-end pt-6 border-t border-gray-200">
+              
               <UButton
                 type="submit"
                 :loading="submitting"
@@ -280,8 +353,8 @@ import type { ReservationForm, ReservationFormField } from '~/types/reservation'
 import Modal from '~/components/Modal.vue'
 
 definePageMeta({ 
-  layout: 'default'
-  // Pas de middleware - page accessible à tous (géré dans le middleware guest global)
+  layout: 'default',
+  middleware: 'public-reservation'
 })
 
 const route = useRoute()
@@ -301,6 +374,56 @@ const {
 } = usePublicReservations()
 
 const toast = useToast()
+
+// SEO
+const { setEventSEO } = useSEO()
+
+// Métadonnées SEO spécifiques à la page de réservation
+const seoTitle = computed(() => {
+  if (!form.value) return 'Réservation - Biso Ticket'
+  // Priorité au titre du formulaire
+  if (form.value.title) {
+    return `${form.value.title} | Biso Ticket`
+  }
+  // Fallback sur le titre de l'événement
+  if (form.value.event?.title) {
+    return `Réservation - ${form.value.event.title} | Biso Ticket`
+  }
+  return 'Formulaire de réservation | Biso Ticket'
+})
+
+const seoDescription = computed(() => {
+  if (!form.value) return 'Réservez votre place pour cet événement via Biso Ticket'
+  // Priorité à la description du formulaire
+  if (form.value.description) {
+    return form.value.description
+  }
+  // Fallback sur le titre du formulaire ou de l'événement
+  const eventTitle = form.value.event?.title || form.value.title || 'cet événement'
+  return `Réservez votre place pour ${eventTitle} via Biso Ticket`
+})
+
+// Définir les métadonnées SEO
+useHead({
+  title: seoTitle,
+  meta: [
+    { name: 'description', content: seoDescription },
+    { name: 'robots', content: 'index, follow' }
+  ]
+})
+
+useSeoMeta({
+  title: seoTitle,
+  description: seoDescription,
+  ogTitle: seoTitle,
+  ogDescription: seoDescription,
+  ogType: 'website',
+  ogImage: computed(() => form.value?.event?.image_url || form.value?.event?.image || '/images/event-default.jpg'),
+  twitterCard: 'summary_large_image',
+  twitterTitle: seoTitle,
+  twitterDescription: seoDescription,
+  twitterImage: computed(() => form.value?.event?.image_url || form.value?.event?.image || '/images/event-default.jpg')
+})
 
 // État local
 const form = ref<ReservationForm | null>(null)
@@ -326,53 +449,35 @@ const sortedFields = computed(() => {
     .filter(field => field.is_active || field.isActive)
     .sort((a, b) => (a.sort_order || a.sortOrder || 0) - (b.sort_order || b.sortOrder || 0))
   
-  console.log('Champs triés:', fields)
   return fields
 })
 
-// Vérifier si on peut soumettre
+// Vérifier si on peut soumettre (simplifié - on permet toujours la soumission)
 const canSubmit = computed(() => {
-  if (!form.value) return false
-  if (submitting.value) return false
-  
-  // Vérifier que tous les champs requis sont remplis
-  const requiredFields = sortedFields.value.filter(field => field.is_required || field.required)
-  const hasAllRequiredFields = requiredFields.every(field => {
-    const value = formData.value[field.name]
-    if (field.type === 'checkbox') {
-      return value === true
-    }
-    return value && value.toString().trim() !== ''
-  })
-  
-  // Si paiement requis ET prix défini, vérifier que la méthode est sélectionnée
-  const hasPaymentRequired = form.value.requires_payment || form.value.paymentRequired
-  const hasPrice = form.value.fixed_price || form.value.fixedPrice
-  const hasPaymentMethod = !(hasPaymentRequired && hasPrice) || paymentMethod.value !== ''
-  
-  return hasAllRequiredFields && hasPaymentMethod
+  return form.value && !submitting.value
 })
 
 // Charger le formulaire
 const loadForm = async () => {
   try {
-    console.log('Chargement du formulaire:', { eventSlug, formId, isNumeric: !isNaN(Number(formId)) })
     
     // Essayer d'abord avec l'ID public via l'événement
     if (isNaN(Number(formId))) {
       // C'est probablement un UUID public
-      console.log('Tentative avec UUID public via événement')
       form.value = await fetchReservationFormByEventAndPublicId(eventSlug, formId)
     } else {
       // C'est un ID numérique
-      console.log('Tentative avec ID numérique')
       form.value = await fetchReservationFormById(Number(formId))
     }
     
-    console.log('Formulaire chargé:', form.value)
     
     // Initialiser les données du formulaire
     initializeFormData()
+    
+    // Définir le SEO si l'événement existe
+    if (form.value?.event) {
+      setEventSEO(form.value.event)
+    }
   } catch (err) {
     console.error('Erreur lors du chargement du formulaire:', err)
   }
@@ -384,12 +489,17 @@ const initializeFormData = () => {
   
   const data: Record<string, any> = {}
   form.value.fields.forEach(field => {
-    if (field.is_active || field.isActive) {
-      data[field.name] = field.type === 'checkbox' ? false : ''
+    const isActive = field.is_active || field.isActive
+    if (isActive) {
+      if (field.type === 'checkbox') {
+        // Pour les checkboxes multiples, initialiser comme un tableau vide
+        data[field.name] = []
+      } else {
+        data[field.name] = ''
+      }
     }
   })
   formData.value = data
-  console.log('Données du formulaire initialisées:', data)
 }
 
 // Soumettre la réservation
@@ -466,9 +576,167 @@ const goToEvent = () => {
   navigateTo(`/evenements/${eventSlug}`)
 }
 
+// Gérer les checkboxes multiples
+const toggleCheckbox = (fieldName: string, optionValue: string, checked: boolean) => {
+  // S'assurer que le champ est initialisé comme un tableau
+  if (!Array.isArray(formData.value[fieldName])) {
+    formData.value[fieldName] = []
+  }
+  
+  // Créer une nouvelle référence pour déclencher la réactivité
+  const currentValues = [...formData.value[fieldName]]
+  
+  if (checked) {
+    // Ajouter la valeur si elle n'est pas déjà présente
+    if (!currentValues.includes(optionValue)) {
+      currentValues.push(optionValue)
+    }
+  } else {
+    // Retirer la valeur
+    const index = currentValues.indexOf(optionValue)
+    if (index > -1) {
+      currentValues.splice(index, 1)
+    }
+  }
+  
+  // Mettre à jour la valeur réactive
+  formData.value[fieldName] = currentValues
+  
+  
+  // Validation en temps réel après la mise à jour de la valeur
+  nextTick(() => {
+    validateField(fieldName)
+  })
+}
+
+// Gérer les radios (sélection unique)
+const selectRadio = (fieldName: string, value: string) => {
+  formData.value[fieldName] = value
+  
+  
+  // Validation en temps réel après la mise à jour de la valeur
+  nextTick(() => {
+    validateField(fieldName)
+  })
+}
+
+// Validation en temps réel d'un champ
+const validateField = (fieldName: string) => {
+  if (!form.value?.fields) return
+  
+  const field = form.value.fields.find(f => f.name === fieldName)
+  if (!field) return
+  
+  const value = formData.value[fieldName]
+  const fieldErrors: string[] = []
+  
+  
+  // Vérifier si le champ est requis
+  const isRequired = field.is_required || field.required
+  if (isRequired) {
+    if (field.type === 'checkbox') {
+      // Pour les checkboxes multiples, vérifier qu'au moins une option est sélectionnée
+      // S'assurer que la valeur est un tableau et qu'il contient au moins un élément
+      const isEmpty = !Array.isArray(value) || value.length === 0
+      if (isEmpty) {
+        fieldErrors.push(`${field.label} est requis (sélectionnez au moins une option)`)
+      }
+    } else {
+      // Pour les autres types, vérifier que la valeur n'est pas vide
+      if (!value || value.toString().trim() === '') {
+        fieldErrors.push(`${field.label} est requis`)
+      }
+    }
+  }
+  
+  // Vérifier les règles de validation seulement si la valeur existe
+  if (value && field.validation_rules) {
+    const rules = field.validation_rules
+    
+    if (field.type === 'checkbox') {
+      // Validation pour les checkboxes multiples
+      if (Array.isArray(value)) {
+        // Validation des règles min/max seulement si des options sont sélectionnées
+        if (value.length > 0) {
+          if (rules.min && value.length < rules.min) {
+            fieldErrors.push(`${field.label} doit contenir au moins ${rules.min} option(s)`)
+          }
+          if (rules.max && value.length > rules.max) {
+            fieldErrors.push(`${field.label} ne peut pas dépasser ${rules.max} option(s)`)
+          }
+        }
+      }
+    } else if (field.type === 'number') {
+      // Validation pour les champs numériques
+      const numValue = Number(value)
+      if (isNaN(numValue)) {
+        fieldErrors.push(`${field.label} doit être un nombre valide`)
+      } else {
+        if (rules.min !== undefined && numValue < rules.min) {
+          fieldErrors.push(`${field.label} doit être au moins ${rules.min}`)
+        }
+        if (rules.max !== undefined && numValue > rules.max) {
+          fieldErrors.push(`${field.label} ne peut pas dépasser ${rules.max}`)
+        }
+        if (rules.step !== undefined && (numValue - (rules.min || 0)) % rules.step !== 0) {
+          fieldErrors.push(`${field.label} doit être un multiple de ${rules.step}`)
+        }
+      }
+    } else if (field.type === 'date') {
+      // Validation pour les champs de date
+      const dateValue = new Date(value)
+      if (isNaN(dateValue.getTime())) {
+        fieldErrors.push(`${field.label} doit être une date valide`)
+      } else {
+        if (rules.min && dateValue < new Date(rules.min)) {
+          fieldErrors.push(`${field.label} ne peut pas être antérieur au ${new Date(rules.min).toLocaleDateString('fr-FR')}`)
+        }
+        if (rules.max && dateValue > new Date(rules.max)) {
+          fieldErrors.push(`${field.label} ne peut pas être postérieur au ${new Date(rules.max).toLocaleDateString('fr-FR')}`)
+        }
+      }
+    } else {
+      // Validation pour les champs texte
+      const stringValue = value.toString()
+      if (rules.min && stringValue.length < rules.min) {
+        fieldErrors.push(`${field.label} doit contenir au moins ${rules.min} caractères`)
+      }
+      if (rules.max && stringValue.length > rules.max) {
+        fieldErrors.push(`${field.label} ne peut pas dépasser ${rules.max} caractères`)
+      }
+      if (rules.pattern && !new RegExp(rules.pattern).test(stringValue)) {
+        fieldErrors.push(`${field.label} n'est pas au bon format`)
+      }
+    }
+  }
+  
+  // Validation spécifique par type
+  if (value && field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.toString())) {
+    fieldErrors.push(`${field.label} doit être une adresse email valide`)
+  }
+  
+  if (value && (field.type === 'tel' || field.type === 'phone') && !/^[\+]?[0-9\s\-\(\)]+$/.test(value.toString())) {
+    fieldErrors.push(`${field.label} doit être un numéro de téléphone valide`)
+  }
+  
+  
+  // Mettre à jour les erreurs
+  if (fieldErrors.length > 0) {
+    validationErrors.value[fieldName] = fieldErrors
+  } else {
+    // Supprimer les erreurs si la validation passe
+    delete validationErrors.value[fieldName]
+  }
+}
+
 // Charger le formulaire au montage
-onMounted(() => {
-  loadForm()
+onMounted(async () => {
+  try {
+    await loadForm()
+  } catch (err) {
+    console.error('Erreur lors du chargement:', err)
+    // Ne pas rediriger automatiquement, laisser l'utilisateur voir l'erreur
+  }
 })
 </script>
 

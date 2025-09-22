@@ -13,6 +13,9 @@ interface ReservationFormField {
     min?: number
     max?: number
     pattern?: string
+    step?: number
+    email?: boolean
+    required?: boolean
   }
   options?: Array<{
     value: string

@@ -175,33 +175,81 @@ export const usePublicReservations = () => {
     const errors: Record<string, string[]> = {}
     
     fields.forEach(field => {
-      if (!field.is_active) return
+      if (!field.is_active && !field.isActive) return
       
       const value = formData[field.name]
       const fieldErrors: string[] = []
       
       // Vérifier si le champ est requis
-      if (field.is_required && (!value || value.toString().trim() === '')) {
-        fieldErrors.push(`${field.label} est requis`)
+      if (field.is_required || field.required) {
+        if (field.type === 'checkbox') {
+          // Pour les checkboxes multiples, vérifier qu'au moins une option est sélectionnée
+          if (!Array.isArray(value) || value.length === 0) {
+            fieldErrors.push(`${field.label} est requis`)
+          }
+        } else {
+          // Pour les autres types, vérifier que la valeur n'est pas vide
+          if (!value || value.toString().trim() === '') {
+            fieldErrors.push(`${field.label} est requis`)
+          }
+        }
       }
       
-      // Vérifier les règles de validation
+      // Vérifier les règles de validation seulement si la valeur existe
       if (value && field.validation_rules) {
         const rules = field.validation_rules
         
-        // Validation de longueur minimale
-        if (rules.min && value.toString().length < rules.min) {
-          fieldErrors.push(`${field.label} doit contenir au moins ${rules.min} caractères`)
-        }
-        
-        // Validation de longueur maximale
-        if (rules.max && value.toString().length > rules.max) {
-          fieldErrors.push(`${field.label} ne peut pas dépasser ${rules.max} caractères`)
-        }
-        
-        // Validation par pattern (regex)
-        if (rules.pattern && !new RegExp(rules.pattern).test(value.toString())) {
-          fieldErrors.push(`${field.label} n'est pas au bon format`)
+        if (field.type === 'checkbox') {
+          // Validation pour les checkboxes multiples
+          if (Array.isArray(value)) {
+            if (rules.min && value.length < rules.min) {
+              fieldErrors.push(`${field.label} doit contenir au moins ${rules.min} option(s)`)
+            }
+            if (rules.max && value.length > rules.max) {
+              fieldErrors.push(`${field.label} ne peut pas dépasser ${rules.max} option(s)`)
+            }
+          }
+        } else if (field.type === 'number') {
+          // Validation pour les champs numériques
+          const numValue = Number(value)
+          if (isNaN(numValue)) {
+            fieldErrors.push(`${field.label} doit être un nombre valide`)
+          } else {
+            if (rules.min !== undefined && numValue < rules.min) {
+              fieldErrors.push(`${field.label} doit être au moins ${rules.min}`)
+            }
+            if (rules.max !== undefined && numValue > rules.max) {
+              fieldErrors.push(`${field.label} ne peut pas dépasser ${rules.max}`)
+            }
+            if (rules.step !== undefined && (numValue - (rules.min || 0)) % rules.step !== 0) {
+              fieldErrors.push(`${field.label} doit être un multiple de ${rules.step}`)
+            }
+          }
+        } else if (field.type === 'date') {
+          // Validation pour les champs de date
+          const dateValue = new Date(value)
+          if (isNaN(dateValue.getTime())) {
+            fieldErrors.push(`${field.label} doit être une date valide`)
+          } else {
+            if (rules.min && dateValue < new Date(rules.min)) {
+              fieldErrors.push(`${field.label} ne peut pas être antérieur au ${new Date(rules.min).toLocaleDateString('fr-FR')}`)
+            }
+            if (rules.max && dateValue > new Date(rules.max)) {
+              fieldErrors.push(`${field.label} ne peut pas être postérieur au ${new Date(rules.max).toLocaleDateString('fr-FR')}`)
+            }
+          }
+        } else {
+          // Validation pour les champs texte
+          const stringValue = value.toString()
+          if (rules.min && stringValue.length < rules.min) {
+            fieldErrors.push(`${field.label} doit contenir au moins ${rules.min} caractères`)
+          }
+          if (rules.max && stringValue.length > rules.max) {
+            fieldErrors.push(`${field.label} ne peut pas dépasser ${rules.max} caractères`)
+          }
+          if (rules.pattern && !new RegExp(rules.pattern).test(stringValue)) {
+            fieldErrors.push(`${field.label} n'est pas au bon format`)
+          }
         }
       }
       
@@ -210,13 +258,9 @@ export const usePublicReservations = () => {
         fieldErrors.push(`${field.label} doit être une adresse email valide`)
       }
       
-      if (value && field.type === 'tel' && !/^[\+]?[0-9\s\-\(\)]+$/.test(value.toString())) {
-        fieldErrors.push(`${field.label} doit être un numéro de téléphone valide`)
-      }
-      
-      if (value && field.type === 'number' && isNaN(Number(value))) {
-        fieldErrors.push(`${field.label} doit être un nombre valide`)
-      }
+  if (value && (field.type === 'tel' || field.type === 'phone') && !/^[\+]?[0-9\s\-\(\)]+$/.test(value.toString())) {
+    fieldErrors.push(`${field.label} doit être un numéro de téléphone valide`)
+  }
       
       if (fieldErrors.length > 0) {
         errors[field.name] = fieldErrors

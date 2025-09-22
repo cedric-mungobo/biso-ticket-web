@@ -1,10 +1,12 @@
 import { fileURLToPath } from 'node:url'
+import { defineNuxtConfig } from 'nuxt/config'
 import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  ssr: false,
 
   css: ['~/assets/index.css'],
   plugins: [
@@ -109,69 +111,10 @@ export default defineNuxtConfig({
     }
   },
 
-  // Configuration pour hébergement mutualisé (fichiers statiques)
-  nitro: {
-    prerender: {
-      routes: [
-        '/sitemap.xml',
-        // Routes statiques principales
-        '/',
-        '/evenements',
-        '/connexion',
-        '/inscription',
-        '/contact',
-        '/conditions',
-        '/confidentialite',
-        '/blog',
-        '/organisateur',
-        '/profile',
-        '/tickets/my-tickets',
-        '/check-in'
-      ],
-      ignore: ['/app']
-    },
-    // Configuration pour éviter les erreurs de build
-    experimental: {
-      wasm: false
-    }
-  },
-  
-  routeRules: {
-    // Pages statiques - pré-générées au build time
-    '/': { prerender: true },
-    '/evenements': { prerender: true },
-    '/connexion': { prerender: true },
-    '/inscription': { prerender: true },
-    '/contact': { prerender: true },
-    '/conditions': { prerender: true },
-    '/confidentialite': { prerender: true },
-    '/blog': { prerender: true },
-    '/organisateur': { prerender: true },
-    '/profile': { prerender: true },
-    '/tickets/my-tickets': { prerender: true },
-    '/check-in': { prerender: true },
-    
-    // Pages dynamiques - rendues côté client uniquement (SPA)
-    '/evenements/**': { ssr: false },
-    '/invitation/**': { ssr: false },
-    '/blog/**': { ssr: false },
-    '/organisateur/**': { ssr: false },
-    '/profile/**': { ssr: false },
-    '/reservation/**': { ssr: false },
-    
-    // Routes spécifiques pour les formulaires de réservation
-    '/evenements/*/reservation/*': { ssr: false, prerender: false },
-    
-    // Headers de sécurité pour Google OAuth
-    '/**': {
-      headers: {
-        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
-        'Cross-Origin-Embedder-Policy': 'unsafe-none'
-      }
-    }
-  },
 
   // Configuration des images pour le SEO
+  // Configuration des images pour le SEO
+  
   image: {
     quality: 80,
     format: ['webp', 'avif', 'jpeg'],
@@ -185,18 +128,5 @@ export default defineNuxtConfig({
     }
   },
 
-  // Configuration du sitemap
-  ...({
-    sitemap: {
-      hostname: 'https://bisoticket.com',
-      gzip: true,
-      routes: [
-        '/',
-        '/evenements',
-        '/connexion',
-        '/inscription',
-        '/contact'
-      ]
-    }
-  } as any)
+
 })

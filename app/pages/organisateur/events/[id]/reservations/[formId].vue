@@ -1,6 +1,6 @@
 <template>
   <OrganizerNavigation>
-    <div class="px-2 md:p-0 py-0s">
+    <div class="px-2 md:p-0 py-0">
       <!-- En-tête -->
       <div class="mb-6">
         <!-- Navigation de retour -->
@@ -107,7 +107,7 @@
       <div v-else class="space-y-4">
         <div v-for="reservation in reservations" :key="reservation.id" class="bg-white rounded-lg border border-gray-200 p-6">
           <!-- En-tête de la réservation -->
-          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-1 mb-1">
             <div class="flex-1">
               <h3 class="text-lg font-semibold text-gray-900 mb-1">
                 Réservation #{{ reservation.id }}

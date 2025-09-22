@@ -21,6 +21,14 @@
               {{ event?.name || (pageLoading ? 'Chargement...' : '—') }}
             </h1>
           </div>
+
+          <!-- Bannière d'alerte pour événement non approuvé -->
+
+          <EventApprovalBanner 
+          class="mb-2"
+            :event="event" 
+            :is-event-approved="isEventApproved" 
+          />
           
           <!-- Boutons d'action responsive -->
           <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 ">
@@ -118,11 +126,7 @@
       </div>
 
         <div v-else-if="event" class="space-y-6 py-2">
-          <!-- Bannière d'alerte pour événement non approuvé -->
-          <EventApprovalBanner 
-            :event="event" 
-            :is-event-approved="isEventApproved" 
-          />
+       
 
           <UCard class="overflow-hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">

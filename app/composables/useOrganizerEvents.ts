@@ -102,7 +102,7 @@ export const useOrganizerEvents = () => {
         // Champs optionnels
         if (eventData.location) formData.append('location', eventData.location)
         if (eventData.ends_at) formData.append('ends_at', eventData.ends_at)
-        if (eventData.description) formData.append('description', eventData.description)
+        if (eventData.description !== undefined) formData.append('description', eventData.description || '')
         if (eventData.status) formData.append('status', eventData.status)
         if (eventData.is_public !== undefined) formData.append('is_public', eventData.is_public ? '1' : '0')
         

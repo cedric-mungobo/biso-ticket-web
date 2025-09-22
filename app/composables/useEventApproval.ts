@@ -21,12 +21,19 @@ export const useEventApproval = () => {
     }
     
     // Seul le champ approvedAt détermine l'approbation
+    // Si approvedAt est présent et non vide, l'événement est approuvé
     if (event.approvedAt !== undefined && event.approvedAt !== null && event.approvedAt !== '') {
       return true
     }
     
+    // Si approvedAt est explicitement null, l'événement n'est pas approuvé
+    // même s'il est actif et public
+    if (event.approvedAt === null) {
+      return false
+    }
+    
     // Fallback : logique basée sur le statut et la visibilité
-    // Un événement est approuvé s'il est actif et public
+    // Un événement est approuvé s'il est actif et public (seulement si approvedAt n'est pas défini)
     return event.status === 'active' && event.is_public
   }
 

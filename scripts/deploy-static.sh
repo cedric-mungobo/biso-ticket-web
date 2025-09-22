@@ -27,25 +27,26 @@ npm ci
 
 # Générer le site statique
 echo -e "${YELLOW}🔨 Génération du site statique...${NC}"
-npm run generate
+npx nuxt generate
 
 # Vérifier que la génération a réussi
-if [ ! -d "dist" ]; then
-    echo -e "${RED}❌ Erreur: La génération a échoué. Le dossier 'dist' n'existe pas.${NC}"
+if [ ! -d ".output/public" ]; then
+    echo -e "${RED}❌ Erreur: La génération a échoué. Le dossier '.output/public' n'existe pas.${NC}"
     exit 1
 fi
 
 echo -e "${GREEN}✅ Génération terminée avec succès!${NC}"
 
 # Afficher les fichiers générés
-echo -e "${YELLOW}📁 Fichiers générés dans le dossier 'dist':${NC}"
-ls -la dist/
+echo -e "${YELLOW}📁 Fichiers générés dans le dossier '.output/public':${NC}"
+ls -la .output/public/
 
 # Instructions de déploiement
 echo -e "${GREEN}📋 Instructions de déploiement:${NC}"
-echo "1. Uploadez TOUT le contenu du dossier 'dist/' vers votre hébergement mutualisé"
-echo "2. Assurez-vous que le fichier .htaccess est bien uploadé"
-echo "3. Vérifiez que votre hébergement supporte la réécriture d'URL (mod_rewrite)"
-echo "4. Testez les pages statiques et dynamiques"
+echo "1. Uploadez TOUT le contenu du dossier '.output/public/' vers votre hébergement mutualisé"
+echo "2. Vérifiez que votre hébergement supporte la réécriture d'URL (mod_rewrite)"
+echo "3. Testez les pages statiques et dynamiques"
+echo ""
+echo -e "${YELLOW}ℹ️  Note: Nuxt génère automatiquement les fichiers nécessaires pour l'hébergement statique${NC}"
 
 echo -e "${GREEN}🎉 Prêt pour le déploiement!${NC}"

@@ -2,7 +2,7 @@ export interface ReservationFormField {
   id: number
   name: string
   label: string
-  type: 'text' | 'email' | 'tel' | 'number' | 'select' | 'textarea' | 'checkbox' | 'radio' | 'date'
+  type: 'text' | 'email' | 'tel' | 'phone' | 'number' | 'select' | 'textarea' | 'checkbox' | 'radio' | 'date'
   is_required?: boolean
   required?: boolean
   is_active?: boolean
@@ -16,12 +16,18 @@ export interface ReservationFormField {
     min?: number
     max?: number
     pattern?: string
+    step?: number
+    email?: boolean
+    required?: boolean
   }
   validationRules?: {
     min?: number
     max?: number
     pattern?: string
-  }[]
+    step?: number
+    email?: boolean
+    required?: boolean
+  }
   options?: Array<{
     value: string
     label: string
