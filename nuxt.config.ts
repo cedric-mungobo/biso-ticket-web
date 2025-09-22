@@ -50,6 +50,8 @@ export default defineNuxtConfig({
 
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
+    // Configuration pour éviter les erreurs d'hydratation
+    keepalive: true,
     head: {
       title: 'Biso Ticket - Plateforme de billetterie et gestion d\'événements',
       titleTemplate: '%s - Biso Ticket',
@@ -128,36 +130,43 @@ export default defineNuxtConfig({
       ],
       ignore: ['/app']
     },
-    routeRules: {
-      // Pages statiques - pré-générées au build time
-      '/': { prerender: true },
-      '/evenements': { prerender: true },
-      '/connexion': { prerender: true },
-      '/inscription': { prerender: true },
-      '/contact': { prerender: true },
-      '/conditions': { prerender: true },
-      '/confidentialite': { prerender: true },
-      '/blog': { prerender: true },
-      '/organisateur': { prerender: true },
-      '/profile': { prerender: true },
-      '/tickets/my-tickets': { prerender: true },
-      '/check-in': { prerender: true },
-      
-      // Pages dynamiques - rendues côté client uniquement (SPA)
-      '/evenements/**': { ssr: false },
-      '/invitation/**': { ssr: false },
-      '/blog/**': { ssr: false },
-      '/organisateur/**': { ssr: false },
-      '/profile/**': { ssr: false },
-      '/evenements/*/reservation/*': { ssr: false },
-      
-      
-      // Headers de sécurité pour Google OAuth
-      '/**': {
-        headers: {
-          'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
-          'Cross-Origin-Embedder-Policy': 'unsafe-none'
-        }
+    // Configuration pour éviter les erreurs de build
+    experimental: {
+      wasm: false
+    }
+  },
+  
+  routeRules: {
+    // Pages statiques - pré-générées au build time
+    '/': { prerender: true },
+    '/evenements': { prerender: true },
+    '/connexion': { prerender: true },
+    '/inscription': { prerender: true },
+    '/contact': { prerender: true },
+    '/conditions': { prerender: true },
+    '/confidentialite': { prerender: true },
+    '/blog': { prerender: true },
+    '/organisateur': { prerender: true },
+    '/profile': { prerender: true },
+    '/tickets/my-tickets': { prerender: true },
+    '/check-in': { prerender: true },
+    
+    // Pages dynamiques - rendues côté client uniquement (SPA)
+    '/evenements/**': { ssr: false },
+    '/invitation/**': { ssr: false },
+    '/blog/**': { ssr: false },
+    '/organisateur/**': { ssr: false },
+    '/profile/**': { ssr: false },
+    '/reservation/**': { ssr: false },
+    
+    // Routes spécifiques pour les formulaires de réservation
+    '/evenements/*/reservation/*': { ssr: false, prerender: false },
+    
+    // Headers de sécurité pour Google OAuth
+    '/**': {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+        'Cross-Origin-Embedder-Policy': 'unsafe-none'
       }
     }
   },

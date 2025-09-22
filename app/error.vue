@@ -9,6 +9,11 @@ const props = defineProps({
 const errorMessage = computed(() => {
   if (!props.error) return 'Une erreur inattendue s\'est produite'
   
+  // Gestion des erreurs d'hydratation
+  if (props.error.message?.includes('Hydration') || props.error.message?.includes('mismatch')) {
+    return 'Erreur de chargement de la page'
+  }
+  
   switch (props.error.statusCode) {
     case 404:
       return 'Page non trouvée'
