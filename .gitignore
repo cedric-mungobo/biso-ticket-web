@@ -28,3 +28,6 @@ api/
 
 # Script update.sh (uniquement sur le serveur)
 update.sh
+
+# Scripts de déploiement (contiennent des tokens sensibles)
+scripts/deploy.sh
