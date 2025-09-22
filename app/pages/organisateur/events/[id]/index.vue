@@ -283,6 +283,16 @@
         </template>
       </Modal>
 
+      <!-- Composant des formulaires de réservation -->
+      <ReservationFormList
+        :event-id="eventId"
+        v-model:show="showReservationFormsList"
+        @create-form="openCreateReservationForm"
+        @view-form="openViewReservationForm"
+        @edit-form="openEditReservationForm"
+        @delete-form="openDeleteReservationForm"
+      />
+
 
     </div>
   </OrganizerNavigation>
@@ -292,6 +302,7 @@
 // @ts-nocheck
 import TicketForm from '~/components/organizer/forms/TicketForm.vue'
 import LoadingOverlay from '~/components/LoadingOverlay.vue'
+import ReservationFormList from '~/components/organizer/ReservationFormList.vue'
 
 definePageMeta({ middleware: 'authenticated' })
 
@@ -301,6 +312,7 @@ const eventId = Number(route.params.id)
 
 const { fetchEventWithState, fetchEventTickets, updateTicket, deleteTicket, currentEvent, formatDate, loading, error } = useOrganizerEvents()
 const { isLoading, withLoading, preventMultipleSubmissions } = useLoading()
+// Plus besoin du composable useReservationForms ici, il est maintenant dans le composant
 
 const event = computed(() => currentEvent.value)
 const toast = useToast()
@@ -366,6 +378,20 @@ const actionButtons = computed(() => [
     to: reportsUrl.value,
     action: null
   },
+  {
+    id: 'reservation-forms',
+    label: 'Formulaires de réservation',
+    icon: 'i-heroicons-document-text',
+    variant: 'soft',
+    size: 'md',
+    color: 'primary',
+    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
+    ui: { base: 'min-h-[44px] touch-manipulation' },
+    action: () => { 
+      console.log('Bouton formulaires de réservation cliqué')
+      showReservationFormsList.value = true 
+    }
+  },
  
  
 ])
@@ -397,11 +423,14 @@ const { pending: ticketsPending, refresh: refreshTickets } = await useAsyncData(
 })
 const ticketsLoading = computed(() => ticketsPending.value)
 
+// La logique des formulaires de réservation est maintenant dans le composant ReservationFormList
+
 const showTicketView = ref(false)
 const showTicketCreate = ref(false)
 const showTicketEdit = ref(false)
 const showTicketDelete = ref(false)
 const showTicketsList = ref(false)
+const showReservationFormsList = ref(false)
 const showScanSecret = ref(false)
 const showPublicId = ref(false)
 
@@ -487,6 +516,27 @@ const openDeleteTicket = (t: any) => {
 
 const openOrders = () => {
   navigateTo(ordersUrl.value)
+}
+
+// Fonctions pour les formulaires de réservation
+const openCreateReservationForm = () => {
+  // TODO: Implémenter la création de formulaire
+  useAppToast().showInfo('Fonctionnalité à venir', 'La création de formulaires de réservation sera bientôt disponible.')
+}
+
+const openViewReservationForm = (form: any) => {
+  // TODO: Implémenter la vue du formulaire
+  useAppToast().showInfo('Fonctionnalité à venir', 'La visualisation des formulaires de réservation sera bientôt disponible.')
+}
+
+const openEditReservationForm = (form: any) => {
+  // TODO: Implémenter l'édition du formulaire
+  useAppToast().showInfo('Fonctionnalité à venir', 'L\'édition des formulaires de réservation sera bientôt disponible.')
+}
+
+const openDeleteReservationForm = (form: any) => {
+  // TODO: Implémenter la suppression du formulaire
+  useAppToast().showInfo('Fonctionnalité à venir', 'La suppression des formulaires de réservation sera bientôt disponible.')
 }
 
 

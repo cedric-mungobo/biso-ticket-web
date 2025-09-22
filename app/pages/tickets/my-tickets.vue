@@ -127,7 +127,7 @@ const fetchMyTickets = async (page = 1) => {
       errorMessage.value = null
     } else {
       console.error('Erreur API:', error)
-      errorMessage.value = error.message || 'Erreur lors de la récupération des billets'
+      errorMessage.value = 'Erreur lors de la récupération des billets'
     }
   } finally {
     isLoading.value = false

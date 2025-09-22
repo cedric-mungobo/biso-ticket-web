@@ -99,6 +99,27 @@
                   </span>
                 </div>
                 
+                <!-- Formulaires de réservation -->
+                <div v-if="reservationForms.length > 0" class="mb-4">
+                  <h4 class="text-sm font-medium text-gray-700 mb-2">Formulaires de réservation</h4>
+                  <div class="space-y-2">
+                    <NuxtLink
+                      v-for="form in reservationForms"
+                      :key="form.id"
+                      :to="`/evenements/${slug}/reservation/${form.public_id || form.id}`"
+                      class="block bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg p-3 transition-colors"
+                    >
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <h5 class="text-sm font-medium text-purple-900">{{ form.title }}</h5>
+                          <p v-if="form.description" class="text-xs text-purple-600 mt-1 line-clamp-2">{{ form.description }}</p>
+                        </div>
+                        <UIcon name="i-heroicons-arrow-right" class="w-4 h-4 text-purple-500" />
+                      </div>
+                    </NuxtLink>
+                  </div>
+                </div>
+
                 <!-- Tickets List -->
                 <div v-if="tickets.length" class="flex-1 overflow-y-auto space-y-1 sm:space-y-2">
                   <div v-for="ticket in tickets" :key="ticket.id" class="group bg-gray-50 rounded-lg p-2 sm:p-3">
@@ -334,6 +355,11 @@ const tickets = ref<any[]>([])
 const ticketsLoading = ref(false)
 const ticketsError = ref<string | null>(null)
 
+// Formulaires de réservation
+const reservationForms = ref<any[]>([])
+const reservationFormsLoading = ref(false)
+const reservationFormsError = ref<string | null>(null)
+
 // Utilisation du composable useTickets pour la gestion des quantités
 const {
   selectedTickets,
@@ -400,6 +426,25 @@ const fetchTickets = async () => {
   }
 }
 
+const fetchReservationForms = async () => {
+  try {
+    reservationFormsLoading.value = true
+    reservationFormsError.value = null
+    
+    // Utiliser l'API publique pour récupérer les formulaires de réservation
+    const response = await $fetch(`/api/public/events/${slug}/reservation-forms`, {
+      method: 'GET'
+    })
+    
+    reservationForms.value = (response as any)?.data || []
+  } catch (err) {
+    console.error('Erreur lors du chargement des formulaires de réservation:', err)
+    reservationFormsError.value = 'Impossible de charger les formulaires de réservation'
+  } finally {
+    reservationFormsLoading.value = false
+  }
+}
+
 // Wrapper functions pour maintenir la compatibilité
 const getQuantity = (ticketId: number) => getTicketQuantity(ticketId)
 const incrementQuantity = (ticketId: number, max: number) => incrementTicketQuantity(ticketId)
@@ -425,6 +470,7 @@ onMounted(() => {
 
         if (slug) {
             fetchEventData()
+            fetchReservationForms()
         }
         })
 })
@@ -433,6 +479,7 @@ onMounted(() => {
 watch(() => route.params.slug, (newSlug) => {
   if (newSlug && newSlug !== slug) {
     fetchEventData()
+    fetchReservationForms()
   }
 })
 

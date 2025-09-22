@@ -138,6 +138,14 @@
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
         </div>
     </div>
+
+    <!-- Indicateur d'erreur (pour debug) -->
+    <div v-if="error" class="mt-20 w-full">
+        <div class="text-center text-red-500">
+            <p>Erreur lors du chargement des événements</p>
+            <p class="text-sm">{{ error }}</p>
+        </div>
+    </div>
  
 </div>
   </div>
@@ -157,13 +165,15 @@ const { data: eventsData, pending, error } = await useAsyncData('hero:featured-e
       page: 1,
       date_filter: 'all'
     })
+    console.log('Événements récupérés:', result)
     return result
   } catch (err) {
     console.error('Erreur lors de la récupération des événements:', err)
+    // Retourner un tableau vide en cas d'erreur
     return { items: [] }
   }
 }, {
-  server: true,
+  server: false, // Désactiver le SSR pour éviter les erreurs 404
   lazy: true,
   default: () => ({ items: [] })
 })

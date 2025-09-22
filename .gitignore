@@ -25,3 +25,6 @@ logs
 
 # Dossier api (uniquement en production)
 api/
+
+# Script update.sh (uniquement sur le serveur)
+update.sh

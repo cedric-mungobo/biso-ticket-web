@@ -148,6 +148,9 @@ export default defineNuxtConfig({
       '/invitation/**': { ssr: false },
       '/blog/**': { ssr: false },
       '/organisateur/**': { ssr: false },
+      '/profile/**': { ssr: false },
+      '/evenements/*/reservation/*': { ssr: false },
+      
       
       // Headers de sécurité pour Google OAuth
       '/**': {
