@@ -19,7 +19,6 @@
     "@types/qrcode": "^1.5.5",
     "@unhead/vue": "^2.0.14",
     "@vueuse/motion": "^3.0.3",
-    "gsap": "^3.13.0",
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "lucide-vue-next": "^0.539.0",

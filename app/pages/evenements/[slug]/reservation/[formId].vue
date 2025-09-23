@@ -56,7 +56,7 @@
             <div v-if="form.event?.image_url || form.event?.image" class="md:w-1/3">
               <img
                 :src="form.event.image_url || form.event.image"
-                :alt="form.event.title"
+                :alt="form.event.title || 'Événement'"
                 class="w-full h-48 object-cover rounded-lg"
               />
             </div>
@@ -311,7 +311,7 @@
       title="Réservation confirmée !"
       :show-close-button="true"
     >
-      <div class="space-y-4">
+      <div class="space-y-6">
         <div class="text-center">
           <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
             <UIcon name="i-heroicons-check" class="h-6 w-6 text-green-600" />
@@ -320,6 +320,32 @@
           <p v-if="reservationId" class="text-sm text-gray-600">
             Votre référence de réservation est : <span class="font-medium text-primary-600">{{ reservationId }}</span>
           </p>
+        </div>
+
+        <!-- QR Code et informations de l'événement -->
+        <div v-if="qrCodeData && reservationData" class="bg-gray-50 rounded-lg p-4">
+          <div class="text-center mb-4">
+            <h4 class="text-lg font-semibold text-gray-900 mb-2">Votre billet</h4>
+            <p class="text-sm text-gray-600">{{ reservationData.event?.title }}</p>
+            <p class="text-xs text-gray-500">{{ reservationData.fullName }}</p>
+          </div>
+          
+          <!-- QR Code -->
+          <div class="flex justify-center mb-4">
+            <div class="bg-white p-4 rounded-lg shadow-sm border-2 border-gray-200">
+              <QRCode 
+                :data="qrCodeData" 
+                :size="200"
+                class="mx-auto"
+              />
+            </div>
+          </div>
+          
+          <!-- Informations additionnelles -->
+          <div class="text-center text-xs text-gray-500 space-y-1">
+            <p>Présentez ce QR code à l'entrée</p>
+            <p>Référence: {{ reservationData.publicId }}</p>
+          </div>
         </div>
         
         <div class="flex flex-col sm:flex-row gap-3 pt-4">
@@ -333,14 +359,15 @@
             Fermer
           </UButton>
           <UButton 
-            color="neutral" 
+            v-if="qrCodeData"
+            color="secondary" 
             variant="outline" 
             block
-            @click="goToEvent"
+            @click="downloadTicket"
             class="order-1 sm:order-2"
           >
-            <UIcon name="i-heroicons-arrow-left" class="w-4 h-4 mr-2" />
-            Retour à l'événement
+            <UIcon name="i-heroicons-arrow-down-tray" class="w-4 h-4 mr-2" />
+            Télécharger le billet
           </UButton>
         </div>
       </div>
@@ -375,55 +402,8 @@ const {
 
 const toast = useToast()
 
-// SEO
-const { setEventSEO } = useSEO()
-
-// Métadonnées SEO spécifiques à la page de réservation
-const seoTitle = computed(() => {
-  if (!form.value) return 'Réservation - Biso Ticket'
-  // Priorité au titre du formulaire
-  if (form.value.title) {
-    return `${form.value.title} | Biso Ticket`
-  }
-  // Fallback sur le titre de l'événement
-  if (form.value.event?.title) {
-    return `Réservation - ${form.value.event.title} | Biso Ticket`
-  }
-  return 'Formulaire de réservation | Biso Ticket'
-})
-
-const seoDescription = computed(() => {
-  if (!form.value) return 'Réservez votre place pour cet événement via Biso Ticket'
-  // Priorité à la description du formulaire
-  if (form.value.description) {
-    return form.value.description
-  }
-  // Fallback sur le titre du formulaire ou de l'événement
-  const eventTitle = form.value.event?.title || form.value.title || 'cet événement'
-  return `Réservez votre place pour ${eventTitle} via Biso Ticket`
-})
-
-// Définir les métadonnées SEO
-useHead({
-  title: seoTitle,
-  meta: [
-    { name: 'description', content: seoDescription },
-    { name: 'robots', content: 'index, follow' }
-  ]
-})
-
-useSeoMeta({
-  title: seoTitle,
-  description: seoDescription,
-  ogTitle: seoTitle,
-  ogDescription: seoDescription,
-  ogType: 'website',
-  ogImage: computed(() => form.value?.event?.image_url || form.value?.event?.image || '/images/event-default.jpg'),
-  twitterCard: 'summary_large_image',
-  twitterTitle: seoTitle,
-  twitterDescription: seoDescription,
-  twitterImage: computed(() => form.value?.event?.image_url || form.value?.event?.image || '/images/event-default.jpg')
-})
+// SEO simple avec le composable useSEO
+const { setSEO } = useSEO()
 
 // État local
 const form = ref<ReservationForm | null>(null)
@@ -433,6 +413,8 @@ const submitting = ref(false)
 const showConfirmationModal = ref(false)
 const confirmationMessage = ref('')
 const reservationId = ref<number | null>(null)
+const reservationData = ref<any>(null)
+const qrCodeData = ref<string | null>(null)
 
 // Paiement
 const paymentMethod = ref('')
@@ -474,9 +456,15 @@ const loadForm = async () => {
     // Initialiser les données du formulaire
     initializeFormData()
     
-    // Définir le SEO si l'événement existe
-    if (form.value?.event) {
-      setEventSEO(form.value.event)
+    // Configurer le SEO de manière simple
+    if (form.value) {
+      const seoConfig = {
+        title: form.value.title || 'Formulaire de réservation',
+        description: form.value.description || `Réservez votre place pour ${form.value.event?.title || 'cet événement'} via Biso Ticket`,
+        image: form.value.event?.image_url || form.value.event?.image || '/images/event-default.jpg',
+        type: 'website' as const
+      }
+      setSEO(seoConfig)
     }
   } catch (err) {
     console.error('Erreur lors du chargement du formulaire:', err)
@@ -518,7 +506,7 @@ const handleSubmit = async () => {
     }
     
     // Préparer les données de réservation
-    const reservationData: {
+    const reservationPayload: {
       reservation_form_id: number
       data: Record<string, any>
       payment_method?: string
@@ -531,15 +519,22 @@ const handleSubmit = async () => {
     const hasPaymentRequired = form.value.requires_payment || form.value.paymentRequired
     const hasPrice = form.value.fixed_price || form.value.fixedPrice
     if (hasPaymentRequired && hasPrice && paymentMethod.value) {
-      reservationData.payment_method = paymentMethod.value
+      reservationPayload.payment_method = paymentMethod.value
     }
     
     // Soumettre la réservation
-    const result = await submitReservationAPI(reservationData)
+    const result = await submitReservationAPI(reservationPayload)
+    
+    // Log de la réponse complète pour debug
+    console.log('🔍 [DEBUG] Réponse complète de submitReservationAPI:', result)
+    console.log('🔍 [DEBUG] Type de result:', typeof result)
+    console.log('🔍 [DEBUG] Clés de result:', Object.keys(result || {}))
     
     // Afficher la confirmation
     reservationId.value = result.id
     confirmationMessage.value = result.message
+    reservationData.value = result.data
+    qrCodeData.value = result.data?.qrCode || null
     showConfirmationModal.value = true
     
     // Réinitialiser le formulaire
@@ -574,6 +569,224 @@ const handleSubmit = async () => {
 // Aller à l'événement
 const goToEvent = () => {
   navigateTo(`/evenements/${eventSlug}`)
+}
+
+// Télécharger le billet avec QR code
+const downloadTicket = async () => {
+  if (!qrCodeData.value || !reservationData.value) return
+  
+  try {
+    // Créer un canvas haute résolution pour le billet
+    const scale = 2 // Facteur de qualité (2x = haute résolution)
+    const width = 400
+    const height = 650
+    const canvasWidth = width * scale
+    const canvasHeight = height * scale
+    
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    
+    canvas.width = canvasWidth
+    canvas.height = canvasHeight
+    
+    // Améliorer la qualité du canvas
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    
+    // Fond blanc (haute résolution)
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+    
+    // Bordure (haute résolution)
+    ctx.strokeStyle = '#e5e7eb'
+    ctx.lineWidth = 2 * scale
+    ctx.strokeRect(1 * scale, 1 * scale, (width - 2) * scale, (height - 2) * scale)
+    
+    // En-tête avec couleur primaire du site (haute résolution)
+    ctx.fillStyle = '#8b12ff'
+    ctx.fillRect(0, 0, width * scale, 80 * scale)
+    
+    // Titre de l'événement (haute résolution)
+    ctx.fillStyle = '#ffffff'
+    ctx.font = `bold ${18 * scale}px Arial`
+    ctx.textAlign = 'center'
+    ctx.fillText('BISO TICKET', (width / 2) * scale, 25 * scale)
+    
+    ctx.font = `bold ${14 * scale}px Arial`
+    ctx.fillText(reservationData.value.event?.title || 'Événement', (width / 2) * scale, 50 * scale)
+    
+    // Informations du participant (haute résolution)
+    ctx.fillStyle = '#1f2937'
+    ctx.font = `bold ${16 * scale}px Arial`
+    ctx.textAlign = 'left'
+    ctx.fillText('Billet de réservation', 20 * scale, 120 * scale)
+    
+    ctx.font = `${14 * scale}px Arial`
+    ctx.fillText(`Nom: ${reservationData.value.fullName}`, 20 * scale, 150 * scale)
+    ctx.fillText(`Email: ${reservationData.value.email}`, 20 * scale, 170 * scale)
+    ctx.fillText(`Téléphone: ${reservationData.value.phone}`, 20 * scale, 190 * scale)
+    ctx.fillText(`Référence: ${reservationData.value.publicId}`, 20 * scale, 210 * scale)
+    
+    // Date de création (haute résolution)
+    const date = new Date(reservationData.value.createdAt).toLocaleDateString('fr-FR')
+    ctx.fillText(`Créé le: ${date}`, 20 * scale, 230 * scale)
+    
+    // QR Code réel - taille augmentée (haute résolution)
+    const qrSize = 200 * scale
+    const qrX = ((width - 200) / 2) * scale
+    const qrY = 260 * scale
+    
+    // Fond du QR code (haute résolution)
+    ctx.fillStyle = '#f9fafb'
+    ctx.fillRect(qrX - 10 * scale, qrY - 10 * scale, (200 + 20) * scale, (200 + 20) * scale)
+    
+    // Bordure du QR code (haute résolution)
+    ctx.strokeStyle = '#d1d5db'
+    ctx.lineWidth = 1 * scale
+    ctx.strokeRect(qrX - 10 * scale, qrY - 10 * scale, (200 + 20) * scale, (200 + 20) * scale)
+    
+    // Générer le QR code de manière synchrone (haute résolution)
+    await generateQRCodeOnCanvas(ctx, qrCodeData.value, qrX, qrY, qrSize)
+    
+    // Instructions (haute résolution)
+    ctx.fillStyle = '#6b7280'
+    ctx.font = `${12 * scale}px Arial`
+    ctx.textAlign = 'center'
+    ctx.fillText('Présentez ce billet à l\'entrée', (width / 2) * scale, qrY + qrSize + 30 * scale)
+    ctx.fillText('de l\'événement', (width / 2) * scale, qrY + qrSize + 45 * scale)
+    
+    // Pied de page (haute résolution)
+    ctx.fillStyle = '#9ca3af'
+    ctx.font = `${10 * scale}px Arial`
+    ctx.fillText('Généré par Biso Ticket', (width / 2) * scale, (height - 20) * scale)
+    
+    // Attendre un peu pour s'assurer que le QR code est dessiné
+    setTimeout(() => {
+      // Télécharger l'image
+      const link = document.createElement('a')
+      link.download = `billet-${reservationData.value.publicId}.png`
+      link.href = canvas.toDataURL('image/png')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      toast.add({
+        title: 'Billet téléchargé',
+        description: 'Votre billet a été téléchargé avec succès',
+        color: 'success'
+      })
+    }, 500)
+    
+  } catch (error) {
+    console.error('Erreur lors du téléchargement:', error)
+    toast.add({
+      title: 'Erreur',
+      description: 'Impossible de télécharger le billet',
+      color: 'error'
+    })
+  }
+}
+
+// Fonction pour générer le QR code sur le canvas (utilise la même méthode que TicketCard.vue)
+const generateQRCodeOnCanvas = async (ctx: CanvasRenderingContext2D, qrData: string, x: number, y: number, size: number): Promise<void> => {
+  return new Promise(async (resolve) => {
+    console.log('🔍 [QR DEBUG] Génération QR code:', { qrData, x, y, size })
+    
+    try {
+      // Utiliser la même méthode que TicketCard.vue avec qrCodeStyling
+      const { $qrCodeStyling } = useNuxtApp()
+      
+      if ($qrCodeStyling) {
+        console.log('📱 Utilisation de qrCodeStyling...')
+        const qrCodeStyling = $qrCodeStyling({
+          width: size,
+          height: size,
+          type: 'svg',
+          data: qrData,
+          dotsOptions: {
+            color: '#000000',
+            type: 'rounded',
+          },
+          backgroundOptions: {
+            color: '#ffffff',
+          },
+        })
+
+        const svg = await qrCodeStyling.getRawData('svg')
+        console.log('📄 SVG généré, conversion en image...')
+        
+        if (svg) {
+          let svgString: string
+          if (typeof svg === 'string') {
+            svgString = svg
+          } else if (svg instanceof Blob) {
+            svgString = await svg.text()
+          } else {
+            svgString = svg.toString('utf8')
+          }
+
+          const qrImg = new Image()
+          await new Promise<void>((resolveImg, rejectImg) => {
+            const timeout = setTimeout(() => {
+              rejectImg(new Error('Timeout loading QR code'))
+            }, 5000)
+            
+            qrImg.onload = () => {
+              clearTimeout(timeout)
+              console.log('🖼️ Dessin du QR code sur le canvas...')
+              // Fond blanc pour le QR code
+              ctx.fillStyle = 'white'
+              ctx.fillRect(x - 5, y - 5, size + 10, size + 10)
+              
+              // Dessiner le QR code
+              ctx.drawImage(qrImg, x, y, size, size)
+              console.log('✅ QR code dessiné avec succès')
+              resolveImg()
+            }
+            qrImg.onerror = () => {
+              clearTimeout(timeout)
+              console.warn('Impossible de générer le QR code')
+              // Fallback
+              ctx.fillStyle = 'white'
+              ctx.fillRect(x - 5, y - 5, size + 10, size + 10)
+              ctx.fillStyle = '#666'
+              ctx.font = '12px Arial'
+              ctx.textAlign = 'center'
+              ctx.fillText('QR Code indisponible', x + size / 2, y + size / 2)
+              resolveImg()
+            }
+            qrImg.src = `data:image/svg+xml;base64,${btoa(svgString)}`
+          })
+        }
+      } else {
+        console.warn('qrCodeStyling non disponible, utilisation du fallback')
+        // Fallback: générer un QR code simple
+        ctx.fillStyle = 'white'
+        ctx.fillRect(x - 5, y - 5, size + 10, size + 10)
+        ctx.fillStyle = '#666'
+        ctx.font = '12px Arial'
+        ctx.textAlign = 'center'
+        ctx.fillText('QR Code', x + size / 2, y + size / 2)
+        ctx.fillText('(À scanner)', x + size / 2, y + size / 2 + 15)
+      }
+      
+      console.log('✅ [QR DEBUG] QR code généré avec succès')
+      resolve()
+      
+    } catch (qrError) {
+      console.error('❌ [QR DEBUG] Erreur génération QR code:', qrError)
+      // Fallback final
+      ctx.fillStyle = 'white'
+      ctx.fillRect(x - 5, y - 5, size + 10, size + 10)
+      ctx.fillStyle = '#666'
+      ctx.font = '12px Arial'
+      ctx.textAlign = 'center'
+      ctx.fillText('QR Code', x + size / 2, y + size / 2)
+      ctx.fillText('(À scanner)', x + size / 2, y + size / 2 + 15)
+      resolve()
+    }
+  })
 }
 
 // Gérer les checkboxes multiples

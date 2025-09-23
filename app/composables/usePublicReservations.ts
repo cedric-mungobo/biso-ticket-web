@@ -98,6 +98,7 @@ export const usePublicReservations = () => {
     id: number
     status: string
     message: string
+    data?: any
   }> => {
     try {
       loading.value = true
@@ -108,9 +109,20 @@ export const usePublicReservations = () => {
         body: reservationData
       })
       
+      // Log détaillé de la réponse API
+      console.log('🔍 [API DEBUG] Réponse brute de /public/reservations:', response)
+      console.log('🔍 [API DEBUG] Type de response:', typeof response)
+      console.log('🔍 [API DEBUG] Clés de response:', Object.keys(response || {}))
+      console.log('🔍 [API DEBUG] response.data:', response?.data)
+      console.log('🔍 [API DEBUG] response.message:', response?.message)
+      console.log('🔍 [API DEBUG] response.status:', response?.status)
+      
       // Déballer l'enveloppe standard { status, message, data }
       const result = response?.data ?? response
       const message = response?.message || 'Réservation soumise avec succès'
+      
+      console.log('🔍 [API DEBUG] result après déballage:', result)
+      console.log('🔍 [API DEBUG] message final:', message)
       
       if (process.client && process.dev) {
         console.log('[API] POST /public/reservations', { reservationData, raw: response, result })
@@ -119,7 +131,8 @@ export const usePublicReservations = () => {
       return {
         id: result.id,
         status: result.status,
-        message
+        message,
+        data: result
       }
     } catch (err: any) {
       // Message utilisateur-friendly (jamais d'erreur technique)
