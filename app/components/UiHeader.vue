@@ -30,10 +30,10 @@
                 <a href="/blog" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition">
                   Blog
                 </a>
-                <a href="/app" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition">
+                <a href="/application" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition">
                   Biso Ticket App
                 </a>
-                <a href="/app/access" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition">
+                <a href="/application/access" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition">
                   Biso Ticket Access App
                 </a>
               </div>
@@ -201,10 +201,10 @@
           <a href="/blog" @click="closeMobileMenu" class="block text-gray-300 hover:text-white transition">
             Blog
           </a>
-          <a href="/app" @click="closeMobileMenu" class="block text-gray-300 hover:text-white transition">
+          <a href="/application" @click="closeMobileMenu" class="block text-gray-300 hover:text-white transition">
             Biso Ticket App
           </a>
-          <a href="/app/access" @click="closeMobileMenu" class="block text-gray-300 hover:text-white transition">
+          <a href="/application/access" @click="closeMobileMenu" class="block text-gray-300 hover:text-white transition">
             Biso Ticket Access App
           </a>
         </div>

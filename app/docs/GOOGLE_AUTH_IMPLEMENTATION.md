@@ -252,19 +252,19 @@ const handleLogout = async () => {
 1. Aller sur `/connexion`
 2. Cliquer sur le bouton Google
 3. S'authentifier avec Google
-4. Vérifier la redirection vers `/app`
+4. Vérifier la redirection vers `/application`
 
 ### 2. Test de protection
-1. Aller sur `/app` sans être connecté
+1. Aller sur `/application` sans être connecté
 2. Vérifier la redirection vers `/connexion`
-3. Se connecter et retourner sur `/app`
+3. Se connecter et retourner sur `/application`
 4. Vérifier l'accès autorisé
 
 ### 3. Test de déconnexion
-1. Être connecté sur `/app`
+1. Être connecté sur `/application`
 2. Cliquer sur "Se déconnecter"
 3. Vérifier la redirection vers `/`
-4. Vérifier que `/app` redirige vers `/connexion`
+4. Vérifier que `/application` redirige vers `/connexion`
 
 ## Support
 
