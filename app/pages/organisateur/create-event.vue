@@ -245,6 +245,7 @@ const handleSubmit = preventMultipleSubmissions(async (data: any) => {
     }
     
     console.log('Création de l\'événement en cours...', apiBody)
+    console.log('Description:', data.description)
     console.log('Image reçue:', data.image ? `${data.image.name} (${data.image.size} bytes)` : 'Aucune image')
     const event = await createEvent(apiBody, data.image)
     

@@ -102,7 +102,9 @@ export const useOrganizerEvents = () => {
         // Champs optionnels
         if (eventData.location) formData.append('location', eventData.location)
         if (eventData.ends_at) formData.append('ends_at', eventData.ends_at)
-        if (eventData.description !== undefined) formData.append('description', eventData.description || '')
+        if (eventData.description !== undefined && eventData.description !== null) {
+          formData.append('description', eventData.description)
+        }
         if (eventData.status) formData.append('status', eventData.status)
         if (eventData.is_public !== undefined) formData.append('is_public', eventData.is_public ? '1' : '0')
         
@@ -122,6 +124,12 @@ export const useOrganizerEvents = () => {
         
         // Image (toujours en dernier)
         formData.append('image', image)
+        
+        // Debug: afficher le contenu du FormData
+        console.log('FormData contents:')
+        for (const [key, value] of formData.entries()) {
+          console.log(`${key}:`, value)
+        }
         
         res = await $myFetch<any>('/events', { 
           method: 'POST', 
@@ -177,9 +185,12 @@ export const useOrganizerEvents = () => {
         const endsAt = eventData.ends_at || existingEvent.endsAt || ''
         formData.append('ends_at', endsAt)
       }
-      if (eventData.description || existingEvent.description) {
-        const description = eventData.description || existingEvent.description || ''
-        formData.append('description', description)
+      // Toujours envoyer la description si elle est définie dans eventData
+      if (eventData.description !== undefined) {
+        formData.append('description', eventData.description)
+      } else if (existingEvent.description) {
+        // Sinon, garder la description existante
+        formData.append('description', existingEvent.description)
       }
       const status = eventData.status || existingEvent.status || 'draft'
       const isPublic = (eventData.is_public !== undefined ? eventData.is_public : existingEvent.isPublic) ? '1' : '0'
@@ -222,6 +233,12 @@ export const useOrganizerEvents = () => {
       
       // Ajouter _method=PUT pour Laravel (requis pour les uploads de fichiers)
       formData.append('_method', 'PUT')
+      
+      // Debug: afficher le contenu du FormData
+      console.log('Update FormData contents:')
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}:`, value)
+      }
       
       res = await $myFetch<any>(`/events/${eventId}`, { 
         method: 'POST', 
