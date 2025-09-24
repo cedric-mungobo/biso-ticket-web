@@ -163,6 +163,10 @@ export const useOrganizerEvents = () => {
   }
 
   const updateEvent = async (eventId: number, eventData: Partial<EventCreateRequest>, image?: File, removeImage?: boolean): Promise<Event> => {
+    console.log('🔄 [UPDATE] Début de la mise à jour de l\'événement:', eventId)
+    console.log('🔄 [UPDATE] Image fournie:', !!image)
+    console.log('🔄 [UPDATE] Supprimer image:', removeImage)
+    
     let res: any
     if (image) {
       // Récupérer l'événement existant pour avoir toutes les données
@@ -249,6 +253,11 @@ export const useOrganizerEvents = () => {
       if (removeImage) {
         body.remove_image = true
       }
+      
+      // Debug: afficher le contenu du body JSON
+      console.log('Update JSON body contents:')
+      console.log(JSON.stringify(body, null, 2))
+      
       res = await $myFetch<any>(`/events/${eventId}`, { method: 'PUT', body })
     }
     return unwrap<Event>(res)

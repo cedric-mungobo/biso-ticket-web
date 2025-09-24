@@ -11,6 +11,7 @@
         </p>
       </div>
 
+      
       <!-- Formulaire d'édition -->
       <div class="bg-white rounded-2xl shadow-md md:p-8 p-4 border border-gray-200 relative">
         <!-- Overlay de loading -->
@@ -255,6 +256,7 @@ onMounted(async () => {
 
       // Charger les données de l'événement
       const event = await fetchEvent(eventId)
+      console.log('Event:', event)
       
       if (event) {
         // Remplir le formulaire avec les données existantes
@@ -299,6 +301,11 @@ const handleSubmit = preventMultipleSubmissions(async (data: any) => {
         categories: data.settings?.categories || []
       }
     }
+    
+    console.log('Modification de l\'événement en cours...', apiBody)
+    console.log('Description:', data.description)
+    console.log('Image reçue:', data.image ? `${data.image.name} (${data.image.size} bytes)` : 'Aucune image')
+    console.log('Supprimer image:', imageToRemove.value)
     
     const event = await updateEvent(eventId, apiBody, data.image, imageToRemove.value)
     
