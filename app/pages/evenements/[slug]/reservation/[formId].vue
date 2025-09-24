@@ -311,31 +311,31 @@
       title="Réservation confirmée !"
       :show-close-button="true"
     >
-      <div class="space-y-6">
+      <div class="space-y-4 md:space-y-6">
         <div class="text-center">
-          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-            <UIcon name="i-heroicons-check" class="h-6 w-6 text-green-600" />
+          <div class="mx-auto flex items-center justify-center h-10 w-10 md:h-12 md:w-12 rounded-full bg-green-100 mb-3 md:mb-4">
+            <UIcon name="i-heroicons-check" class="h-5 w-5 md:h-6 md:w-6 text-green-600" />
           </div>
-          <p class="text-gray-700 mb-2">{{ confirmationMessage }}</p>
-          <p v-if="reservationId" class="text-sm text-gray-600">
-            Votre référence de réservation est : <span class="font-medium text-primary-600">{{ reservationId }}</span>
+          <p class="text-gray-700 mb-2 text-sm md:text-base">{{ confirmationMessage }}</p>
+          <p v-if="reservationId" class="text-xs md:text-sm text-gray-600">
+            Référence : <span class="font-medium text-primary-600">{{ reservationId }}</span>
           </p>
         </div>
 
         <!-- QR Code et informations de l'événement -->
-        <div v-if="qrCodeData && reservationData" class="bg-gray-50 rounded-lg p-4">
-          <div class="text-center mb-4">
-            <h4 class="text-lg font-semibold text-gray-900 mb-2">Votre billet</h4>
-            <p class="text-sm text-gray-600">{{ reservationData.event?.title }}</p>
+        <div v-if="qrCodeData && reservationData" class="bg-gray-50 rounded-lg p-3 md:p-4">
+          <div class="text-center mb-3 md:mb-4">
+            <h4 class="text-base md:text-lg font-semibold text-gray-900 mb-1 md:mb-2">Votre billet</h4>
+            <p class="text-xs md:text-sm text-gray-600 line-clamp-2">{{ reservationData.event?.title }}</p>
             <p class="text-xs text-gray-500">{{ reservationData.fullName }}</p>
           </div>
           
           <!-- QR Code -->
-          <div class="flex justify-center mb-4">
-            <div class="bg-white p-4 rounded-lg shadow-sm border-2 border-gray-200">
+          <div class="flex justify-center mb-3 md:mb-4">
+            <div class="bg-white p-2 md:p-4 rounded-lg shadow-sm border-2 border-gray-200">
               <QRCode 
                 :data="qrCodeData" 
-                :size="200"
+                :size="160"
                 class="mx-auto"
               />
             </div>
@@ -344,30 +344,32 @@
           <!-- Informations additionnelles -->
           <div class="text-center text-xs text-gray-500 space-y-1">
             <p>Présentez ce QR code à l'entrée</p>
-            <p>Référence: {{ reservationData.publicId }}</p>
+            <p>Réf: {{ reservationData.publicId }}</p>
           </div>
         </div>
         
-        <div class="flex flex-col sm:flex-row gap-3 pt-4">
+        <div class="flex flex-col gap-2 md:gap-3 pt-2 md:pt-4">
           <UButton 
+            v-if="qrCodeData"
             color="primary" 
             variant="solid" 
             block
-            @click="showConfirmationModal = false"
-            class="order-2 sm:order-1"
-          >
-            Fermer
-          </UButton>
-          <UButton 
-            v-if="qrCodeData"
-            color="secondary" 
-            variant="outline" 
-            block
             @click="downloadTicket"
-            class="order-1 sm:order-2"
+            class="order-1"
+            size="sm"
           >
             <UIcon name="i-heroicons-arrow-down-tray" class="w-4 h-4 mr-2" />
             Télécharger le billet
+          </UButton>
+          <UButton 
+            color="secondary" 
+            variant="outline" 
+            block
+            @click="showConfirmationModal = false"
+            class="order-2"
+            size="sm"
+          >
+            Fermer
           </UButton>
         </div>
       </div>
@@ -975,6 +977,32 @@ onMounted(async () => {
   
   .space-y-2 > * + * {
     margin-top: 0.5rem;
+  }
+  
+  /* Optimisations spécifiques pour le modal de confirmation */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Réduire les espacements dans le modal sur mobile */
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  /* Boutons plus compacts sur mobile */
+  .order-1, .order-2 {
+    min-height: 2.5rem;
+  }
+}
+
+/* Styles pour le QR code plus compact */
+@media (max-width: 640px) {
+  .bg-white {
+    padding: 0.5rem;
   }
 }
 </style>
