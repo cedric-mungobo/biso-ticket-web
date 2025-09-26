@@ -7,7 +7,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-5">
         <div class="text-center md:text-start">
           <!-- Logo -->
-          <NuxtImg src="/logo.png" alt="Biso Ticket" class="w-24 object-contain" />
+          <img src="/logo.png" alt="Biso Ticket" class="w-24 object-contain" />
           <!-- End Logo -->
         </div>
         <!-- End Col -->

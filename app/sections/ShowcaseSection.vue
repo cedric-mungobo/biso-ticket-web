@@ -27,7 +27,7 @@
         :visible-once="{ opacity: 1, y: 0 }"
         :delay="200"
         :duration="1200">
-          <NuxtImg 
+          <img 
             alt="Interface Biso Ticket - Dashboard organisateur" 
             src="/assets/images/hero.jpg"
             class="w-full h-auto rounded-2xl shadow-lg"
@@ -41,7 +41,7 @@
         :visible-once="{ opacity: 1, y: 0 }"
         :delay="220"
         :duration="1500">
-          <NuxtImg 
+          <img 
             alt="Application mobile Biso Ticket" 
             src="/assets/images/ticket.jpg"
             class="w-full h-auto rounded-xl shadow-md hover:-translate-y-0.5 transition duration-300"

@@ -6,7 +6,7 @@
         <!-- Logo -->
         <div class="flex items-center">
           <NuxtLink class="flex-none rounded-md text-xl inline-block font-semibold focus:outline-hidden focus:opacity-80" to="/" aria-label="Biso Ticket">
-            <NuxtImg src="/images/logo.png" alt="Biso Ticket" class="w-24  object-contain" />
+            <img src="/logo.png" alt="Biso Ticket" class="w-24  object-contain" />
           </NuxtLink>
         </div>
         <!-- End Logo -->

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <NuxtImg src="/logo.png" alt="Biso Ticket" :class="size" loading="eager" />
+    <img src="/logo.png" alt="Biso Ticket" :class="size" loading="eager" />
   </div>
 </template>
 
