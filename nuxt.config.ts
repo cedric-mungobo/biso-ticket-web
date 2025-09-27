@@ -79,7 +79,7 @@ export default defineNuxtConfig({
     // Configuration pour éviter les erreurs d'hydratation
     keepalive: true,
     head: {
-      title: 'Biso Ticket - Plateforme de billetterie et gestion d\'événements',
+      title: 'Passez au digital pour vos événements avec Biso Ticket',
       titleTemplate: '%s - Biso Ticket',
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover',
@@ -92,6 +92,36 @@ export default defineNuxtConfig({
           name: 'viewport', 
           content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover' 
         },
+        // SEO de base
+        { 
+          name: 'description', 
+          content: 'Tout ce dont vous avez besoin pour gérer un événement : vendre vos billets en ligne et envoyer des invitations digitales. Recevez les paiements mobile money, achetez les billets en ligne via mobile money, configuration en 3 minutes.' 
+        },
+        { 
+          name: 'keywords', 
+          content: 'événements digitaux, billets en ligne, invitations digitales, mobile money, paiement mobile, gestion événement, vente billets, réservation événement, Kinshasa, RDC, Congo, organisateur événement, ticket en ligne, Orange Money, Airtel Money, M-Pesa' 
+        },
+        { name: 'author', content: 'Biso Ticket' },
+        { name: 'robots', content: 'index, follow' },
+        
+        // Open Graph
+        { property: 'og:title', content: 'Passez au digital pour vos événements avec Biso Ticket' },
+        { property: 'og:description', content: 'Tout ce dont vous avez besoin pour gérer un événement : vendre vos billets en ligne et envoyer des invitations digitales. Recevez les paiements mobile money, achetez les billets en ligne via mobile money, configuration en 3 minutes.' },
+        { property: 'og:image', content: 'https://bisoticket.com/images/hero.jpg' },
+        { property: 'og:url', content: 'https://bisoticket.com' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:site_name', content: 'Biso Ticket' },
+        { property: 'og:locale', content: 'fr_FR' },
+        
+        // Twitter Cards
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:site', content: '@bisoticket' },
+        { name: 'twitter:creator', content: '@bisoticket' },
+        { name: 'twitter:title', content: 'Passez au digital pour vos événements avec Biso Ticket' },
+        { name: 'twitter:description', content: 'Tout ce dont vous avez besoin pour gérer un événement : vendre vos billets en ligne et envoyer des invitations digitales. Recevez les paiements mobile money, achetez les billets en ligne via mobile money, configuration en 3 minutes.' },
+        { name: 'twitter:image', content: 'https://bisoticket.com/images/hero.jpg' },
+        
+        // Métadonnées techniques
         { name: 'format-detection', content: 'telephone=no' },
         { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
