@@ -104,106 +104,94 @@
         <p class="text-gray-500">Aucune réservation n'a été trouvée pour ce formulaire.</p>
       </div>
 
-      <div v-else class="space-y-4">
-        <div v-for="reservation in reservations" :key="reservation.id" class="bg-white rounded-lg border border-gray-200 p-6">
-          <!-- En-tête de la réservation -->
-          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-1 mb-1">
-            <div class="flex-1">
-              <h3 class="text-lg font-semibold text-gray-900 mb-1">
-                Réservation #{{ reservation.id }}
-              </h3>
-              <p class="text-xs text-gray-500">
-                {{ formatReservationDate(reservation.created_at) }}
-              </p>
-            </div>
-            
-            <div class="flex flex-wrap gap-2">
-              <UBadge 
-                :color="getStatusColor(reservation.status) as any" 
-                variant="soft"
-                class="text-sm"
-              >
-                {{ getStatusLabel(reservation.status) }}
-              </UBadge>
-              <UBadge 
-                v-if="reservation.payment_status"
-                :color="getPaymentStatusColor(reservation.payment_status) as any" 
-                variant="soft"
-                class="text-sm"
-              >
-                {{ getPaymentStatusLabel(reservation.payment_status) }}
-              </UBadge>
-            </div>
+      <div v-else class="relative flex flex-col my-6 bg-white shadow-sm border border-slate-200 rounded-lg">
+        <div class="p-4">
+          <div class="mb-4 flex items-center justify-between">
+            <h5 class="text-slate-800 text-lg font-semibold">
+              Réservations - {{ formTitle }}
+            </h5>
+            <span class="text-slate-600 text-sm">
+              {{ reservations.length }} réservation(s)
+            </span>
           </div>
-
-          <!-- Informations de la réservation -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div v-if="reservation.total_amount" class="text-sm">
-              <span class="text-gray-500">Montant:</span>
-              <span class="font-medium text-gray-900 ml-2">{{ reservation.total_amount }} USD</span>
-            </div>
-            <div v-if="reservation.payment_reference" class="text-sm">
-              <span class="text-gray-500">Référence paiement:</span>
-              <span class="font-medium text-gray-900 ml-2">{{ reservation.payment_reference }}</span>
-            </div>
-            <div v-if="reservation.confirmed_at" class="text-sm">
-              <span class="text-gray-500">Confirmée le:</span>
-              <span class="font-medium text-gray-900 ml-2">{{ formatReservationDate(reservation.confirmed_at) }}</span>
-            </div>
-            <div v-if="reservation.cancelled_at" class="text-sm">
-              <span class="text-gray-500">Annulée le:</span>
-              <span class="font-medium text-gray-900 ml-2">{{ formatReservationDate(reservation.cancelled_at) }}</span>
-            </div>
-          </div>
-
-          <!-- Données du formulaire -->
-          <div v-if="reservation.data && Object.keys(reservation.data).length > 0" class="mb-4">
-            <h4 class="text-sm font-medium text-gray-900 mb-2">Informations fournies:</h4>
-            <div class="bg-gray-50 rounded-lg p-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div v-for="(value, key) in reservation.data" :key="key" class="text-sm">
-                  <span class="text-gray-500 capitalize">{{ formatFieldName(key) }}:</span>
-                  <span class="font-medium text-gray-900 ml-2">{{ formatFieldValue(value) }}</span>
+          <div class="divide-y divide-slate-200">
+            <div v-for="reservation in reservations" :key="reservation.id" class="flex items-center justify-between pb-3 pt-3 last:pb-0 group hover:bg-slate-50 transition-colors duration-200">
+              <div class="flex items-center gap-x-3">
+                <!-- Avatar avec couleur selon statut -->
+                <div :class="getAvatarClasses(reservation.status)" class="relative inline-block h-5 w-5 rounded-full ring-2 ring-white shadow-sm"></div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <h6 class="text-slate-800 font-semibold truncate">
+                      {{ reservation.data?.name || reservation.data?.email || `Réservation #${reservation.id}` }}
+                    </h6>
+                    <UBadge 
+                      :color="getStatusColor(reservation.status) as any" 
+                      variant="soft"
+                      size="sm"
+                    >
+                      {{ getStatusLabel(reservation.status) }}
+                    </UBadge>
+                  </div>
+                  <div class="flex items-center gap-4 text-sm text-slate-600">
+                    <span class="flex items-center">
+                      <UIcon name="i-heroicons-calendar" class="w-3 h-3 mr-1" />
+                      {{ formatHumanDate(reservation.createdAt) }}
+                    </span>
+                    <span v-if="reservation.data?.email" class="truncate max-w-32">
+                      {{ reservation.data.email }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <!-- Montant -->
+                <div v-if="reservation.total_amount" class="text-right">
+                  <h6 class="text-slate-600 font-medium">
+                    {{ reservation.total_amount }} USD
+                  </h6>
+                  <p v-if="reservation.payment_status" class="text-xs text-slate-500">
+                    {{ getPaymentStatusLabel(reservation.payment_status) }}
+                  </p>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center gap-1">
+                  <UButton 
+                    v-if="reservation.status === 'pending'"
+                    @click="confirmReservation(reservation.id)"
+                    variant="ghost"
+                    color="success"
+                    size="xs"
+                    :loading="updatingReservation === reservation.id"
+                    class="transition-opacity"
+                  >
+                    <UIcon name="i-heroicons-check" class="w-3 h-3" />
+                  </UButton>
+                  
+                  <UButton 
+                    v-if="reservation.status === 'pending'"
+                    @click="cancelReservation(reservation.id)"
+                    variant="ghost"
+                    color="error"
+                    size="xs"
+                    :loading="updatingReservation === reservation.id"
+                    class="transition-opacity"
+                  >
+                    <UIcon name="i-heroicons-x-mark" class="w-3 h-3" />
+                  </UButton>
+                  
+                  <UButton 
+                    @click="viewReservationDetails(reservation)"
+                    variant="ghost"
+                    color="primary"
+                    size="xs"
+                    class="transition-opacity"
+                  >
+                    <UIcon name="i-heroicons-eye" class="w-3 h-3" />
+                  </UButton>
                 </div>
               </div>
             </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
-            <UButton 
-              v-if="reservation.status === 'pending'"
-              @click="confirmReservation(reservation.id)"
-              variant="solid"
-              color="success"
-              size="sm"
-              :loading="updatingReservation === reservation.id"
-            >
-              <UIcon name="i-heroicons-check" class="w-4 h-4 mr-2" />
-              Confirmer
-            </UButton>
-            
-            <UButton 
-              v-if="reservation.status === 'pending'"
-              @click="cancelReservation(reservation.id)"
-              variant="solid"
-              color="error"
-              size="sm"
-              :loading="updatingReservation === reservation.id"
-            >
-              <UIcon name="i-heroicons-x-mark" class="w-4 h-4 mr-2" />
-              Annuler
-            </UButton>
-            
-            <UButton 
-              @click="viewReservationDetails(reservation)"
-              variant="outline"
-              color="primary"
-              size="sm"
-            >
-              <UIcon name="i-heroicons-eye" class="w-4 h-4 mr-2" />
-              Voir détails
-            </UButton>
           </div>
         </div>
       </div>
@@ -226,82 +214,61 @@
       v-model="showDetailsModal" 
       title="Détails de la réservation"
       :show-close-button="true"
+      class="max-h-[90vh] overflow-y-auto"
     >
-      <div v-if="selectedReservation" class="space-y-6">
-        <!-- En-tête avec statuts -->
-        <div class="text-center">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">
-            Réservation #{{ selectedReservation.id }}
-          </h3>
-          <div class="flex justify-center gap-2 mb-4">
-            <UBadge 
-              :color="getStatusColor(selectedReservation.status) as any" 
-              variant="soft"
-              size="lg"
-            >
-              {{ getStatusLabel(selectedReservation.status) }}
-            </UBadge>
-            <UBadge 
-              v-if="selectedReservation.payment_status"
-              :color="getPaymentStatusColor(selectedReservation.payment_status) as any" 
-              variant="soft"
-              size="lg"
-            >
-              {{ getPaymentStatusLabel(selectedReservation.payment_status) }}
-            </UBadge>
-          </div>
-        </div>
+      <div v-if="selectedReservation" class="space-y-4">
+      
 
         <!-- Informations essentielles -->
-        <div class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="text-sm font-medium text-gray-500">ID Réservation</label>
+              <label class="text-xs font-medium text-gray-500">ID Réservation</label>
               <p class="text-gray-900 font-mono text-sm">#{{ selectedReservation.id }}</p>
             </div>
             
             <div>
-              <label class="text-sm font-medium text-gray-500">Statut</label>
-              <p class="text-gray-900">{{ getStatusLabel(selectedReservation.status) }}</p>
+              <label class="text-xs font-medium text-gray-500">Date de réservation</label>
+              <p class="text-gray-900 text-sm">{{ formatHumanDate(selectedReservation.createdAt) }}</p>
             </div>
-            
             <div>
-              <label class="text-sm font-medium text-gray-500">Date de réservation</label>
-              <p class="text-gray-900">{{ formatReservationDate(selectedReservation.created_at || selectedReservation.createdAt) }}</p>
+              <label class="text-xs font-medium text-gray-500">Statut</label>
+              <p class="text-gray-900 text-sm">{{ getStatusLabel(selectedReservation.status) }}</p>
             </div>
+
           </div>
         </div>
 
         <!-- Données du formulaire -->
         <div v-if="selectedReservation.formData && Object.keys(selectedReservation.formData).length > 0">
-          <h4 class="text-md font-semibold text-gray-900 mb-3">Informations du formulaire</h4>
-          <div class="bg-gray-50 rounded-lg p-4 space-y-3">
-            <div v-for="(value, key) in selectedReservation.formData" :key="String(key)" class="flex justify-between items-start">
-              <span class="font-medium text-gray-700">{{ formatFieldName(String(key)) }}:</span>
-              <span class="text-gray-900 text-right max-w-xs break-words">{{ formatFieldValue(value) }}</span>
+          <h4 class="text-sm font-semibold text-gray-900 mb-2">Informations du formulaire</h4>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-2">
+            <div v-for="(value, key) in selectedReservation.formData" :key="String(key)" v-if="key !== 'id' && key !== 'reservation_id'" class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+              <span class="text-xs font-medium text-gray-700">{{ formatFieldName(String(key)) }}:</span>
+              <span class="text-sm text-gray-900 break-words">{{ formatFieldValue(value) }}</span>
             </div>
           </div>
         </div>
 
         <!-- Données de réservation (fallback) -->
         <div v-else-if="selectedReservation.data && Object.keys(selectedReservation.data).length > 0">
-          <h4 class="text-md font-semibold text-gray-900 mb-3">Informations fournies</h4>
-          <div class="bg-gray-50 rounded-lg p-4 space-y-3">
-            <div v-for="(value, key) in selectedReservation.data" :key="String(key)" class="flex justify-between items-start">
-              <span class="font-medium text-gray-700">{{ formatFieldName(String(key)) }}:</span>
-              <span class="text-gray-900 text-right max-w-xs break-words">{{ formatFieldValue(value) }}</span>
+          <h4 class="text-sm font-semibold text-gray-900 mb-2">Informations fournies</h4>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-2">
+            <div v-for="(value, key) in selectedReservation.data" :key="String(key)" v-if="key !== 'id' && key !== 'reservation_id'" class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+              <span class="text-xs font-medium text-gray-700">{{ formatFieldName(String(key)) }}:</span>
+              <span class="text-sm text-gray-900 break-words">{{ formatFieldValue(value) }}</span>
             </div>
           </div>
         </div>
 
         <!-- Boutons d'action -->
-        <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+        <div class="flex flex-col gap-2 pt-3 border-t border-gray-200">
           <UButton 
             color="primary" 
             variant="solid" 
             block
             @click="showDetailsModal = false"
-            class="order-2 sm:order-1"
+            size="sm"
           >
             Fermer
           </UButton>
@@ -310,7 +277,7 @@
             variant="outline" 
             block
             @click="printReservation"
-            class="order-1 sm:order-2"
+            size="sm"
           >
             <UIcon name="i-heroicons-printer" class="w-4 h-4 mr-2" />
             Imprimer
@@ -397,6 +364,10 @@ const loadReservations = async (page: number = currentPage.value) => {
       console.log('Première réservation:', reservations.value[0])
       console.log('User data:', reservations.value[0]?.user)
       console.log('Form data:', reservations.value[0]?.data)
+      console.log('Date fields:', {
+        createdAt: reservations.value[0]?.createdAt,
+        updatedAt: reservations.value[0]?.updatedAt
+      })
     }
     
     // Mettre à jour le titre si on a des réservations
@@ -498,6 +469,108 @@ const formatFieldValue = (value: any) => {
   return String(value)
 }
 
+// Formater la date de manière humaine
+const formatHumanDate = (date: string | null): string => {
+  if (!date) return '—'
+  
+  try {
+    const now = new Date()
+    const targetDate = new Date(date)
+    
+    // Vérifier si la date est valide
+    if (isNaN(targetDate.getTime())) {
+      return '—'
+    }
+    
+    const diffInSeconds = Math.floor((now.getTime() - targetDate.getTime()) / 1000)
+    
+    // Moins d'une minute
+    if (diffInSeconds < 60) {
+      return 'À l\'instant'
+    }
+    
+    // Moins d'une heure
+    if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60)
+      return `Il y a ${minutes} minute${minutes > 1 ? 's' : ''}`
+    }
+    
+    // Moins d'un jour
+    if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600)
+      return `Il y a ${hours} heure${hours > 1 ? 's' : ''}`
+    }
+    
+    // Moins d'une semaine
+    if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400)
+      return `Il y a ${days} jour${days > 1 ? 's' : ''}`
+    }
+    
+    // Plus d'une semaine - format complet
+    return targetDate.toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (error) {
+    console.error('Erreur formatage date:', error)
+    return '—'
+  }
+}
+
+// Obtenir l'icône du statut
+const getStatusIcon = (status: string): string => {
+  switch (status) {
+    case 'confirmed': return 'i-heroicons-check-circle'
+    case 'pending': return 'i-heroicons-clock'
+    case 'cancelled': return 'i-heroicons-x-circle'
+    default: return 'i-heroicons-question-mark-circle'
+  }
+}
+
+// Obtenir l'icône du statut de paiement
+const getPaymentStatusIcon = (paymentStatus: string): string => {
+  switch (paymentStatus) {
+    case 'paid': return 'i-heroicons-check-circle'
+    case 'pending': return 'i-heroicons-clock'
+    case 'failed': return 'i-heroicons-x-circle'
+    case 'refunded': return 'i-heroicons-arrow-uturn-left'
+    default: return 'i-heroicons-question-mark-circle'
+  }
+}
+
+
+// Obtenir les classes CSS pour l'avatar selon le statut
+const getAvatarClasses = (status: string): string => {
+  switch (status) {
+    case 'confirmed':
+      return 'bg-green-100'
+    case 'pending':
+      return 'bg-yellow-100'
+    case 'cancelled':
+      return 'bg-red-100'
+    default:
+      return 'bg-gray-100'
+  }
+}
+
+// Obtenir les classes CSS pour le texte de l'avatar selon le statut
+const getAvatarTextClasses = (status: string): string => {
+  switch (status) {
+    case 'confirmed':
+      return 'text-green-600'
+    case 'pending':
+      return 'text-yellow-600'
+    case 'cancelled':
+      return 'text-red-600'
+    default:
+      return 'text-gray-600'
+  }
+}
+
 // Voir les détails d'une réservation
 const viewReservationDetails = (reservation: any) => {
   selectedReservation.value = reservation
@@ -541,7 +614,7 @@ const printReservation = () => {
       <div class="info">
         <div><span class="label">ID Réservation:</span> <span class="value">#${reservation.id}</span></div>
         <div><span class="label">Statut:</span> <span class="value status ${reservation.status}">${getStatusLabel(reservation.status)}</span></div>
-        <div><span class="label">Date de réservation:</span> <span class="value">${formatReservationDate(reservation.created_at || reservation.createdAt)}</span></div>
+        <div><span class="label">Date de réservation:</span> <span class="value">${formatHumanDate(reservation.createdAt || reservation.created_at)}</span></div>
       </div>
       
       ${(reservation.formData && Object.keys(reservation.formData).length > 0) || (reservation.data && Object.keys(reservation.data).length > 0) ? `
