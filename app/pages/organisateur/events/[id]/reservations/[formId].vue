@@ -354,8 +354,10 @@ const updatingReservation = ref<number | null>(null)
 const showDetailsModal = ref(false)
 const selectedReservation = ref<any>(null)
 
-// Filtres
+// Filtres et pagination
 const selectedStatus = ref('')
+const currentPage = ref(1)
+const perPage = ref(20)
 
 // Options des filtres
 const statusOptions = [
@@ -366,12 +368,13 @@ const statusOptions = [
 ]
 
 // Charger les réservations
-const loadReservations = async () => {
+const loadReservations = async (page: number = currentPage.value) => {
   try {
     const filters: any = {
       reservation_form_id: formId,
       event_id: eventId,
-      per_page: 20
+      per_page: perPage.value,
+      page: page
     }
     
     if (selectedStatus.value) filters.status = selectedStatus.value
@@ -382,7 +385,11 @@ const loadReservations = async () => {
     reservations.value = response.data
     meta.value = response.meta
     
+    // Mettre à jour la page courante
+    currentPage.value = page
+    
     console.log('Réservations chargées:', reservations.value.length)
+    console.log('Page courante:', currentPage.value)
     console.log('Filtres appliqués:', { status: selectedStatus.value })
     
     // Debug: afficher les données des réservations
@@ -406,20 +413,26 @@ const applyFilters = async () => {
   console.log('Application des filtres:', { 
     status: selectedStatus.value
   })
-  await loadReservations()
+  // Réinitialiser à la page 1 lors du filtrage
+  currentPage.value = 1
+  await loadReservations(1)
 }
 
 // Réinitialiser les filtres
 const resetFilters = async () => {
   selectedStatus.value = ''
   console.log('Réinitialisation des filtres')
-  await loadReservations()
+  // Réinitialiser à la page 1
+  currentPage.value = 1
+  await loadReservations(1)
 }
 
 // Changer de page
-const handlePageChange = (page: number) => {
-  // TODO: Implémenter la pagination
+const handlePageChange = async (page: number) => {
   console.log('Changer de page:', page)
+  if (page >= 1 && page <= (meta.value?.last_page || 1)) {
+    await loadReservations(page)
+  }
 }
 
 // Confirmer une réservation
@@ -590,6 +603,11 @@ const copyPublicLink = async () => {
     })
   }
 }
+
+// Watcher pour réinitialiser la pagination quand les filtres changent
+watch([selectedStatus], () => {
+  currentPage.value = 1
+})
 
 // Charger les réservations au montage
 onMounted(() => {
