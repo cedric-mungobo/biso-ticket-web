@@ -39,6 +39,9 @@ export const useReservations = () => {
       if (filters.per_page) {
         queryParams.append('per_page', filters.per_page.toString())
       }
+      if (filters.page) {
+        queryParams.append('page', filters.page.toString())
+      }
       
       if (queryParams.toString()) {
         url += '?' + queryParams.toString()
@@ -50,23 +53,24 @@ export const useReservations = () => {
         method: 'GET'
       })
       
-      // L'API retourne directement {data: [réservations...]}
+      // L'API retourne {data: [réservations...], pagination: {...}}
       const reservations = response?.data ?? []
+      const pagination = response?.pagination || {}
       
       if (process.client && process.dev) {
-        console.log('[API] /reservations', { filters, raw: response, reservations: reservations.length })
+        console.log('[API] /reservations', { filters, raw: response, reservations: reservations.length, pagination })
       }
 
       // Retourner dans le format attendu par le composant
       return {
         data: reservations,
         meta: {
-          current_page: 1,
-          from: 1,
-          last_page: 1,
-          per_page: filters.per_page || 15,
-          to: reservations.length,
-          total: reservations.length
+          current_page: pagination.current_page || 1,
+          from: ((pagination.current_page || 1) - 1) * (pagination.per_page || 15) + 1,
+          last_page: pagination.last_page || 1,
+          per_page: pagination.per_page || filters.per_page || 15,
+          to: Math.min((pagination.current_page || 1) * (pagination.per_page || 15), pagination.total || 0),
+          total: pagination.total || reservations.length
         }
       }
     } catch (err: any) {

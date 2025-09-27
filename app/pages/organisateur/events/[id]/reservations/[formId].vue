@@ -1,7 +1,7 @@
 <template>
-  <OrganizerNavigation>
-    <div class="px-2 md:p-0 py-0">
-      <!-- En-tête -->
+    <OrganizerNavigation>
+      <div class="px-2 md:p-0 py-0">
+        <!-- En-tête -->
       <div class="mb-6">
         <!-- Navigation de retour -->
         <div class="mb-4">
@@ -212,11 +212,11 @@
       <div v-if="meta && meta.last_page > 1" class="mt-8 flex justify-center">
         <Pagination
           :pagination="{
-            currentPage: meta.current_page,
-            lastPage: meta.last_page,
+            current_page: meta.current_page,
+            last_page: meta.last_page,
             total: meta.total
           }"
-          @page-change="handlePageChange"
+          @pageChange="handlePageChange"
         />
       </div>
     </div>
