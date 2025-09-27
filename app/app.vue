@@ -38,6 +38,7 @@
     >
       <NuxtLayout>
         <NuxtPage />
+        <NuxtLoadingIndicator />
       </NuxtLayout>
     </UApp>
   </div>

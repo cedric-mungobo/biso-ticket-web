@@ -6,7 +6,30 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  ssr: false,
+  ssr: true,
+  nitro: {
+    prerender: {
+      routes: [
+        '/evenements',
+        '/evenements/*',
+        '/evenements/*/reservation/*'
+      ]
+    }
+  },
+  
+  // Règles de route pour optimiser le rendu
+  routeRules: {
+    // Désactiver le SSR pour les pages de réservation (chargement côté client)
+    '/evenements/**/reservation/**': { ssr: false },
+    // Pré-rendu pour les pages publiques importantes
+    '/evenements/**': { ssr: true, prerender: true },
+    '/': { ssr: true, prerender: true },
+    // Désactiver le SSR pour les pages privées (performance)
+    '/organisateur/**': { ssr: false },
+    '/profile': { ssr: false },
+    '/tickets/**': { ssr: false },
+    '/application/**': { ssr: false }
+  },
   
 
   css: ['~/assets/index.css'],
@@ -58,6 +81,9 @@ export default defineNuxtConfig({
     head: {
       title: 'Biso Ticket - Plateforme de billetterie et gestion d\'événements',
       titleTemplate: '%s - Biso Ticket',
+      charset: 'utf-8',
+      viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover',
+      
       htmlAttrs: {
         lang: 'fr',
       },

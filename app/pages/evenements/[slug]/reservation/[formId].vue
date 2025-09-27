@@ -415,8 +415,33 @@ const {
 
 const toast = useToast()
 
-// SEO simple avec le composable useSEO
+// SEO optimisé avec useHead pour le mode SPA
 const { setSEO } = useSEO()
+
+// Métadonnées réactives pour le mode SPA
+const pageTitle = ref('Formulaire de réservation - Biso Ticket')
+const pageDescription = ref('Réservez votre place pour cet événement via Biso Ticket')
+const pageImage = ref('https://bisoticket.com/images/event-default.jpg')
+
+// Utilisation de useHead pour le mode SPA
+useHead({
+  title: pageTitle,
+  meta: [
+    { name: 'description', content: pageDescription },
+    { property: 'og:title', content: pageTitle },
+    { property: 'og:description', content: pageDescription },
+    { property: 'og:image', content: pageImage },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:site_name', content: 'Biso Ticket' },
+    { property: 'og:url', content: `https://bisoticket.com/evenements/${eventSlug}/reservation/${formId}` },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: pageTitle },
+    { name: 'twitter:description', content: pageDescription },
+    { name: 'twitter:image', content: pageImage },
+    { name: 'twitter:site', content: '@bisoticket' },
+    { name: 'twitter:creator', content: '@bisoticket' }
+  ]
+})
 
 // État local
 const form = ref<ReservationForm | null>(null)
@@ -469,15 +494,15 @@ const loadForm = async () => {
     // Initialiser les données du formulaire
     initializeFormData()
     
-    // Configurer le SEO de manière simple
+    // Mettre à jour les métadonnées avec les données de l'événement
     if (form.value) {
-      const seoConfig = {
-        title: form.value.title || 'Formulaire de réservation',
-        description: form.value.description || `Réservez votre place pour ${form.value.event?.title || 'cet événement'} via Biso Ticket`,
-        image: form.value.event?.image_url || form.value.event?.image || '/images/event-default.jpg',
-        type: 'website' as const
-      }
-      setSEO(seoConfig)
+      const eventTitle = form.value.event?.title || 'Événement'
+      const eventImage = form.value.event?.image_url || form.value.event?.image || '/images/event-default.jpg'
+      
+      // Mettre à jour les métadonnées réactives (useSeoMeta se mettra à jour automatiquement)
+      pageTitle.value = `${form.value.title || 'Formulaire de réservation'} - ${eventTitle} - Biso Ticket`
+      pageDescription.value = form.value.description || `Réservez votre place pour ${eventTitle} via Biso Ticket`
+      pageImage.value = eventImage.startsWith('http') ? eventImage : `https://bisoticket.com${eventImage}`
     }
   } catch (err) {
     console.error('Erreur lors du chargement du formulaire:', err)
