@@ -83,7 +83,10 @@ export const useInvitationVariables = (data: InvitationData) => {
                      invitationData?.guest_table_name || 
                      invitationData?.table_name ||
                      invitationData?.tableName ||
-                     '[TABLE]'
+                     null
+
+    // Si pas de table assignée, ne rien afficher (pas de fallback [TABLE])
+    const finalTableName = tableName || ''
 
     // Remplacer les variables dynamiques
     processedMessage = processedMessage.replace(/\[DATE\]/g, eventData?.startsAt ? formatDate(eventData.startsAt) : '[DATE]')
@@ -92,7 +95,7 @@ export const useInvitationVariables = (data: InvitationData) => {
     processedMessage = processedMessage.replace(/\[GUEST_NAME\]/g, invitationData?.guestName || invitationData?.guest_name || '[GUEST_NAME]')
     processedMessage = processedMessage.replace(/\[EVENT_TITLE\]/g, eventData?.title || '[EVENT_TITLE]')
     processedMessage = processedMessage.replace(/\[ORGANIZER_NAME\]/g, organizerName)
-    processedMessage = processedMessage.replace(/\[TABLE\]/g, tableName)
+    processedMessage = processedMessage.replace(/\[TABLE\]/g, finalTableName)
     processedMessage = processedMessage.replace(/\[YEARS\]/g, '[YEARS]') // Variable spéciale pour les anniversaires
 
     // Convertir les retours à la ligne en HTML
