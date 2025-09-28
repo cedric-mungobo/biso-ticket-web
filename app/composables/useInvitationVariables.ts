@@ -45,9 +45,23 @@ export const useInvitationVariables = (data: InvitationData) => {
 
   // Fonction pour extraire les variables d'un message
   const extractVariables = (message: string): string[] => {
-    const variableRegex = /\[([A-Z_]+)\]/g
-    const matches = message.match(variableRegex)
-    return matches ? [...new Set(matches.map(match => match.slice(1, -1)))] : []
+    const variables: string[] = []
+    
+    // Variables avec crochets [VARIABLE]
+    const bracketedRegex = /\[([A-Z_]+)\]/g
+    const bracketedMatches = message.match(bracketedRegex)
+    if (bracketedMatches) {
+      variables.push(...bracketedMatches.map(match => match.slice(1, -1)))
+    }
+    
+    // Variables sans crochets (dans le HTML)
+    const unbracketedRegex = /\b(DATE|TIME|LOCATION|GUEST_NAME|EVENT_TITLE|TABLE|YEARS)\b/g
+    const unbracketedMatches = message.match(unbracketedRegex)
+    if (unbracketedMatches) {
+      variables.push(...unbracketedMatches)
+    }
+    
+    return [...new Set(variables)]
   }
 
   // Fonction pour appliquer le formatage avancé
@@ -114,14 +128,20 @@ export const useInvitationVariables = (data: InvitationData) => {
   const applyTitles = (text: string): string => {
     let formatted = text
     
-    // Titre principal: [#titre#] → <h1 class="text-3xl font-bold mb-4">titre</h1>
-    formatted = formatted.replace(/\[#(.*?)#\]/g, '<h1 class="text-3xl font-bold mb-4 text-center">$1</h1>')
+    // Gérer les titres dans les balises HTML existantes (éviter les balises imbriquées)
+    // Si on trouve [##texte##] dans une balise <h1>, on remplace juste le contenu
+    formatted = formatted.replace(/<h1[^>]*>\[##(.*?)##\]<\/h1>/g, '<h1 class="text-xl sm:text-2xl lg:text-3xl font-bold  text-center">$1</h1>')
+    formatted = formatted.replace(/<h2[^>]*>\[##(.*?)##\]<\/h2>/g, '<h2 class="text-lg sm:text-xl lg:text-2xl font-semibold  text-center">$1</h2>')
+    formatted = formatted.replace(/<h3[^>]*>\[##(.*?)##\]<\/h3>/g, '<h3 class="text-base sm:text-lg lg:text-xl font-medium  text-center">$1</h3>')
     
-    // Sous-titre: [##sous-titre##] → <h2 class="text-2xl font-semibold mb-3">sous-titre</h2>
-    formatted = formatted.replace(/\[##(.*?)##\]/g, '<h2 class="text-2xl font-semibold mb-3 text-center">$1</h2>')
+    // Titre principal: [#titre#] → <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 text-center">titre</h1>
+    formatted = formatted.replace(/\[#(.*?)#\]/g, '<h1 class="text-xl sm:text-2xl lg:text-3xl font-bold  text-center">$1</h1>')
     
-    // Sous-sous-titre: [###sous-sous-titre###] → <h3 class="text-xl font-medium mb-2">sous-sous-titre</h3>
-    formatted = formatted.replace(/\[###(.*?)###\]/g, '<h3 class="text-xl font-medium mb-2 text-center">$1</h3>')
+    // Sous-titre: [##sous-titre##] → <h2 class="text-lg sm:text-xl lg:text-2xl font-semibold mb-1 text-center">sous-titre</h2>
+    formatted = formatted.replace(/\[##(.*?)##\]/g, '<h2 class="text-lg sm:text-xl lg:text-2xl font-semibold  text-center">$1</h2>')
+    
+    // Sous-sous-titre: [###sous-sous-titre###] → <h3 class="text-base sm:text-lg lg:text-xl font-medium mb-1 text-center">sous-sous-titre</h3>
+    formatted = formatted.replace(/\[###(.*?)###\]/g, '<h3 class="text-base sm:text-lg lg:text-xl font-medium  text-center">$1</h3>')
 
     return formatted
   }
@@ -147,6 +167,11 @@ export const useInvitationVariables = (data: InvitationData) => {
     
     // Gris: [gray:texte] → <span class="text-gray-600">texte</span>
     formatted = formatted.replace(/\[gray:(.*?)\]/g, '<span class="text-gray-600">$1</span>')
+
+    // Titres: [#texte#] → <h1 class="text-3xl font-bold mb-4 text-center">texte</h1>
+    formatted = formatted.replace(/\[#(.*?)#\]/g, '<h1 class="text-3xl font-bold mb-4 text-center">$1</h1>')
+    formatted = formatted.replace(/\[##(.*?)##\]/g, '<h2 class="text-2xl font-bold mb-3 text-center">$1</h2>')
+    formatted = formatted.replace(/\[###(.*?)###\]/g, '<h3 class="text-xl font-bold mb-2 text-center">$1</h3>')
 
     return formatted
   }
@@ -180,23 +205,7 @@ export const useInvitationVariables = (data: InvitationData) => {
     const eventData = data.event || data.invitation?.event
     const invitationData = data.invitation
 
-    // Debug: Log des données pour comprendre la structure
-    if (process.dev) {
-      console.log('🔍 Debug useInvitationVariables:', {
-        eventData,
-        invitationData,
-        guestTableName: invitationData?.guestTableName,
-        guest_name: invitationData?.guest_name,
-        table_name: invitationData?.table_name
-      })
-    }
 
-    // Récupérer le nom de l'organisateur depuis différentes sources possibles
-    const organizerName = eventData?.organizer?.name || 
-                         eventData?.organizerName || 
-                         eventData?.user?.name || 
-                         data.invitation?.organizer?.name ||
-                         'Organisateur'
 
     // Récupérer le nom de la table depuis différentes sources possibles
     const tableName = invitationData?.guestTableName || 
@@ -208,18 +217,47 @@ export const useInvitationVariables = (data: InvitationData) => {
     // Si pas de table assignée, ne rien afficher (pas de fallback [TABLE])
     const finalTableName = tableName || ''
 
-    // Remplacer les variables dynamiques
-    processedMessage = processedMessage.replace(/\[DATE\]/g, eventData?.startsAt ? formatDate(eventData.startsAt) : '[DATE]')
-    processedMessage = processedMessage.replace(/\[TIME\]/g, eventData?.startsAt ? formatTime(eventData.startsAt) : '[TIME]')
-    processedMessage = processedMessage.replace(/\[LOCATION\]/g, eventData?.location || '[LOCATION]')
-    processedMessage = processedMessage.replace(/\[GUEST_NAME\]/g, invitationData?.guestName || invitationData?.guest_name || '[GUEST_NAME]')
-    processedMessage = processedMessage.replace(/\[EVENT_TITLE\]/g, eventData?.title || '[EVENT_TITLE]')
-    processedMessage = processedMessage.replace(/\[ORGANIZER_NAME\]/g, organizerName)
-    processedMessage = processedMessage.replace(/\[TABLE\]/g, finalTableName)
-    processedMessage = processedMessage.replace(/\[YEARS\]/g, '[YEARS]') // Variable spéciale pour les anniversaires
+    // Remplacer les variables dynamiques (avec et sans crochets)
+    const replaceVariable = (pattern: RegExp, value: string, fallback: string) => {
+      return processedMessage.replace(pattern, value || fallback)
+    }
 
-    // Appliquer le formatage avancé
+    // Variables avec crochets [VARIABLE]
+    processedMessage = replaceVariable(/\[DATE\]/g, eventData?.startsAt ? formatDate(eventData.startsAt) : '', '[DATE]')
+    processedMessage = replaceVariable(/\[TIME\]/g, eventData?.startsAt ? formatTime(eventData.startsAt) : '', '[TIME]')
+    processedMessage = replaceVariable(/\[LOCATION\]/g, eventData?.location || '', '[LOCATION]')
+    processedMessage = replaceVariable(/\[GUEST_NAME\]/g, invitationData?.guestName || invitationData?.guest_name || '', '[GUEST_NAME]')
+    processedMessage = replaceVariable(/\[EVENT_TITLE\]/g, eventData?.title || '', '[EVENT_TITLE]')
+    processedMessage = replaceVariable(/\[TABLE\]/g, finalTableName, '[TABLE]')
+    processedMessage = replaceVariable(/\[YEARS\]/g, '', '[YEARS]') // Variable spéciale pour les anniversaires
+
+    // Corriger les titres mal formatés (sans crochets) AVANT le formatage
+    console.log('🔧 Message avant correction des titres:', processedMessage)
+    
+    // Corriger les titres mal formatés dans le contenu HTML
+    processedMessage = processedMessage.replace(/>##\s*(.*?)\s*##</g, '>[##$1##]<')
+    processedMessage = processedMessage.replace(/>#\s*(.*?)\s*#</g, '>[$1]<')
+    processedMessage = processedMessage.replace(/>###\s*(.*?)\s*###</g, '>[###$1###]<')
+    
+    // Corriger aussi les titres en début de ligne
+    processedMessage = processedMessage.replace(/^##\s*(.*?)\s*##$/gm, '[##$1##]')
+    processedMessage = processedMessage.replace(/^#\s*(.*?)\s*#$/gm, '[$1]')
+    processedMessage = processedMessage.replace(/^###\s*(.*?)\s*###$/gm, '[###$1###]')
+    
+    console.log('🔧 Message après correction des titres:', processedMessage)
+
+    // Appliquer le formatage avancé AVANT le remplacement des variables sans crochets
     processedMessage = applyFormatting(processedMessage)
+
+    // Variables sans crochets (pour le HTML direct) - APRÈS le formatage
+    processedMessage = replaceVariable(/\bDATE\b/g, eventData?.startsAt ? formatDate(eventData.startsAt) : '', 'DATE')
+    processedMessage = replaceVariable(/\bTIME\b/g, eventData?.startsAt ? formatTime(eventData.startsAt) : '', 'TIME')
+    processedMessage = replaceVariable(/\bLOCATION\b/g, eventData?.location || '', 'LOCATION')
+    processedMessage = replaceVariable(/\bGUEST_NAME\b/g, invitationData?.guestName || invitationData?.guest_name || '', 'GUEST_NAME')
+    processedMessage = replaceVariable(/\bEVENT_TITLE\b/g, eventData?.title || '', 'EVENT_TITLE')
+    processedMessage = replaceVariable(/\bTABLE\b/g, finalTableName, 'TABLE')
+    processedMessage = replaceVariable(/\bYEARS\b/g, '', 'YEARS') // Variable spéciale pour les anniversaires
+
 
     // Convertir les retours à la ligne en HTML
     processedMessage = processedMessage.replace(/\n/g, '<br>')
@@ -241,7 +279,6 @@ export const useInvitationVariables = (data: InvitationData) => {
     { key: 'LOCATION', label: 'Lieu de l\'événement', example: 'Salle des fêtes' },
     { key: 'GUEST_NAME', label: 'Nom de l\'invité', example: 'Marie Dupont' },
     { key: 'EVENT_TITLE', label: 'Titre de l\'événement', example: 'Mariage de Marie et Jean' },
-    { key: 'ORGANIZER_NAME', label: 'Nom de l\'organisateur', example: 'Marie et Jean' },
     { key: 'TABLE', label: 'Table assignée à l\'invité', example: 'Table A' },
     { key: 'YEARS', label: 'Nombre d\'années (anniversaires)', example: '25' }
   ]
@@ -296,6 +333,74 @@ export const useInvitationVariables = (data: InvitationData) => {
     }
   ]
 
+  // Fonction pour convertir le HTML en texte simple pour l'édition
+  const htmlToSimpleText = (html: string): string => {
+    if (!html) return ''
+    
+    let text = html
+    
+    // Remplacer les balises HTML par des équivalents texte avec la syntaxe personnalisée
+    text = text.replace(/<h1[^>]*>/g, '[#')
+    text = text.replace(/<h2[^>]*>/g, '[##')
+    text = text.replace(/<h3[^>]*>/g, '[###')
+    text = text.replace(/<\/h1>/g, '#]')
+    text = text.replace(/<\/h2>/g, '##]')
+    text = text.replace(/<\/h3>/g, '###]')
+    
+    text = text.replace(/<strong[^>]*>/g, '[**')
+    text = text.replace(/<\/strong>/g, '**]')
+    
+    text = text.replace(/<em[^>]*>/g, '[*')
+    text = text.replace(/<\/em>/g, '*]')
+    
+    text = text.replace(/<u[^>]*>/g, '[_')
+    text = text.replace(/<\/u>/g, '_]')
+    
+    text = text.replace(/<s[^>]*>/g, '[~')
+    text = text.replace(/<\/s>/g, '~]')
+    
+    text = text.replace(/<code[^>]*>/g, '[`')
+    text = text.replace(/<\/code>/g, '`]')
+    
+    text = text.replace(/<div[^>]*class="[^"]*text-center[^"]*"[^>]*>/g, '[>')
+    text = text.replace(/<div[^>]*class="[^"]*text-right[^"]*"[^>]*>/g, '[>')
+    text = text.replace(/<div[^>]*class="[^"]*text-left[^"]*"[^>]*>/g, '[<')
+    text = text.replace(/<\/div>/g, '<]')
+    
+    text = text.replace(/<hr[^>]*>/g, '[---]')
+    text = text.replace(/<br\s*\/?>/g, '\n')
+    
+    // Nettoyer les autres balises HTML
+    text = text.replace(/<[^>]*>/g, '')
+    
+    // Corriger les titres mal formatés (sans crochets)
+    text = text.replace(/^##\s*(.*?)\s*##$/gm, '[##$1##]')
+    text = text.replace(/^#\s*(.*?)\s*#$/gm, '[$1]')
+    text = text.replace(/^###\s*(.*?)\s*###$/gm, '[###$1###]')
+    
+    // Nettoyer les espaces multiples et les retours à la ligne
+    text = text.replace(/\n\s*\n\s*\n/g, '\n\n')
+    text = text.replace(/[ \t]+/g, ' ')
+    text = text.trim()
+    
+    return text
+  }
+
+  // Fonction pour convertir le texte simple en HTML
+  const simpleTextToHtml = (text: string): string => {
+    if (!text) return ''
+    
+    let html = text
+    
+    // Appliquer le formatage personnalisé existant
+    html = applyFormatting(html)
+    
+    // Convertir les retours à la ligne en HTML
+    html = html.replace(/\n/g, '<br>')
+    
+    return html
+  }
+
   return {
     formatTime,
     formatDate,
@@ -308,7 +413,9 @@ export const useInvitationVariables = (data: InvitationData) => {
     applyAlignment,
     applyTitles,
     applyColors,
-    applySpecialEffects
+    applySpecialEffects,
+    htmlToSimpleText,
+    simpleTextToHtml
   }
 }
 

@@ -487,25 +487,24 @@ const totalUsd = computed(() => (Number(priceData.value?.unitPriceUsd || 0) * Ma
 // Message config (local UI state)
 const showMessage = ref(false)
 const guestMessage = ref<string>('')
+const guestMessageHtml = ref<string>('') // Version HTML stockée
 const { $myFetch } = useNuxtApp()
 
-// Traitement du message avec les variables
-const processedGuestMessage = computed(() => {
-  if (!guestMessage.value) return ''
-  
-  // Créer un objet mock pour l'invitation avec les données de l'événement
-  const mockInvitation = {
+// Composable pour les conversions
+const { htmlToSimpleText, simpleTextToHtml, processMessage } = useInvitationVariables({
+  event: currentEvent.value,
+  invitation: {
     guestName: 'Nom de l\'invité',
     guestTableName: 'Table A',
     event: currentEvent.value
   }
+})
+
+// Traitement du message avec les variables
+const processedGuestMessage = computed(() => {
+  if (!guestMessageHtml.value) return ''
   
-  const { processMessage } = useInvitationVariables({
-    event: currentEvent.value,
-    invitation: mockInvitation
-  })
-  
-  const result = processMessage(guestMessage.value)
+  const result = processMessage(guestMessageHtml.value)
   return result.text
 })
 onMounted(async () => {
@@ -513,14 +512,24 @@ onMounted(async () => {
     const res = await $myFetch<any>(`/events/${eventId}`)
     const ev = res?.data || res
     const settings = ev?.settings || {}
-    guestMessage.value = settings?.guestMessage || settings?.guest_message || ''
+    
+    // Charger le HTML stocké
+    const htmlMessage = settings?.guestMessage || settings?.guest_message || ''
+    guestMessageHtml.value = htmlMessage
+    
+    // Convertir en texte simple pour l'édition
+    guestMessage.value = htmlToSimpleText(htmlMessage)
   } catch (_) {}
 })
 const saveGuestMessage = async () => {
   try {
+    // Convertir le texte simple en HTML avant de sauvegarder
+    const htmlMessage = simpleTextToHtml(guestMessage.value)
+    guestMessageHtml.value = htmlMessage
+    
     await $myFetch<any>(`/events/${eventId}`, {
       method: 'PUT',
-      body: { settings: { guest_message: guestMessage.value } }
+      body: { settings: { guest_message: htmlMessage } }
     })
     useAppToast().showSuccess('Message enregistré', 'Le message invité a été mis à jour.')
     showMessage.value = false
@@ -535,7 +544,8 @@ const saveGuestMessage = async () => {
 
 // Gestion des modèles de texte
 const onTemplateSelected = (template: any, message: string) => {
-  guestMessage.value = message
+  // Convertir le message du template en texte simple pour l'édition
+  guestMessage.value = htmlToSimpleText(message)
   useAppToast().showSuccess('Modèle appliqué', `Le modèle "${template.title}" a été appliqué.`)
 }
 
