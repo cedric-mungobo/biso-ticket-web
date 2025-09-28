@@ -191,6 +191,14 @@
               class="rounded-lg border border-gray-300 px-3 py-2 w-full" 
             />
             
+            <!-- Aperçu du message formaté -->
+            <div v-if="guestMessage" class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Aperçu du message formaté</label>
+              <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 min-h-[100px]">
+                <div v-html="processedGuestMessage" class="prose prose-sm max-w-none"></div>
+              </div>
+            </div>
+            
             <!-- Variables disponibles -->
             <InvitationVariablesHelp />
           </div>
@@ -480,6 +488,26 @@ const totalUsd = computed(() => (Number(priceData.value?.unitPriceUsd || 0) * Ma
 const showMessage = ref(false)
 const guestMessage = ref<string>('')
 const { $myFetch } = useNuxtApp()
+
+// Traitement du message avec les variables
+const processedGuestMessage = computed(() => {
+  if (!guestMessage.value) return ''
+  
+  // Créer un objet mock pour l'invitation avec les données de l'événement
+  const mockInvitation = {
+    guestName: 'Nom de l\'invité',
+    guestTableName: 'Table A',
+    event: currentEvent.value
+  }
+  
+  const { processMessage } = useInvitationVariables({
+    event: currentEvent.value,
+    invitation: mockInvitation
+  })
+  
+  const result = processMessage(guestMessage.value)
+  return result.text
+})
 onMounted(async () => {
   try {
     const res = await $myFetch<any>(`/events/${eventId}`)
