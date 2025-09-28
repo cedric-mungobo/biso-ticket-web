@@ -60,6 +60,17 @@ export const useInvitationVariables = (data: InvitationData) => {
     const eventData = data.event || data.invitation?.event
     const invitationData = data.invitation
 
+    // Debug: Log des données pour comprendre la structure
+    if (process.dev) {
+      console.log('🔍 Debug useInvitationVariables:', {
+        eventData,
+        invitationData,
+        guestTableName: invitationData?.guestTableName,
+        guest_name: invitationData?.guest_name,
+        table_name: invitationData?.table_name
+      })
+    }
+
     // Récupérer le nom de l'organisateur depuis différentes sources possibles
     const organizerName = eventData?.organizer?.name || 
                          eventData?.organizerName || 
@@ -67,14 +78,21 @@ export const useInvitationVariables = (data: InvitationData) => {
                          data.invitation?.organizer?.name ||
                          'Organisateur'
 
+    // Récupérer le nom de la table depuis différentes sources possibles
+    const tableName = invitationData?.guestTableName || 
+                     invitationData?.guest_table_name || 
+                     invitationData?.table_name ||
+                     invitationData?.tableName ||
+                     '[TABLE]'
+
     // Remplacer les variables dynamiques
     processedMessage = processedMessage.replace(/\[DATE\]/g, eventData?.startsAt ? formatDate(eventData.startsAt) : '[DATE]')
     processedMessage = processedMessage.replace(/\[TIME\]/g, eventData?.startsAt ? formatTime(eventData.startsAt) : '[TIME]')
     processedMessage = processedMessage.replace(/\[LOCATION\]/g, eventData?.location || '[LOCATION]')
-    processedMessage = processedMessage.replace(/\[GUEST_NAME\]/g, invitationData?.guestName || '[GUEST_NAME]')
+    processedMessage = processedMessage.replace(/\[GUEST_NAME\]/g, invitationData?.guestName || invitationData?.guest_name || '[GUEST_NAME]')
     processedMessage = processedMessage.replace(/\[EVENT_TITLE\]/g, eventData?.title || '[EVENT_TITLE]')
     processedMessage = processedMessage.replace(/\[ORGANIZER_NAME\]/g, organizerName)
-    processedMessage = processedMessage.replace(/\[TABLE\]/g, invitationData?.guestTableName || '[TABLE]')
+    processedMessage = processedMessage.replace(/\[TABLE\]/g, tableName)
     processedMessage = processedMessage.replace(/\[YEARS\]/g, '[YEARS]') // Variable spéciale pour les anniversaires
 
     // Convertir les retours à la ligne en HTML

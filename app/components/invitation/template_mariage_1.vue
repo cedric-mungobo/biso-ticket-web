@@ -1,7 +1,7 @@
 <template>
  
     <div class="min-h-screen  overflow-hidden">
-      <pre>{{ invitation }}</pre>
+      
       <!-- Hero Section avec parallaxe simple -->
     <section class="header-image" style="height: 80dvh;">
       <!-- Image de fond avec parallaxe simple -->
@@ -25,7 +25,7 @@
             :delay="200"
             :duration="1000">
             <!-- Titre principal -->
-            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold mb-4 leading-tight drop-shadow-2xl">
+            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold mb-4 leading-tight drop-shadow-2xl">
               {{ (event || invitation?.event)?.title || 'Invitation' }}
             </h1>
             
