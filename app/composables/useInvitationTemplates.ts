@@ -15,7 +15,7 @@ export interface EventData {
   guestName?: string
   eventTitle?: string
   organizerName?: string
-  tableName?: string
+  guestTableName?: string
   years?: number
 }
 
@@ -205,7 +205,7 @@ Avec plaisir,
       },
       invitation: {
         guestName: eventData.guestName,
-        guestTableName: eventData.tableName
+        guestTableName: eventData.guestTableName
       }
     }
     

@@ -1,6 +1,7 @@
 <template>
  
     <div class="min-h-screen  overflow-hidden">
+      <pre>{{ invitation }}</pre>
       <!-- Hero Section avec parallaxe simple -->
     <section class="header-image" style="height: 80dvh;">
       <!-- Image de fond avec parallaxe simple -->
