@@ -1,5 +1,6 @@
 <template>
     <div class="min-h-screen  overflow-hidden">
+     
       <!-- Hero Section avec parallaxe simple -->
     <section class="header-image" style="height: 80dvh;">
       <!-- Image de fond avec parallaxe simple -->
@@ -58,8 +59,7 @@
           <!-- Texte de l'invitation -->
           <div class="text-center">
             <div class="leading-relaxed max-w-3xl mx-auto font-serif" :style="{ color: textColor }">
-              <p v-if="guestMessage" class="whitespace-pre-line font-medium text-balance text-base">
-                {{ guestMessage }}
+              <p v-if="processedGuestMessage" class="whitespace-pre-line font-medium text-balance text-base" v-html="processedGuestMessage">
               </p>
                 <template v-else>
                 <p class="text-2xl font-serif mb-6 italic" :style="{ color: accentColor }">
@@ -112,6 +112,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Download } from 'lucide-vue-next'
 import { useCanvasImage } from '~/composables/useCanvasImage'
 import { formatDate, calculateDynamicFontSize } from '~/utils'
+import { useInvitationVariables } from '~/composables/useInvitationVariables'
 
 const props = defineProps<{ invitation: any; event?: any }>()
 
@@ -138,16 +139,28 @@ const guestMessage = computed(() =>
   (props.event || props.invitation?.event)?.settings?.guest_message
 )
 
+// Utiliser le composable pour traiter les variables dynamiques
+const { processMessage } = useInvitationVariables({
+  event: props.event,
+  invitation: props.invitation
+})
+
+// Traitement des variables dynamiques dans le message
+const processedGuestMessage = computed(() => {
+  if (!guestMessage.value) return ''
+  return processMessage(guestMessage.value).text
+})
+
 const messageFontSize = computed(() => {
-  const fontSize = calculateDynamicFontSize(guestMessage.value || '')
-  console.log('📏 Taille de police calculée:', fontSize, 'pour le texte:', guestMessage.value?.substring(0, 50) + '...')
+  const fontSize = calculateDynamicFontSize(processedGuestMessage.value || '')
+  console.log('📏 Taille de police calculée:', fontSize, 'pour le texte:', processedGuestMessage.value?.substring(0, 50) + '...')
   return fontSize
 })
 
 const handleDownloadInvitation = async () => {
   try {
     const invitationData = {
-      guestMessage: guestMessage.value || undefined,
+      guestMessage: processedGuestMessage.value || undefined,
       backgroundImage: templateBackground,
       textStartY: 200,
       textColor: textColor,

@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { useInvitationVariables } from './useInvitationVariables'
 
 export interface InvitationTemplate {
   id: string
@@ -193,18 +194,23 @@ Avec plaisir,
   }
 
   const formatTemplateMessage = (template: InvitationTemplate, eventData: EventData) => {
-    let message = template.message
+    // Créer un objet de données simulé pour le composable
+    const mockData = {
+      event: {
+        startsAt: eventData.date ? `${eventData.date} ${eventData.time || '18:00'}` : undefined,
+        location: eventData.location,
+        title: eventData.eventTitle,
+        organizer: { name: eventData.organizerName }
+      },
+      invitation: {
+        guestName: eventData.guestName
+      }
+    }
     
-    // Remplacer les placeholders avec des valeurs par défaut
-    message = message.replace(/\[DATE\]/g, eventData.date || '[DATE]')
-    message = message.replace(/\[TIME\]/g, eventData.time || '[TIME]')
-    message = message.replace(/\[LOCATION\]/g, eventData.location || '[LOCATION]')
-    message = message.replace(/\[GUEST_NAME\]/g, eventData.guestName || '[GUEST_NAME]')
-    message = message.replace(/\[EVENT_TITLE\]/g, eventData.eventTitle || '[EVENT_TITLE]')
-    message = message.replace(/\[ORGANIZER_NAME\]/g, eventData.organizerName || '[ORGANIZER_NAME]')
-    message = message.replace(/\[YEARS\]/g, eventData.years?.toString() || '[YEARS]')
+    const { processMessage } = useInvitationVariables(mockData)
+    const result = processMessage(template.message)
     
-    return message
+    return result.text
   }
 
   // Fonction pour convertir le markdown en HTML simple

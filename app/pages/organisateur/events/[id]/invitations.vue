@@ -192,17 +192,7 @@
             />
             
             <!-- Variables disponibles -->
-            <div class="mt-3 p-3 bg-gray-50 rounded-lg">
-              <h4 class="text-sm font-medium text-gray-700 mb-2">Variables disponibles :</h4>
-              <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                <div><code class="bg-white px-1 py-0.5 rounded">[DATE]</code> - Date de l'événement</div>
-                <div><code class="bg-white px-1 py-0.5 rounded">[TIME]</code> - Heure de l'événement</div>
-                <div><code class="bg-white px-1 py-0.5 rounded">[LOCATION]</code> - Lieu de l'événement</div>
-                <div><code class="bg-white px-1 py-0.5 rounded">[GUEST_NAME]</code> - Nom de l'invité</div>
-                <div><code class="bg-white px-1 py-0.5 rounded">[EVENT_TITLE]</code> - Titre de l'événement</div>
-                <div><code class="bg-white px-1 py-0.5 rounded">[ORGANIZER_NAME]</code> - Nom de l'organisateur</div>
-              </div>
-            </div>
+            <InvitationVariablesHelp />
           </div>
         </div>
         <template #footer>

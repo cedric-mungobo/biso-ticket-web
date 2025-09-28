@@ -86,7 +86,7 @@
       <div v-if="error" class="p-4 rounded-md bg-red-50 border border-red-200 text-red-800 mb-6">
         {{ error }}
         <UButton 
-          @click="loadReservations"
+          @click="() => loadReservations()"
           variant="outline"
           color="error"
           size="sm"
@@ -135,7 +135,7 @@
                   <div class="flex items-center gap-4 text-sm text-slate-600">
                     <span class="flex items-center">
                       <UIcon name="i-heroicons-calendar" class="w-3 h-3 mr-1" />
-                      {{ formatHumanDate(reservation.createdAt) }}
+                      {{ formatHumanDate(reservation.created_at) }}
                     </span>
                     <span v-if="reservation.data?.email" class="truncate max-w-32">
                       {{ reservation.data.email }}
@@ -229,7 +229,7 @@
             
             <div>
               <label class="text-xs font-medium text-gray-500">Date de réservation</label>
-              <p class="text-gray-900 text-sm">{{ formatHumanDate(selectedReservation.createdAt) }}</p>
+              <p class="text-gray-900 text-sm">{{ formatHumanDate(selectedReservation.created_at) }}</p>
             </div>
             <div>
               <label class="text-xs font-medium text-gray-500">Statut</label>
@@ -243,10 +243,12 @@
         <div v-if="selectedReservation.formData && Object.keys(selectedReservation.formData).length > 0">
           <h4 class="text-sm font-semibold text-gray-900 mb-2">Informations du formulaire</h4>
           <div class="bg-gray-50 rounded-lg p-3 space-y-2">
-            <div v-for="(value, key) in selectedReservation.formData" :key="String(key)" v-if="key !== 'id' && key !== 'reservation_id'" class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-              <span class="text-xs font-medium text-gray-700">{{ formatFieldName(String(key)) }}:</span>
-              <span class="text-sm text-gray-900 break-words">{{ formatFieldValue(value) }}</span>
-            </div>
+            <template v-for="(value, fieldKey) in selectedReservation.formData" :key="String(fieldKey)">
+              <div v-if="String(fieldKey) !== 'id' && String(fieldKey) !== 'reservation_id'" class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <span class="text-xs font-medium text-gray-700">{{ formatFieldName(String(fieldKey)) }}:</span>
+                <span class="text-sm text-gray-900 break-words">{{ formatFieldValue(value) }}</span>
+              </div>
+            </template>
           </div>
         </div>
 
@@ -254,10 +256,12 @@
         <div v-else-if="selectedReservation.data && Object.keys(selectedReservation.data).length > 0">
           <h4 class="text-sm font-semibold text-gray-900 mb-2">Informations fournies</h4>
           <div class="bg-gray-50 rounded-lg p-3 space-y-2">
-            <div v-for="(value, key) in selectedReservation.data" :key="String(key)" v-if="key !== 'id' && key !== 'reservation_id'" class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-              <span class="text-xs font-medium text-gray-700">{{ formatFieldName(String(key)) }}:</span>
-              <span class="text-sm text-gray-900 break-words">{{ formatFieldValue(value) }}</span>
-            </div>
+            <template v-for="(value, fieldKey) in selectedReservation.data" :key="String(fieldKey)">
+              <div v-if="String(fieldKey) !== 'id' && String(fieldKey) !== 'reservation_id'" class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <span class="text-xs font-medium text-gray-700">{{ formatFieldName(String(fieldKey)) }}:</span>
+                <span class="text-sm text-gray-900 break-words">{{ formatFieldValue(value) }}</span>
+              </div>
+            </template>
           </div>
         </div>
 
@@ -364,10 +368,7 @@ const loadReservations = async (page: number = currentPage.value) => {
       console.log('Première réservation:', reservations.value[0])
       console.log('User data:', reservations.value[0]?.user)
       console.log('Form data:', reservations.value[0]?.data)
-      console.log('Date fields:', {
-        createdAt: reservations.value[0]?.createdAt,
-        updatedAt: reservations.value[0]?.updatedAt
-      })
+   
     }
     
     // Mettre à jour le titre si on a des réservations

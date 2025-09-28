@@ -16,11 +16,11 @@
       <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
       
       <!-- Contenu principal positionné en bas -->
-      <div class="absolute bottom-0 left-0 right-0 z-10 pb-16 px-4">
+      <div class="absolute bottom-0 left-0 right-0 z-10 pb-2 px-4">
         <div class="text-center text-white max-w-4xl mx-auto">
           <div v-motion
             :initial="{ opacity: 0, y: 20 }"
-            :visible="{ opacity: 1, y: 0 }"
+            :visible-once="{ opacity: 1, y: 0 }"
             :delay="200"
             :duration="1000">
             <!-- Titre principal -->
@@ -58,15 +58,14 @@
         :delay="600"
         :duration="1800">
           <!-- Titre -->
-          <h2 class="text-5xl font-serif font-bold text-center mb-12 tracking-wide" :style="{ color: titleColor }">
+          <h2 class="md:text-5xl uppercase text-3xl font-serif mt-4 font-bold text-center mb-12 tracking-wide" :style="{ color: titleColor }">
             Invitation
           </h2>
           
           <!-- Texte de l'invitation -->
           <div class="text-center">
-            <div class="leading-relaxed max-w-3xl mx-auto font-serif" :style="{ color: textColor, fontSize: messageFontSize + 'px' }">
-              <p v-if="guestMessage" class="whitespace-pre-line font-medium">
-                {{ guestMessage }}
+            <div class="leading-relaxed max-w-3xl mx-auto font-serif" :style="{ color: textColor, fontSize: messageFontSize - 15 + 'px' }">
+              <p v-if="processedGuestMessage" class="whitespace-pre-line font-medium" v-html="processedGuestMessage">
               </p>
                 <template v-else>
                 <p class="text-2xl font-serif mb-6 italic" :style="{ color: accentColor }">
@@ -119,6 +118,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Download } from 'lucide-vue-next'
 import { useCanvasImage } from '~/composables/useCanvasImage'
 import { formatDate, calculateDynamicFontSize } from '~/utils'
+import { useInvitationVariables } from '~/composables/useInvitationVariables'
 
 const props = defineProps<{ invitation: any; event?: any }>()
 
@@ -148,16 +148,28 @@ const guestMessage = computed(() =>
   (props.event || props.invitation?.event)?.settings?.guest_message
 )
 
+// Utiliser le composable pour traiter les variables dynamiques
+const { processMessage } = useInvitationVariables({
+  event: props.event,
+  invitation: props.invitation
+})
+
+// Traitement des variables dynamiques dans le message
+const processedGuestMessage = computed(() => {
+  if (!guestMessage.value) return ''
+  return processMessage(guestMessage.value).text
+})
+
 const messageFontSize = computed(() => {
-  const fontSize = calculateDynamicFontSize(guestMessage.value || '')
-  console.log('📏 Taille de police calculée (mariage):', fontSize, 'pour le texte:', guestMessage.value?.substring(0, 50) + '...')
+  const fontSize = calculateDynamicFontSize(processedGuestMessage.value || '')
+  console.log('📏 Taille de police calculée (mariage):', fontSize, 'pour le texte:', processedGuestMessage.value?.substring(0, 50) + '...')
   return fontSize
 })
 
 const handleDownloadInvitation = async () => {
   try {
     const invitationData = {
-      guestMessage: guestMessage.value || undefined,
+      guestMessage: processedGuestMessage.value || undefined,
       backgroundImage: templateBackground,
       textStartY: 200,
       textColor: textColor,
