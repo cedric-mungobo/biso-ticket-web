@@ -28,40 +28,54 @@ export const useInvitationTemplates = () => {
       id: 'mariage-religieux',
       title: 'Mariage Religieux',
       category: 'mariage',
-      message: `C\'est avec une immense joie que nous vous annonçons notre union sacrée devant Dieu.
+      message: `[#Invitation au mariage religieux#]
 
-Nous serions honorés de votre présence pour célébrer notre mariage religieux le [DATE] à [TIME] à [LOCATION].
+Bonjour [**GUEST_NAME**],
 
-Votre présence à nos côtés en ce jour si spécial nous comblerait de bonheur.
+C'est avec une [*immense joie*] que nous vous annonçons notre union sacrée devant Dieu.
 
-Avec tout notre amour,
-[ORGANIZER_NAME]`
+Nous serions honorés de votre présence pour célébrer notre mariage religieux le [**DATE**] à [**TIME**] à [**LOCATION**].
+
+[>Votre présence à nos côtés en ce jour si spécial nous comblerait de bonheur.<]
+
+[---]
+
+[>Avec tout notre amour,<]
+[>ORGANIZER_NAME<]`
     },
     {
       id: 'mariage-civil',
       title: 'Mariage Civil',
       category: 'mariage',
-      message: `Nous avons le plaisir de vous inviter à célébrer notre union civile.
+      message: `[##Invitation au mariage civil##]
 
-Rejoignez-nous le [DATE] à [TIME] à [LOCATION] pour partager ce moment de bonheur avec nous.
+Cher(e) [**GUEST_NAME**],
 
-Votre présence nous fera le plus grand plaisir.
+Nous avons le [*plaisir*] de vous inviter à célébrer notre union civile.
 
-Avec affection,
-[ORGANIZER_NAME]`
+Rejoignez-nous le [**DATE**] à [**TIME**] à [**LOCATION**] pour partager ce moment de bonheur avec nous.
+
+[>Votre présence nous fera le plus grand plaisir.<]
+
+[>Avec affection,<]
+[>ORGANIZER_NAME<]`
     },
     {
       id: 'mariage-intime',
       title: 'Mariage Intime',
       category: 'mariage',
-      message: `Dans l\'intimité de nos cœurs, nous avons choisi de nous dire "oui".
+      message: `[###Mariage Intime###]
 
-Nous aimerions partager ce moment précieux avec vous le [DATE] à [TIME] à [LOCATION].
+Bonjour [**GUEST_NAME**],
 
-Votre présence discrète et bienveillante nous accompagnera dans cette nouvelle étape de notre vie.
+Dans l'[*intimité*] de nos cœurs, nous avons choisi de nous dire "oui".
 
-Avec tendresse,
-[ORGANIZER_NAME]`
+Nous aimerions partager ce [*moment précieux*] avec vous le [**DATE**] à [**TIME**] à [**LOCATION**].
+
+[>Votre présence discrète et bienveillante nous accompagnera dans cette nouvelle étape de notre vie.<]
+
+[>Avec tendresse,<]
+[>ORGANIZER_NAME<]`
     },
 
     // ÉVÉNEMENTS D'ENTREPRISE
@@ -69,15 +83,20 @@ Avec tendresse,
       id: 'soiree-entreprise',
       title: 'Soirée Entreprise',
       category: 'entreprise',
-      message: `Nous avons le plaisir de vous convier à notre soirée d\'entreprise.
+      message: `[#Soirée d'Entreprise#]
 
-Rejoignez-nous le [DATE] à [TIME] à [LOCATION] pour une soirée de networking et de célébration de nos succès.
+Bonjour [**GUEST_NAME**],
 
-Au programme : cocktail, dîner, et animations surprises.
+Nous avons le plaisir de vous convier à notre [*soirée d'entreprise*].
 
-Nous comptons sur votre présence !
+Rejoignez-nous le [**DATE**] à [**TIME**] à [**LOCATION**] pour une soirée de [blue:networking] et de célébration de nos succès.
 
-[ORGANIZER_NAME]`
+[>Au programme : cocktail, dîner, et animations surprises.<]
+
+[!Nous comptons sur votre présence !]
+
+[>Cordialement,<]
+[>ORGANIZER_NAME<]`
     },
     {
       id: 'lancement-produit',
@@ -115,29 +134,39 @@ Inscription obligatoire.
       id: 'anniversaire-naissance',
       title: 'Anniversaire de Naissance',
       category: 'anniversaire',
-      message: `C\'est avec joie que nous vous invitons à célébrer mon anniversaire !
+      message: `[#🎉 Invitation Anniversaire 🎉#]
 
-Rejoignez-moi le [DATE] à [TIME] à [LOCATION] pour une soirée festive et conviviale.
+Bonjour [**GUEST_NAME**],
 
-Au programme : musique, danse, et bonne humeur garantie !
+C'est avec [*joie*] que nous vous invitons à célébrer mon anniversaire !
 
-Votre présence fera de cette fête un moment inoubliable.
+Rejoignez-moi le [**DATE**] à [**TIME**] à [**LOCATION**] pour une soirée [purple:festive] et conviviale.
 
-[ORGANIZER_NAME]`
+[>Au programme : musique, danse, et bonne humeur garantie !<]
+
+[!Votre présence fera de cette fête un moment inoubliable !]
+
+[>Avec amitié,<]
+[>ORGANIZER_NAME<]`
     },
     {
       id: 'anniversaire-mariage',
       title: 'Anniversaire de Mariage',
       category: 'anniversaire',
-      message: `Nous célébrons [YEARS] années de bonheur ensemble !
+      message: `[#💕 Anniversaire de Mariage 💕#]
 
-Rejoignez-nous le [DATE] à [TIME] à [LOCATION] pour fêter cet anniversaire de mariage.
+Cher(e) [**GUEST_NAME**],
 
-Partagez avec nous ce moment de joie et de gratitude.
+Nous célébrons [**YEARS**] années de [red:bonheur] ensemble !
 
-Votre présence nous comblera de bonheur.
+Rejoignez-nous le [**DATE**] à [**TIME**] à [**LOCATION**] pour fêter cet [*anniversaire de mariage*].
 
-[ORGANIZER_NAME]`
+[>Partagez avec nous ce moment de joie et de gratitude.<]
+
+[!Votre présence nous comblera de bonheur !]
+
+[>Avec tout notre amour,<]
+[>ORGANIZER_NAME<]`
     },
     {
       id: 'anniversaire-entreprise',
@@ -160,14 +189,95 @@ Merci de faire partie de notre histoire !
       id: 'evenement-generique',
       title: 'Événement Générique',
       category: 'generique',
-      message: `Nous avons le plaisir de vous inviter à notre événement.
+      message: `[#Invitation à un Événement#]
 
-Rejoignez-nous le [DATE] à [TIME] à [LOCATION] pour partager ce moment spécial avec nous.
+Bonjour [**GUEST_NAME**],
 
-Votre présence nous fera le plus grand plaisir.
+Nous avons le plaisir de vous inviter à notre [*événement*].
 
-Avec plaisir,
-[ORGANIZER_NAME]`
+Rejoignez-nous le [**DATE**] à [**TIME**] à [**LOCATION**] pour partager ce [blue:moment spécial] avec nous.
+
+[>Votre présence nous fera le plus grand plaisir.<]
+
+[>Avec plaisir,<]
+[>ORGANIZER_NAME<]`
+    },
+
+    // NOUVEAUX MODÈLES AVEC FORMATAGE AVANCÉ
+    {
+      id: 'mariage-luxe',
+      title: 'Mariage de Luxe',
+      category: 'mariage',
+      message: `[#💎 Mariage de Luxe 💎#]
+
+Cher(e) [**GUEST_NAME**],
+
+C'est avec [*une immense fierté*] que nous vous convions à notre [purple:cérémonie de mariage] d'exception.
+
+[>**Dress Code :** Tenue de soirée élégante<]
+[>**Date :** [**DATE**] à [**TIME**]<]
+[>**Lieu :** [**LOCATION**]<]
+
+[---]
+
+[>Cocktail de bienvenue, dîner gastronomique, et soirée dansante jusqu'au bout de la nuit.<]
+
+[!Votre présence fera de cette journée un moment inoubliable !]
+
+[>Avec tout notre amour et notre reconnaissance,<]
+[>ORGANIZER_NAME<]`
+    },
+    {
+      id: 'conference-professionnelle',
+      title: 'Conférence Professionnelle',
+      category: 'entreprise',
+      message: `[##Conférence Professionnelle##]
+
+Bonjour [**GUEST_NAME**],
+
+Nous avons l'honneur de vous inviter à notre [*conférence professionnelle*] de haut niveau.
+
+[>**Thème :** [EVENT_TITLE]<]
+[>**Date :** [**DATE**] à [**TIME**]<]
+[>**Lieu :** [**LOCATION**]<]
+
+[###Programme de la journée :###]
+
+[>• 9h00 - Accueil et café<]
+[>• 9h30 - Conférences plénières<]
+[>• 12h00 - Déjeuner de networking<]
+[>• 14h00 - Ateliers pratiques<]
+[>• 17h00 - Cocktail de clôture<]
+
+[!Inscription obligatoire avant le [DATE] !]
+
+[>Cordialement,<]
+[>ORGANIZER_NAME<]`
+    },
+    {
+      id: 'fete-enfants',
+      title: 'Fête d\'Enfants',
+      category: 'anniversaire',
+      message: `[#🎈 Fête d'Anniversaire 🎈#]
+
+Bonjour [**GUEST_NAME**],
+
+[**EVENT_TITLE**] fête son anniversaire et vous êtes invité(e) !
+
+[>**Date :** [**DATE**] à [**TIME**]<]
+[>**Lieu :** [**LOCATION**]<]
+
+[###Au programme :###]
+
+[>🎪 Animations et jeux<]
+[>🍰 Gâteau d'anniversaire<]
+[>🎁 Distribution de cadeaux<]
+[>🎵 Musique et danse<]
+
+[!Venez nombreux pour une fête [purple:mémorable] !]
+
+[>Avec joie,<]
+[>ORGANIZER_NAME<]`
     }
   ]
 
