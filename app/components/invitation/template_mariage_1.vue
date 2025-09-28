@@ -1,6 +1,25 @@
 <template>
  
-    <div class="min-h-screen  overflow-hidden">
+    <div class="min-h-screen overflow-hidden relative">
+      <!-- Confettis pour toute la page -->
+      <div class="confetti-container-full">
+        <div class="confetti confetti-1"></div>
+        <div class="confetti confetti-2"></div>
+        <div class="confetti confetti-3"></div>
+        <div class="confetti confetti-4"></div>
+        <div class="confetti confetti-5"></div>
+        <div class="confetti confetti-6"></div>
+        <div class="confetti confetti-7"></div>
+        <div class="confetti confetti-8"></div>
+        <div class="confetti confetti-9"></div>
+        <div class="confetti confetti-10"></div>
+        <div class="confetti confetti-11"></div>
+        <div class="confetti confetti-12"></div>
+        <div class="confetti confetti-13"></div>
+        <div class="confetti confetti-14"></div>
+        <div class="confetti confetti-15"></div>
+        <div class="confetti confetti-16"></div>
+      </div>
       
       <!-- Hero Section avec parallaxe simple -->
     <section class="header-image" style="height: 80dvh;">
@@ -25,7 +44,7 @@
             :delay="200"
             :duration="1000">
             <!-- Titre principal -->
-            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold mb-4 leading-tight drop-shadow-2xl">
+            <h1 class="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold mb-4 leading-tight drop-shadow-2xl">
               {{ (event || invitation?.event)?.title || 'Invitation' }}
             </h1>
             
@@ -53,18 +72,22 @@
         backgroundRepeat: 'no-repeat'
       }"
     >
-      <!-- Bulles animées -->
-      <div class="bubbles-container">
-        <div class="bubble bubble-1"></div>
-        <div class="bubble bubble-2"></div>
-        <div class="bubble bubble-3"></div>
-        <div class="bubble bubble-4"></div>
-        <div class="bubble bubble-5"></div>
-        <div class="bubble bubble-6"></div>
-        <div class="bubble bubble-7"></div>
-        <div class="bubble bubble-8"></div>
+      <!-- Confettis animés -->
+      <div class="confetti-container">
+        <div class="confetti confetti-1"></div>
+        <div class="confetti confetti-2"></div>
+        <div class="confetti confetti-3"></div>
+        <div class="confetti confetti-4"></div>
+        <div class="confetti confetti-5"></div>
+        <div class="confetti confetti-6"></div>
+        <div class="confetti confetti-7"></div>
+        <div class="confetti confetti-8"></div>
+        <div class="confetti confetti-9"></div>
+        <div class="confetti confetti-10"></div>
+        <div class="confetti confetti-11"></div>
+        <div class="confetti confetti-12"></div>
       </div>
-      <div class="invitation-content" 
+      <div class="invitation-content relative z-10" 
      
         >
           <!-- Titre -->
@@ -299,6 +322,192 @@ onUnmounted(() => {
   min-height: 60vh;
   display: flex;
   align-items: center;
+}
+
+/* Conteneur des confettis */
+.confetti-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Conteneur des confettis pour toute la page */
+.confetti-container-full {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Style de base des confettis */
+.confetti {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  top: -200px;
+  animation: confetti-fall 4s linear infinite;
+}
+
+/* Formes et couleurs des confettis */
+.confetti-1 {
+  background: #ff6b6b;
+  left: 10%;
+  animation-delay: 0s;
+  animation-duration: 3s;
+}
+
+.confetti-2 {
+  background: #4ecdc4;
+  left: 20%;
+  animation-delay: 0.5s;
+  animation-duration: 4s;
+  transform: rotate(45deg);
+}
+
+.confetti-3 {
+  background: #45b7d1;
+  left: 30%;
+  animation-delay: 1s;
+  animation-duration: 3.5s;
+  border-radius: 50%;
+}
+
+.confetti-4 {
+  background: #f9ca24;
+  left: 40%;
+  animation-delay: 1.5s;
+  animation-duration: 4.5s;
+  transform: rotate(30deg);
+}
+
+.confetti-5 {
+  background: #f0932b;
+  left: 50%;
+  animation-delay: 2s;
+  animation-duration: 3.2s;
+  border-radius: 50%;
+}
+
+.confetti-6 {
+  background: #eb4d4b;
+  left: 60%;
+  animation-delay: 0.8s;
+  animation-duration: 4.2s;
+  transform: rotate(60deg);
+}
+
+.confetti-7 {
+  background: #6c5ce7;
+  left: 70%;
+  animation-delay: 2.5s;
+  animation-duration: 3.8s;
+  border-radius: 50%;
+}
+
+.confetti-8 {
+  background: #a29bfe;
+  left: 80%;
+  animation-delay: 1.2s;
+  animation-duration: 4.8s;
+  transform: rotate(15deg);
+}
+
+.confetti-9 {
+  background: #fd79a8;
+  left: 15%;
+  animation-delay: 3s;
+  animation-duration: 3.6s;
+  border-radius: 50%;
+}
+
+.confetti-10 {
+  background: #00b894;
+  left: 35%;
+  animation-delay: 0.3s;
+  animation-duration: 4.3s;
+  transform: rotate(75deg);
+}
+
+.confetti-11 {
+  background: #e17055;
+  left: 65%;
+  animation-delay: 2.2s;
+  animation-duration: 3.9s;
+  border-radius: 50%;
+}
+
+.confetti-12 {
+  background: #74b9ff;
+  left: 85%;
+  animation-delay: 1.8s;
+  animation-duration: 4.1s;
+  transform: rotate(45deg);
+}
+
+.confetti-13 {
+  background: #ff7675;
+  left: 5%;
+  animation-delay: 2.8s;
+  animation-duration: 3.7s;
+  border-radius: 50%;
+}
+
+.confetti-14 {
+  background: #00cec9;
+  left: 25%;
+  animation-delay: 0.7s;
+  animation-duration: 4.6s;
+  transform: rotate(60deg);
+}
+
+.confetti-15 {
+  background: #fdcb6e;
+  left: 55%;
+  animation-delay: 3.3s;
+  animation-duration: 3.4s;
+  border-radius: 50%;
+}
+
+.confetti-16 {
+  background: #e84393;
+  left: 75%;
+  animation-delay: 1.4s;
+  animation-duration: 4.7s;
+  transform: rotate(30deg);
+}
+
+/* Animation de chute des confettis */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-150px) translateX(0px) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) translateX(100px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+  .confetti {
+    width: 10px;
+    height: 10px;
+    animation-duration: 3s;
+  }
 }
 
 
