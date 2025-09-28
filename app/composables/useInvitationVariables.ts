@@ -60,13 +60,20 @@ export const useInvitationVariables = (data: InvitationData) => {
     const eventData = data.event || data.invitation?.event
     const invitationData = data.invitation
 
+    // Récupérer le nom de l'organisateur depuis différentes sources possibles
+    const organizerName = eventData?.organizer?.name || 
+                         eventData?.organizerName || 
+                         eventData?.user?.name || 
+                         data.invitation?.organizer?.name ||
+                         'Organisateur'
+
     // Remplacer les variables dynamiques
     processedMessage = processedMessage.replace(/\[DATE\]/g, eventData?.startsAt ? formatDate(eventData.startsAt) : '[DATE]')
     processedMessage = processedMessage.replace(/\[TIME\]/g, eventData?.startsAt ? formatTime(eventData.startsAt) : '[TIME]')
     processedMessage = processedMessage.replace(/\[LOCATION\]/g, eventData?.location || '[LOCATION]')
     processedMessage = processedMessage.replace(/\[GUEST_NAME\]/g, invitationData?.guestName || '[GUEST_NAME]')
     processedMessage = processedMessage.replace(/\[EVENT_TITLE\]/g, eventData?.title || '[EVENT_TITLE]')
-    processedMessage = processedMessage.replace(/\[ORGANIZER_NAME\]/g, eventData?.organizer?.name || '[ORGANIZER_NAME]')
+    processedMessage = processedMessage.replace(/\[ORGANIZER_NAME\]/g, organizerName)
     processedMessage = processedMessage.replace(/\[YEARS\]/g, '[YEARS]') // Variable spéciale pour les anniversaires
 
     // Convertir les retours à la ligne en HTML

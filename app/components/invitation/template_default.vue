@@ -159,8 +159,17 @@ const messageFontSize = computed(() => {
 
 const handleDownloadInvitation = async () => {
   try {
+    // Nettoyer le message pour le canvas (enlever les balises HTML)
+    let cleanMessage = processedGuestMessage.value || ''
+    if (cleanMessage) {
+      // Remplacer les <br> par des retours à la ligne pour le canvas
+      cleanMessage = cleanMessage.replace(/<br\s*\/?>/gi, '\n')
+      // Enlever toute autre balise HTML restante
+      cleanMessage = cleanMessage.replace(/<[^>]*>/g, '')
+    }
+    
     const invitationData = {
-      guestMessage: processedGuestMessage.value || undefined,
+      guestMessage: cleanMessage || undefined,
       backgroundImage: templateBackground,
       textStartY: 200,
       textColor: textColor,

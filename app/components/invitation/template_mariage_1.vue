@@ -52,18 +52,24 @@
         backgroundRepeat: 'no-repeat'
       }"
     >
-      <div class="invitation-content" v-motion
-        :initial="{ opacity: 0, x: 80 }"
-        :visible="{ opacity: 1, x: 0 }"
-        :delay="600"
-        :duration="1800">
+      <div class="invitation-content" 
+     
+        >
           <!-- Titre -->
-          <h2 class="md:text-5xl uppercase text-3xl font-serif mt-4 font-bold text-center mb-12 tracking-wide" :style="{ color: titleColor }">
+          <h2    v-motion
+        :initial="{ opacity: 0, x: 80 }"
+        :visible-once="{ opacity: 1, x: 0 }"
+        :delay="600"
+        :duration="1400" class="md:text-5xl uppercase text-3xl font-serif mt-4 font-bold text-center mb-12 tracking-wide" :style="{ color: titleColor }">
             Invitation
           </h2>
           
           <!-- Texte de l'invitation -->
-          <div class="text-center">
+          <div class="text-start"    v-motion
+        :initial="{ opacity: 0, x: 80 }"
+        :visible-once="{ opacity: 1, x: 0 }"
+        :delay="600"
+        :duration="1400">
             <div class="leading-relaxed max-w-3xl mx-auto font-serif" :style="{ color: textColor, fontSize: messageFontSize - 15 + 'px' }">
               <p v-if="processedGuestMessage" class="whitespace-pre-line font-medium" v-html="processedGuestMessage">
               </p>
@@ -168,8 +174,17 @@ const messageFontSize = computed(() => {
 
 const handleDownloadInvitation = async () => {
   try {
+    // Nettoyer le message pour le canvas (enlever les balises HTML)
+    let cleanMessage = processedGuestMessage.value || ''
+    if (cleanMessage) {
+      // Remplacer les <br> par des retours à la ligne pour le canvas
+      cleanMessage = cleanMessage.replace(/<br\s*\/?>/gi, '\n')
+      // Enlever toute autre balise HTML restante
+      cleanMessage = cleanMessage.replace(/<[^>]*>/g, '')
+    }
+    
     const invitationData = {
-      guestMessage: processedGuestMessage.value || undefined,
+      guestMessage: cleanMessage || undefined,
       backgroundImage: templateBackground,
       textStartY: 200,
       textColor: textColor,
