@@ -74,6 +74,7 @@ export const useInvitationVariables = (data: InvitationData) => {
     processedMessage = processedMessage.replace(/\[GUEST_NAME\]/g, invitationData?.guestName || '[GUEST_NAME]')
     processedMessage = processedMessage.replace(/\[EVENT_TITLE\]/g, eventData?.title || '[EVENT_TITLE]')
     processedMessage = processedMessage.replace(/\[ORGANIZER_NAME\]/g, organizerName)
+    processedMessage = processedMessage.replace(/\[TABLE\]/g, invitationData?.guestTableName || '[TABLE]')
     processedMessage = processedMessage.replace(/\[YEARS\]/g, '[YEARS]') // Variable spéciale pour les anniversaires
 
     // Convertir les retours à la ligne en HTML
@@ -97,6 +98,7 @@ export const useInvitationVariables = (data: InvitationData) => {
     { key: 'GUEST_NAME', label: 'Nom de l\'invité', example: 'Marie Dupont' },
     { key: 'EVENT_TITLE', label: 'Titre de l\'événement', example: 'Mariage de Marie et Jean' },
     { key: 'ORGANIZER_NAME', label: 'Nom de l\'organisateur', example: 'Marie et Jean' },
+    { key: 'TABLE', label: 'Table assignée à l\'invité', example: 'Table A' },
     { key: 'YEARS', label: 'Nombre d\'années (anniversaires)', example: '25' }
   ]
 
