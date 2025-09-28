@@ -182,6 +182,8 @@ const handleDownloadInvitation = async () => {
       cleanMessage = cleanMessage.replace(/<br\s*\/?>/gi, '\n')
       // Enlever toute autre balise HTML restante
       cleanMessage = cleanMessage.replace(/<[^>]*>/g, '')
+      // Nettoyer les espaces multiples
+      cleanMessage = cleanMessage.replace(/\n\s*\n\s*\n/g, '\n\n')
     }
     
     const invitationData = {
