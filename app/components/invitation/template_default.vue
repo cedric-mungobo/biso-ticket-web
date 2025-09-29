@@ -94,6 +94,30 @@
       </div>
     </section>
 
+    <!-- Section choix de boissons - Affichée uniquement si des boissons existent et invitation valide -->
+    <section 
+      v-if="drinksLoaded && availableDrinks.length > 0 && invitation?.id"
+      class="drink-selection-section relative py-16 px-4"
+      :style="{
+        backgroundImage: `url('${templateBackground}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }"
+    >
+      <!-- Overlay pour la lisibilité -->
+      <div class="absolute inset-0 bg-white/90 backdrop-blur-sm"></div>
+      
+      <!-- Contenu -->
+      <div class="relative z-10">
+        <DrinkSelection
+          :invitation-id="invitation?.id"
+          :available-drinks="availableDrinks"
+          :title-color="titleColor"
+          :text-color="textColor"
+        />
+      </div>
+    </section>
 
     <!-- Section livre d'or -->
     <GuestBook 
@@ -113,6 +137,8 @@ import { Download } from 'lucide-vue-next'
 import { useCanvasImage } from '~/composables/useCanvasImage'
 import { formatDate, calculateDynamicFontSize } from '~/utils'
 import { useInvitationVariables } from '~/composables/useInvitationVariables'
+import { useDrinks } from '~/composables/useDrinks'
+import DrinkSelection from '~/components/invitation/DrinkSelection.vue'
 
 const props = defineProps<{ invitation: any; event?: any }>()
 
@@ -121,17 +147,42 @@ const scrollY = ref(0)
 // Composable pour la génération d'image Canvas
 const { isGenerating, downloadInvitationImage } = useCanvasImage()
 
+// Composable pour les boissons
+const { fetchEventDrinks } = useDrinks()
+
+// Charger les boissons disponibles pour l'événement
+const availableDrinks = ref<any[]>([])
+const drinksLoaded = ref(false)
+
 const handleScroll = () => {
   scrollY.value = window.scrollY
 }
 
+// Charger les boissons au montage du composant
+onMounted(async () => {
+  try {
+    const eventId = (props.event || props.invitation?.event)?.id
+    if (eventId) {
+      const drinks = await fetchEventDrinks(eventId)
+      availableDrinks.value = drinks
+      console.log('🍷 Boissons chargées pour l\'événement (template défaut):', drinks.length, 'boissons disponibles')
+    } else {
+      console.log('⚠️ Aucun événement trouvé pour charger les boissons (template défaut)')
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des boissons (template défaut):', error)
+  } finally {
+    drinksLoaded.value = true
+  }
+})
+
 const templateBackground = `/models/${(props.event || props.invitation?.event)?.settings?.defaultInvitationTemplate?.designKey || 'template_default'}.png`
 
 // Variables dynamiques pour les couleurs et tailles
-const textColor = '#794c44'
-const titleColor = '#794c44'
-const accentColor = '#794c44'
-const signatureColor = '#794c44'
+const titleColor = '#1f2937'
+const textColor = '#374151'
+const accentColor = '#1f2937'
+const signatureColor = '#1f2937'
 
 // Calcul de la taille de police dynamique
 const guestMessage = computed(() => 
@@ -243,6 +294,19 @@ onUnmounted(() => {
 .parallax-bg {
   will-change: transform;
   transform: translateZ(0);
+}
+
+/* Section choix de boissons */
+.drink-selection-section {
+  position: relative;
+  z-index: 2;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+  .drink-selection-section {
+    padding: 2rem 1rem;
+  }
 }
 
 

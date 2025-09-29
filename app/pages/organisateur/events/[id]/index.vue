@@ -427,6 +427,7 @@ const { pending: ticketsPending, refresh: refreshTickets } = await useAsyncData(
 })
 const ticketsLoading = computed(() => ticketsPending.value)
 
+
 // La logique des formulaires de réservation est maintenant dans le composant ReservationFormList
 
 const showTicketView = ref(false)
@@ -440,6 +441,7 @@ const showPublicId = ref(false)
 
 const currentTicket = ref<any>(null)
 const ticketForm = ref<any>({ type: '', price: 0, quantity: 1, devise: 'USD' })
+
 
 
 const getApiErrorMessage = (err: any): string => {
@@ -542,6 +544,7 @@ const openDeleteReservationForm = (form: any) => {
   // TODO: Implémenter la suppression du formulaire
   useAppToast().showInfo('Fonctionnalité à venir', 'La suppression des formulaires de réservation sera bientôt disponible.')
 }
+
 
 
 

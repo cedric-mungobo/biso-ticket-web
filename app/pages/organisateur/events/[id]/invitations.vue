@@ -20,11 +20,12 @@
        
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Invitations</h1>
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
             <UButton size="sm" color="primary" @click="showAddGuest=true"><UIcon name="i-heroicons-user-plus" class="w-4 h-4 mr-1" /> Ajouter invité</UButton>
             <UButton size="sm" color="neutral" @click="showImport=true"><UIcon name="i-heroicons-arrow-up-tray" class="w-4 h-4 mr-1" /> Importer liste</UButton>
             <UButton size="sm" color="warning" @click="showTemplate=true"><UIcon name="i-heroicons-swatch" class="w-4 h-4 mr-1" /> Modèle d'invitation</UButton>
             <UButton size="sm" color="secondary" @click="showMessage=true"><UIcon name="i-heroicons-cog-6-tooth" class="w-4 h-4 mr-1" /> Configuration du message</UButton>
+            <UButton size="sm" color="info" @click="showDrinksList=true"><UIcon name="i-heroicons-wine" class="w-4 h-4 mr-1" /> Boissons</UButton>
             <UButton size="sm" color="success" @click="openBuyCredits"><UIcon name="i-heroicons-credit-card" class="w-4 h-4 mr-1" /> Acheter crédits</UButton>
             <div class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
               <span class="font-medium">{{ credits?.balance ?? 0 }}</span> crédits d'invitation
@@ -40,7 +41,7 @@
           <USkeleton class="h-10 w-full" />
         </div>
         <div v-else>
-          <div class="flex flex-row items-center gap-2">
+          <div class="flex flex-row items-center gap-2 flex-wrap">
             <div class="flex items-center gap-2 min-w-0">
               <label for="status" class="text-xs sm:text-sm text-gray-700 whitespace-nowrap">Statut</label>
               <select id="status" v-model="statusFilter" class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-primary-500 focus:ring-primary-500 w-24 sm:w-auto min-w-0">
@@ -50,6 +51,19 @@
                 <option value="viewed">Consulté</option>
                 <option value="confirmed">Confirmé</option>
                 <option value="cancelled">Annulé</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2 min-w-0">
+              <label for="drink" class="text-xs sm:text-sm text-gray-700 whitespace-nowrap">
+                Boisson
+                <span v-if="drinks.length > 0" class="text-gray-500">({{ drinks.length }})</span>
+              </label>
+              <select id="drink" v-model="drinkFilter" class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-primary-500 focus:ring-primary-500 w-32 sm:w-auto min-w-0" :disabled="drinks.length === 0">
+                <option value="all">Toutes</option>
+                <option v-if="drinks.length === 0" value="all" disabled>Aucune boisson configurée</option>
+                <option v-for="drink in drinks" :key="drink.id || drink.name" :value="drink.name">
+                  {{ drink.name }}
+                </option>
               </select>
             </div>
             <div class="flex items-center gap-2 flex-1 min-w-0">
@@ -312,6 +326,67 @@
         </template>
       </Modal>
 
+      <!-- Modal de gestion des boissons -->
+      <Modal v-model="showDrinksList" title="Configuration des boissons" class="modal-mobile-optimized">
+        <div class="modal-content-mobile">
+          <DrinkList
+            :drinks="drinks"
+            :loading="drinksLoading"
+            @add-drink="openAddDrink"
+            @edit-drink="openEditDrink"
+            @delete-drink="openDeleteDrink"
+          />
+        </div>
+      </Modal>
+
+      <!-- Modal d'ajout/édition de boissons -->
+      <Modal v-model="showDrinkForm" :title="currentDrink ? 'Modifier les boissons' : 'Ajouter des boissons'" class="modal-mobile-optimized">
+        <div class="modal-content-mobile">
+          <DrinkForm
+            v-model="drinkForm"
+            :submitting="drinksSubmitting"
+            @submit="currentDrink ? handleUpdateDrinks(drinkForm) : handleAddDrinks(drinkForm)"
+            @cancel="showDrinkForm = false"
+          />
+        </div>
+        <template #footer>
+          <UButton variant="ghost" @click="showDrinkForm = false">Annuler</UButton>
+          <UButton 
+            color="primary" 
+            :loading="drinksSubmitting" 
+            @click="currentDrink ? handleUpdateDrinks(drinkForm) : handleAddDrinks(drinkForm)"
+          >
+            {{ currentDrink ? 'Mettre à jour' : 'Ajouter' }}
+          </UButton>
+        </template>
+      </Modal>
+
+      <!-- Modal de suppression des boissons -->
+      <Modal v-model="showDrinkDelete" title="Supprimer toutes les boissons" class="modal-mobile-optimized">
+        <div class="modal-content-mobile">
+          <div class="text-center py-4">
+            <UIcon name="i-heroicons-exclamation-triangle" class="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Confirmer la suppression</h3>
+            <p class="text-sm text-gray-600 mb-4">
+              Êtes-vous sûr de vouloir supprimer toutes les boissons configurées pour cet événement ?
+            </p>
+            <p class="text-xs text-gray-500">
+              Cette action est irréversible.
+            </p>
+          </div>
+        </div>
+        <template #footer>
+          <UButton variant="ghost" @click="showDrinkDelete = false">Annuler</UButton>
+          <UButton 
+            color="red" 
+            :loading="drinksSubmitting" 
+            @click="handleDeleteDrinks"
+          >
+            Supprimer toutes les boissons
+          </UButton>
+        </template>
+      </Modal>
+
      
     </div>
   </OrganizerNavigation>
@@ -319,6 +394,9 @@
 
 <script setup lang="ts">
 // @ts-nocheck
+import DrinkList from '~/components/organizer/DrinkList.vue'
+import DrinkForm from '~/components/organizer/forms/DrinkForm.vue'
+
 definePageMeta({ middleware: 'authenticated', ssr: false })
 
 const route = useRoute()
@@ -327,6 +405,7 @@ const backUrl = computed(() => `/organisateur/events/${eventId}`)
 
 const { fetchEventInvitations, fetchInvitationTemplates, createInvitation, createInvitationsBatch, shareInvitation } = useInvitations()
 const { fetchEventWithState, currentEvent } = useOrganizerEvents()
+const { fetchEventDrinks, addEventDrinks, updateEventDrinks, deleteEventDrinks } = useDrinks()
 const toast = useToast()
 
 // Récupérer les informations de l'événement
@@ -334,6 +413,7 @@ const event = computed(() => currentEvent.value)
 
 const statusFilter = ref<'all'|'pending'|'sent'|'viewed'|'confirmed'|'cancelled'>('all')
 const searchQuery = ref('')
+const drinkFilter = ref<string>('all')
 const { pending, data, refresh } = await useAsyncData<{ items: any[]; meta: any }>(
   `organizer-event-${eventId}-invitations`,
   () => fetchEventInvitations(eventId, { per_page: perPage.value, page: currentPage.value }),
@@ -358,9 +438,20 @@ const filtered = computed<any[]>(() => {
   const list = Array.isArray(invitations.value) ? invitations.value : []
   const status = (statusFilter.value || 'all').toLowerCase()
   const byStatus = status === 'all' ? list : list.filter((i:any) => String(i.status || '').toLowerCase() === status)
+  
+  // Filtre par boisson (pour l'instant, on filtre par nom d'invité qui contient le nom de la boisson)
+  const drink = drinkFilter.value
+  const byDrink = drink === 'all' ? byStatus : byStatus.filter((i:any) => {
+    // Pour l'instant, on simule le filtre en cherchant dans le nom de l'invité
+    // Plus tard, on pourra ajouter un champ drinkPreference aux invitations
+    const guestName = String(i.guestName || '').toLowerCase()
+    const drinkName = String(drink || '').toLowerCase()
+    return guestName.includes(drinkName) || drinkName.includes(guestName)
+  })
+  
   const q = searchQuery.value.trim().toLowerCase()
-  if (!q) return byStatus
-  return byStatus.filter((i:any) => {
+  if (!q) return byDrink
+  return byDrink.filter((i:any) => {
     const hay = [i.guestName, i.guestEmail, i.guestPhone, i.guestTableName, i.token]
       .map((v:any) => String(v || '').toLowerCase()).join(' ')
     return hay.includes(q)
@@ -481,6 +572,20 @@ const credits = computed(() => creditsData.value || { balance: 0 })
 // Prix crédits
 const { fetchCreditPrice } = useCredits()
 const { pending: pricePending, data: priceData } = await useAsyncData(`invitations-credit-price`, () => fetchCreditPrice(), { server: false })
+
+// Chargement des boissons
+const { pending: drinksPending, refresh: refreshDrinks } = await useAsyncData(`organizer-event-drinks-${eventId}`, async () => {
+  try {
+    const list = await fetchEventDrinks(eventId)
+    drinks.value = list
+    return list
+  } catch (error) {
+    console.error('Erreur lors du chargement des boissons:', error)
+    drinks.value = []
+    return []
+  }
+})
+const drinksLoading = computed(() => drinksPending.value)
 const unitPriceUsd = computed(() => (priceData.value?.unitPriceUsd ?? 0).toFixed(2))
 const totalUsd = computed(() => (Number(priceData.value?.unitPriceUsd || 0) * Math.max(0, Number(buy?.credits || 0))).toFixed(2))
 
@@ -633,6 +738,15 @@ const addGuest = async () => {
 
 // Import modal
 const showImport = ref(false)
+
+// Variables pour les boissons
+const showDrinksList = ref(false)
+const showDrinkForm = ref(false)
+const showDrinkDelete = ref(false)
+const drinks = ref<any[]>([])
+const drinkForm = ref<any[]>([])
+const currentDrink = ref<any>(null)
+const drinksSubmitting = ref(false)
 const onImportFile = (e: Event) => {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
@@ -757,6 +871,78 @@ const downloadSampleCsv = () => {
   a.click()
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
+}
+
+// Fonctions pour les boissons
+const openAddDrink = () => {
+  drinkForm.value = []
+  showDrinkForm.value = true
+}
+
+const openEditDrink = (drink: any) => {
+  currentDrink.value = drink
+  drinkForm.value = [{ name: drink.name, category: drink.category }]
+  showDrinkForm.value = true
+}
+
+const openDeleteDrink = (drink: any) => {
+  currentDrink.value = drink
+  showDrinkDelete.value = true
+}
+
+const getApiErrorMessage = (err: any): string => {
+  const response = err?.response
+  const data = response?._data || response?.data
+  if (data?.message) return String(data.message)
+  if (data?.errors) {
+    if (Array.isArray(data.errors)) return data.errors.join(', ')
+    const values = Object.values(data.errors as Record<string, any>)
+    const flat = ([] as any[]).concat(...values as any)
+    if (flat.length) return String(flat[0])
+  }
+  return String(err?.message || 'Erreur inattendue')
+}
+
+const handleAddDrinks = async (drinksData: any[]) => {
+  try {
+    drinksSubmitting.value = true
+    await addEventDrinks(eventId, drinksData)
+    showDrinkForm.value = false
+    await refreshDrinks()
+    useAppToast().showSuccess('Boissons ajoutées', 'Les boissons ont été ajoutées avec succès.')
+  } catch (e: any) {
+    useAppToast().showError('Erreur lors de l\'ajout', getApiErrorMessage(e))
+  } finally {
+    drinksSubmitting.value = false
+  }
+}
+
+const handleUpdateDrinks = async (drinksData: any[]) => {
+  try {
+    drinksSubmitting.value = true
+    await updateEventDrinks(eventId, drinksData)
+    showDrinkForm.value = false
+    await refreshDrinks()
+    useAppToast().showSuccess('Boissons mises à jour', 'Les boissons ont été modifiées avec succès.')
+  } catch (e: any) {
+    useAppToast().showError('Erreur lors de la mise à jour', getApiErrorMessage(e))
+  } finally {
+    drinksSubmitting.value = false
+  }
+}
+
+const handleDeleteDrinks = async () => {
+  try {
+    drinksSubmitting.value = true
+    await deleteEventDrinks(eventId)
+    showDrinkDelete.value = false
+    await refreshDrinks()
+    useAppToast().showSuccess('Boissons supprimées', 'Toutes les boissons ont été supprimées.')
+  } catch (e: any) {
+    useAppToast().showError('Erreur lors de la suppression', getApiErrorMessage(e))
+  } finally {
+    drinksSubmitting.value = false
+  }
 }
 </script>
 
