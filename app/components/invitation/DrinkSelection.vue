@@ -137,7 +137,7 @@ onMounted(async () => {
     selectedDrinks.value = choices.map(c => c.name)
     originalSelection.value = [...selectedDrinks.value]
   } catch (error) {
-    console.error('Erreur lors du chargement des choix:', error)
+    if (process.dev) console.error('Erreur lors du chargement des choix:', error)
   }
 })
 

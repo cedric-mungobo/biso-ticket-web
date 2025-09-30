@@ -85,19 +85,22 @@ export default defineNuxtPlugin((nuxtApp) => {
           }
         }
       } catch (_e) {
-        console.error('Error parsing response:', _e) // Debug
+        // Log en dev seulement
+        if (process.dev) console.error('Error parsing response:', _e)
         // Si on ne peut pas parser la réponse, utiliser les messages par défaut
       }
 
       // Gérer les erreurs API selon la nouvelle structure
       if (response.status === 401) {
-        console.error('Erreur 401: Accès non autorisé - Token expiré ou invalide')
+        // Log en dev seulement
+        if (process.dev) console.error('Erreur 401: Accès non autorisé')
         // Nettoyer le token invalide
         const token = useCookie('auth_token')
         token.value = null
         errorMessage = 'Session expirée. Veuillez vous reconnecter.'
       } else if (response.status === 422) {
-        console.error('Erreur 422: Données de validation invalides')
+        // Log en dev seulement
+        if (process.dev) console.error('Erreur 422: Données de validation invalides')
         if (Object.keys(errorDetails).length > 0) {
           // Stocker les erreurs de validation globalement
           validationErrors.value = errorDetails
@@ -105,10 +108,12 @@ export default defineNuxtPlugin((nuxtApp) => {
           errorMessage = 'Veuillez vérifier les informations saisies'
         }
       } else if (response.status === 404) {
-        console.error('Erreur 404: Ressource non trouvée')
+        // Log en dev seulement
+        if (process.dev) console.error('Erreur 404: Ressource non trouvée')
         errorMessage = 'Contenu non trouvé'
       } else if (response.status >= 500) {
-        console.error('Erreur serveur:', response.status)
+        // Log en dev seulement
+        if (process.dev) console.error('Erreur serveur:', response.status)
         errorMessage = 'Service temporairement indisponible. Veuillez réessayer.'
       } else if (response.status === 0 || !response.status) {
         // Erreur de réseau
@@ -126,16 +131,13 @@ export default defineNuxtPlugin((nuxtApp) => {
         }
       }
 
-      // Logging dev (erreurs)
+      // Logging dev (erreurs) - masqué en production
       if (process.dev) {
         try {
           // @ts-ignore
           const meta = options._meta || {}
           const durationMs = meta.startedAt ? Math.round(performance.now() - meta.startedAt) : undefined
-          // @ts-ignore
-          const data = (response as any)?._data
-          const preview = typeof data === 'string' ? data.slice(0, 200) : JSON.stringify(data)?.slice(0, 200)
-          console.warn('[API]', meta.method || options.method || 'GET', String(request), '→', response.status, durationMs ? `${durationMs}ms` : '', preview)
+          console.warn('[API ERROR]', meta.method || options.method || 'GET', String(request), '→', response.status, durationMs ? `${durationMs}ms` : '')
         } catch (_e) {
           // noop
         }

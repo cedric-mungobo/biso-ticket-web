@@ -165,12 +165,12 @@ onMounted(async () => {
     if (eventId) {
       const drinks = await fetchEventDrinks(eventId)
       availableDrinks.value = drinks
-      console.log('🍷 Boissons chargées pour l\'événement (template défaut):', drinks.length, 'boissons disponibles')
+      if (process.dev) console.log('🍷 Boissons chargées pour l\'événement (template défaut):', drinks.length, 'boissons disponibles')
     } else {
-      console.log('⚠️ Aucun événement trouvé pour charger les boissons (template défaut)')
+      if (process.dev) console.log('⚠️ Aucun événement trouvé pour charger les boissons (template défaut)')
     }
   } catch (error) {
-    console.error('Erreur lors du chargement des boissons (template défaut):', error)
+    if (process.dev) console.error('Erreur lors du chargement des boissons (template défaut):', error)
   } finally {
     drinksLoaded.value = true
   }

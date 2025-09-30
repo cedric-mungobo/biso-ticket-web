@@ -19,7 +19,7 @@ export const useInvitationDrinks = () => {
       const response = await $myFetch<DrinkChoiceResponse>(`/invitations/${invitationId}/drink-choice`)
       return response.data || []
     } catch (error: any) {
-      console.error('Erreur lors de la récupération des choix de boissons:', error)
+      if (process.dev) console.error('Erreur lors de la récupération des choix de boissons:', error)
       throw new Error('Impossible de récupérer les choix de boissons')
     }
   }
@@ -33,7 +33,7 @@ export const useInvitationDrinks = () => {
       })
       return response.data || []
     } catch (error: any) {
-      console.error('Erreur lors de la sauvegarde des choix de boissons:', error)
+      if (process.dev) console.error('Erreur lors de la sauvegarde des choix de boissons:', error)
       throw new Error('Impossible de sauvegarder les choix de boissons')
     }
   }

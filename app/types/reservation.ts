@@ -97,40 +97,99 @@ export interface ReservationFormUpdateData extends Partial<ReservationFormCreate
 // Types pour les réservations
 export interface Reservation {
   id: number
+  publicId: string
   reservation_form_id: number
-  event_id: number
-  user_id: number
+  eventId: number
+  userId: number
+  fullName: string
+  email: string
+  phone?: string
+  formData: Record<string, any>
+  price?: number
+  paymentRequired: boolean
+  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded'
+  paymentMethod?: string
   status: 'pending' | 'confirmed' | 'cancelled'
-  data: Record<string, any>
-  total_amount?: string
-  payment_status?: 'pending' | 'paid' | 'failed' | 'refunded'
-  payment_reference?: string
-  confirmed_at?: string
-  cancelled_at?: string
-  reservation_form: {
-    id: number
-    title: string
-    event_id: number
-  }
+  notes?: string
+  createdAt: string
+  updatedAt: string
   event: {
     id: number
     title: string
     slug: string
+    location?: string
+    startsAt: string
+    endsAt?: string
+    imageUrl?: string
+    imageBase64?: string
+    status: string
+    isPublic: boolean
+    createdAt: string
   }
   user: {
     id: number
     name: string
     email: string
   }
-  created_at: string
-  updated_at: string
+  // Propriétés de compatibilité (legacy)
+  reservation_form_id?: number
+  event_id?: number
+  user_id?: number
+  data?: Record<string, any>
+  total_amount?: string
+  payment_status?: 'pending' | 'paid' | 'failed' | 'refunded'
+  payment_reference?: string
+  confirmed_at?: string
+  cancelled_at?: string
+  reservation_form?: {
+    id: number
+    title: string
+    event_id: number
+  }
+  event?: {
+    id: number
+    title: string
+    slug: string
+  }
+  user?: {
+    id: number
+    name: string
+    email: string
+  }
+  created_at?: string
+  updated_at?: string
 }
 
 export interface ReservationFilters {
-  reservation_form_id?: number
+  search?: string
+  date_from?: string
+  date_to?: string
   event_id?: number
+  user_id?: number
   status?: 'pending' | 'confirmed' | 'cancelled'
   payment_status?: 'pending' | 'paid' | 'failed' | 'refunded'
   per_page?: number
   page?: number
+  // Propriétés de compatibilité (legacy)
+  reservation_form_id?: number
+}
+
+export interface ReservationStats {
+  total: number
+  by_status: {
+    confirmed: number
+    pending: number
+    cancelled: number
+  }
+}
+
+export interface ReservationResponse {
+  data: Reservation[]
+  pagination: {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+  }
+  stats: ReservationStats
 }

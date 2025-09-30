@@ -232,7 +232,7 @@ export const useInvitationVariables = (data: InvitationData) => {
     processedMessage = replaceVariable(/\[YEARS\]/g, '', '[YEARS]') // Variable spéciale pour les anniversaires
 
     // Corriger les titres mal formatés (sans crochets) AVANT le formatage
-    console.log('🔧 Message avant correction des titres:', processedMessage)
+    if (process.dev) console.log('🔧 Message avant correction des titres:', processedMessage)
     
     // Corriger les titres mal formatés dans le contenu HTML
     processedMessage = processedMessage.replace(/>##\s*(.*?)\s*##</g, '>[##$1##]<')
@@ -244,7 +244,7 @@ export const useInvitationVariables = (data: InvitationData) => {
     processedMessage = processedMessage.replace(/^#\s*(.*?)\s*#$/gm, '[$1]')
     processedMessage = processedMessage.replace(/^###\s*(.*?)\s*###$/gm, '[###$1###]')
     
-    console.log('🔧 Message après correction des titres:', processedMessage)
+    if (process.dev) console.log('🔧 Message après correction des titres:', processedMessage)
 
     // Appliquer le formatage avancé AVANT le remplacement des variables sans crochets
     processedMessage = applyFormatting(processedMessage)

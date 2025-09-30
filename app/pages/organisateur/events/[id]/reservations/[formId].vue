@@ -2,12 +2,12 @@
     <OrganizerNavigation>
       <div class="px-2 md:p-0 py-0">
         <!-- En-tête -->
-      <div class="mb-6">
+      <div class="mb-4">
         <!-- Navigation de retour -->
-        <div class="mb-4">
+        <div class="mb-3">
           <NuxtLink
             :to="`/organisateur/events/${eventId}`"
-            class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 mb-3"
+            class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 mb-2"
           >
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -17,46 +17,33 @@
         </div>
         
         <!-- Titre et informations -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900 mb-2">
+            <h1 class="text-xl font-bold text-gray-900 mb-1">
               Réservations - {{ formTitle }}
             </h1>
-            <p class="text-gray-600">
+            <p class="text-sm text-gray-600">
               {{ reservations.length }} réservation(s) trouvée(s)
-              <span v-if="selectedStatus" class="text-sm text-primary-600 ml-2">
+              <span v-if="hasActiveFilters" class="text-primary-600 ml-2">
                 (filtrées)
               </span>
             </p>
           </div>
           
           <!-- Filtres et actions -->
-          <div class="flex flex-col sm:flex-row gap-3">
-            <!-- Filtre par statut -->
-            <select
-              v-model="selectedStatus"
-              @change="applyFilters"
-              class="w-full sm:w-48 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
-              aria-label="Filtrer par statut"
-            >
-              <option value="">Tous les statuts</option>
-              <option value="pending">En attente</option>
-              <option value="confirmed">Confirmée</option>
-              <option value="cancelled">Annulée</option>
-            </select>
-            
-            <!-- Bouton pour réinitialiser les filtres -->
-            <UButton
-              v-if="selectedStatus"
-              @click="resetFilters"
-              variant="outline"
-              color="neutral"
-              size="sm"
-              class="w-full sm:w-auto"
-            >
-              <UIcon name="i-heroicons-x-mark" class="w-4 h-4 mr-2" />
-              Réinitialiser
-            </UButton>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <!-- Menu d'export -->
+            <UDropdownMenu :items="exportMenuItems">
+              <UButton
+                variant="outline"
+                color="neutral"
+                size="sm"
+                class="w-full sm:w-auto"
+                icon="i-heroicons-arrow-down-tray"
+              >
+                Exporter
+              </UButton>
+            </UDropdownMenu>
             
             <!-- Bouton pour copier le lien public -->
             <UButton
@@ -69,6 +56,91 @@
               <UIcon name="i-heroicons-link" class="w-4 h-4 mr-2" />
               Copier le lien public
             </UButton>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtres et statistiques compacts -->
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-3 mb-4">
+        <!-- Filtres en ligne -->
+        <div class="flex flex-wrap items-end gap-3 mb-3">
+          <div class="flex-1 min-w-48">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Recherche</label>
+            <UInput
+              v-model="searchQuery"
+              placeholder="Nom, email, téléphone..."
+              @input="debouncedSearch"
+              size="sm"
+            />
+          </div>
+          
+          <div class="w-32">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Statut</label>
+            <select
+              v-model="selectedStatus"
+              @change="applyFilters"
+              class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="">Tous</option>
+              <option value="pending">En attente</option>
+              <option value="confirmed">Confirmée</option>
+              <option value="cancelled">Annulée</option>
+            </select>
+          </div>
+          
+          <div class="w-36">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Date début</label>
+            <UInput
+              v-model="dateFrom"
+              type="date"
+              @change="applyFilters"
+              size="sm"
+            />
+          </div>
+          
+          <div class="w-36">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Date fin</label>
+            <UInput
+              v-model="dateTo"
+              type="date"
+              @change="applyFilters"
+              size="sm"
+            />
+          </div>
+          
+          <UButton
+            v-if="hasActiveFilters"
+            @click="resetFilters"
+            variant="ghost"
+            color="neutral"
+            size="sm"
+          >
+            <UIcon name="i-heroicons-x-mark" class="w-4 h-4" />
+          </UButton>
+        </div>
+
+        <!-- Statistiques compactes -->
+        <div v-if="stats" class="flex items-center justify-between text-sm">
+          <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 bg-slate-400 rounded-full"></div>
+              <span class="text-slate-600">Total: <strong class="text-slate-900">{{ stats.total }}</strong></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span class="text-slate-600">Confirmées: <strong class="text-slate-900">{{ stats.by_status.confirmed }}</strong></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+              <span class="text-slate-600">En attente: <strong class="text-slate-900">{{ stats.by_status.pending }}</strong></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+              <span class="text-slate-600">Annulées: <strong class="text-slate-900">{{ stats.by_status.cancelled }}</strong></span>
+            </div>
+          </div>
+          <div class="text-xs text-slate-500">
+            Mis à jour: {{ lastUpdated }}
           </div>
         </div>
       </div>
@@ -104,10 +176,10 @@
         <p class="text-gray-500">Aucune réservation n'a été trouvée pour ce formulaire.</p>
       </div>
 
-      <div v-else class="relative flex flex-col my-6 bg-white shadow-sm border border-slate-200 rounded-lg">
-        <div class="p-4">
-          <div class="mb-4 flex items-center justify-between">
-            <h5 class="text-slate-800 text-lg font-semibold">
+      <div v-else class="relative flex flex-col bg-white shadow-sm border border-slate-200 rounded-lg">
+        <div class="p-3">
+          <div class="mb-3 flex items-center justify-between">
+            <h5 class="text-slate-800 text-base font-semibold">
               Réservations - {{ formTitle }}
             </h5>
             <span class="text-slate-600 text-sm">
@@ -115,43 +187,49 @@
             </span>
           </div>
           <div class="divide-y divide-slate-200">
-            <div v-for="reservation in reservations" :key="reservation.id" class="flex items-center justify-between pb-3 pt-3 last:pb-0 group hover:bg-slate-50 transition-colors duration-200">
+            <div v-for="reservation in reservations" :key="reservation.id" class="flex items-center justify-between py-2 last:pb-0 group hover:bg-slate-50 transition-colors duration-200">
               <div class="flex items-center gap-x-3">
                 <!-- Avatar avec couleur selon statut -->
                 <div :class="getAvatarClasses(reservation.status)" class="relative inline-block h-5 w-5 rounded-full ring-2 ring-white shadow-sm"></div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1">
-                    <h6 class="text-slate-800 font-semibold truncate">
-                      {{ reservation.data?.name || reservation.data?.email || `Réservation #${reservation.id}` }}
+                    <h6 class="text-slate-800 font-medium text-sm truncate">
+                      {{ reservation.fullName || reservation.data?.name || reservation.data?.email || `Réservation #${reservation.publicId || reservation.id}` }}
                     </h6>
                     <UBadge 
                       :color="getStatusColor(reservation.status) as any" 
                       variant="soft"
-                      size="sm"
+                      size="xs"
                     >
                       {{ getStatusLabel(reservation.status) }}
                     </UBadge>
                   </div>
-                  <div class="flex items-center gap-4 text-sm text-slate-600">
+                  <div class="flex items-center gap-3 text-xs text-slate-500">
                     <span class="flex items-center">
                       <UIcon name="i-heroicons-calendar" class="w-3 h-3 mr-1" />
-                      {{ formatHumanDate(reservation.created_at) }}
+                      {{ formatHumanDate(reservation.createdAt || reservation.created_at || null) }}
                     </span>
-                    <span v-if="reservation.data?.email" class="truncate max-w-32">
-                      {{ reservation.data.email }}
+                    <span v-if="reservation.email || reservation.data?.email" class="truncate max-w-24">
+                      {{ reservation.email || reservation.data?.email }}
+                    </span>
+                    <span v-if="reservation.phone" class="truncate max-w-24">
+                      {{ reservation.phone }}
                     </span>
                   </div>
                 </div>
               </div>
               <div class="flex items-center gap-3">
                 <!-- Montant -->
-                <div v-if="reservation.total_amount" class="text-right">
-                  <h6 class="text-slate-600 font-medium">
-                    {{ reservation.total_amount }} USD
-                  </h6>
-                  <p v-if="reservation.payment_status" class="text-xs text-slate-500">
-                    {{ getPaymentStatusLabel(reservation.payment_status) }}
-                  </p>
+                <div v-if="reservation.price || reservation.total_amount" class="text-right text-xs">
+                  <div class="text-slate-600 font-medium">
+                    {{ reservation.price || reservation.total_amount }}
+                    <span v-if="reservation.paymentMethod" class="text-slate-500">
+                      ({{ reservation.paymentMethod }})
+                    </span>
+                  </div>
+                  <div v-if="reservation.paymentStatus || reservation.payment_status" class="text-slate-500">
+                    {{ getPaymentStatusLabel(reservation.paymentStatus || reservation.payment_status || '') }}
+                  </div>
                 </div>
                 
                 <!-- Actions -->
@@ -163,7 +241,7 @@
                     color="success"
                     size="xs"
                     :loading="updatingReservation === reservation.id"
-                    class="transition-opacity"
+                    class="transition-opacity p-1"
                   >
                     <UIcon name="i-heroicons-check" class="w-3 h-3" />
                   </UButton>
@@ -175,7 +253,7 @@
                     color="error"
                     size="xs"
                     :loading="updatingReservation === reservation.id"
-                    class="transition-opacity"
+                    class="transition-opacity p-1"
                   >
                     <UIcon name="i-heroicons-x-mark" class="w-3 h-3" />
                   </UButton>
@@ -185,7 +263,7 @@
                     variant="ghost"
                     color="primary"
                     size="xs"
-                    class="transition-opacity"
+                    class="transition-opacity p-1"
                   >
                     <UIcon name="i-heroicons-eye" class="w-3 h-3" />
                   </UButton>
@@ -197,7 +275,7 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="meta && meta.last_page > 1" class="mt-8 flex justify-center">
+      <div v-if="meta && meta.last_page > 1" class="mt-4 flex justify-center">
         <Pagination
           :pagination="{
             current_page: meta.current_page,
@@ -240,10 +318,10 @@
         </div>
 
         <!-- Données du formulaire -->
-        <div v-if="selectedReservation.formData && Object.keys(selectedReservation.formData).length > 0">
+        <div v-if="(selectedReservation.formData && Object.keys(selectedReservation.formData).length > 0) || (selectedReservation.data && Object.keys(selectedReservation.data).length > 0)">
           <h4 class="text-sm font-semibold text-gray-900 mb-2">Informations du formulaire</h4>
           <div class="bg-gray-50 rounded-lg p-3 space-y-2">
-            <template v-for="(value, fieldKey) in selectedReservation.formData" :key="String(fieldKey)">
+            <template v-for="(value, fieldKey) in (selectedReservation.formData || selectedReservation.data)" :key="String(fieldKey)">
               <div v-if="String(fieldKey) !== 'id' && String(fieldKey) !== 'reservation_id'" class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                 <span class="text-xs font-medium text-gray-700">{{ formatFieldName(String(fieldKey)) }}:</span>
                 <span class="text-sm text-gray-900 break-words">{{ formatFieldValue(value) }}</span>
@@ -293,7 +371,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { Reservation } from '~/types/reservation'
+import type { Reservation, ReservationStats } from '~/types/reservation'
 import Modal from '~/components/Modal.vue'
 
 definePageMeta({ middleware: 'authenticated' })
@@ -306,36 +384,118 @@ const formId = Number(route.params.formId)
 const { 
   fetchReservations, 
   updateReservationStatus,
-  formatReservationDate,
-  getStatusColor,
-  getPaymentStatusColor,
-  getStatusLabel,
-  getPaymentStatusLabel,
+  exportReservations,
   loading,
   error
 } = useReservations()
 
+// État local pour les données
+const reservations = ref<Reservation[]>([])
+const stats = ref<ReservationStats | null>(null)
+
 const toast = useToast()
 
+// Fonctions utilitaires pour l'affichage
+const formatReservationDate = (dateString: string) => {
+  if (!dateString) return ''
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'confirmed': return 'green'
+    case 'pending': return 'yellow'
+    case 'cancelled': return 'red'
+    default: return 'gray'
+  }
+}
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'confirmed': return 'Confirmé'
+    case 'pending': return 'En attente'
+    case 'cancelled': return 'Annulé'
+    default: return status
+  }
+}
+
+const getPaymentStatusColor = (paymentStatus: string) => {
+  switch (paymentStatus) {
+    case 'paid': return 'green'
+    case 'pending': return 'yellow'
+    case 'failed': return 'red'
+    default: return 'gray'
+  }
+}
+
+const getPaymentStatusLabel = (paymentStatus: string) => {
+  switch (paymentStatus) {
+    case 'paid': return 'Payé'
+    case 'pending': return 'En attente'
+    case 'failed': return 'Échec'
+    default: return paymentStatus
+  }
+}
+
 // État local
-const reservations = ref<Reservation[]>([])
 const meta = ref<any>(null)
 const formTitle = ref('Formulaire de réservation')
 const updatingReservation = ref<number | null>(null)
 const showDetailsModal = ref(false)
 const selectedReservation = ref<any>(null)
+const lastUpdated = ref('')
 
 // Filtres et pagination
 const selectedStatus = ref('')
+const searchQuery = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
 const currentPage = ref(1)
 const perPage = ref(20)
 
-// Options des filtres
-const statusOptions = [
-  { label: 'Tous les statuts', value: '' },
-  { label: 'En attente', value: 'pending' },
-  { label: 'Confirmée', value: 'confirmed' },
-  { label: 'Annulée', value: 'cancelled' }
+// Debounced search
+let searchTimeout: NodeJS.Timeout | null = null
+const debouncedSearch = () => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = setTimeout(() => {
+    applyFilters()
+  }, 500)
+}
+
+// Options des filtres supprimées - maintenant intégrées dans le select natif
+
+// Computed pour vérifier si des filtres sont actifs
+const hasActiveFilters = computed(() => {
+  return selectedStatus.value || searchQuery.value || dateFrom.value || dateTo.value
+})
+
+// Menu d'export
+const exportMenuItems = [
+  [
+    {
+      label: 'Exporter en CSV',
+      icon: 'i-heroicons-document-text',
+      click: () => handleExport('csv')
+    },
+    {
+      label: 'Exporter en Excel',
+      icon: 'i-heroicons-table-cells',
+      click: () => handleExport('excel')
+    },
+    {
+      label: 'Exporter en PDF',
+      icon: 'i-heroicons-document',
+      click: () => handleExport('pdf')
+    }
+  ]
 ]
 
 // Charger les réservations
@@ -348,28 +508,23 @@ const loadReservations = async (page: number = currentPage.value) => {
       page: page
     }
     
+    // Appliquer les filtres
     if (selectedStatus.value) filters.status = selectedStatus.value
+    if (searchQuery.value) filters.search = searchQuery.value
+    if (dateFrom.value) filters.date_from = dateFrom.value
+    if (dateTo.value) filters.date_to = dateTo.value
     
-    console.log('Chargement des réservations avec filtres:', filters)
     
     const response = await fetchReservations(filters)
+    
+    // Mettre à jour les données locales
     reservations.value = response.data
+    stats.value = response.stats
     meta.value = response.meta
     
-    // Mettre à jour la page courante
+    // Mettre à jour la page courante et la date de dernière mise à jour
     currentPage.value = page
-    
-    console.log('Réservations chargées:', reservations.value.length)
-    console.log('Page courante:', currentPage.value)
-    console.log('Filtres appliqués:', { status: selectedStatus.value })
-    
-    // Debug: afficher les données des réservations
-    if (reservations.value.length > 0) {
-      console.log('Première réservation:', reservations.value[0])
-      console.log('User data:', reservations.value[0]?.user)
-      console.log('Form data:', reservations.value[0]?.data)
-   
-    }
+    lastUpdated.value = new Date().toLocaleString('fr-FR')
     
     // Mettre à jour le titre si on a des réservations
     if (reservations.value.length > 0) {
@@ -382,9 +537,6 @@ const loadReservations = async (page: number = currentPage.value) => {
 
 // Appliquer les filtres
 const applyFilters = async () => {
-  console.log('Application des filtres:', { 
-    status: selectedStatus.value
-  })
   // Réinitialiser à la page 1 lors du filtrage
   currentPage.value = 1
   await loadReservations(1)
@@ -393,6 +545,9 @@ const applyFilters = async () => {
 // Réinitialiser les filtres
 const resetFilters = async () => {
   selectedStatus.value = ''
+  searchQuery.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
   console.log('Réinitialisation des filtres')
   // Réinitialiser à la page 1
   currentPage.value = 1
@@ -412,7 +567,16 @@ const confirmReservation = async (reservationId: number) => {
   try {
     updatingReservation.value = reservationId
     await updateReservationStatus(reservationId, 'confirmed')
+    
+    // Mettre à jour localement
+    const reservation = reservations.value.find(r => r.id === reservationId)
+    if (reservation) {
+      reservation.status = 'confirmed'
+    }
+    
+    // Recharger les données pour mettre à jour les stats
     await loadReservations()
+    
     toast.add({
       title: 'Réservation confirmée',
       description: 'La réservation a été confirmée avec succès.',
@@ -434,7 +598,16 @@ const cancelReservation = async (reservationId: number) => {
   try {
     updatingReservation.value = reservationId
     await updateReservationStatus(reservationId, 'cancelled')
+    
+    // Mettre à jour localement
+    const reservation = reservations.value.find(r => r.id === reservationId)
+    if (reservation) {
+      reservation.status = 'cancelled'
+    }
+    
+    // Recharger les données pour mettre à jour les stats
     await loadReservations()
+    
     toast.add({
       title: 'Réservation annulée',
       description: 'La réservation a été annulée avec succès.',
@@ -636,6 +809,117 @@ const printReservation = () => {
   printWindow.print()
 }
 
+// Export côté client (fallback pour CSV)
+const exportClientSide = async (format: 'csv' | 'excel' | 'pdf') => {
+  try {
+    if (reservations.value.length === 0) {
+      toast.add({
+        title: 'Aucune donnée',
+        description: 'Aucune réservation à exporter',
+        color: 'warning'
+      })
+      return
+    }
+    
+    if (format === 'csv') {
+      // Créer le contenu CSV
+      const headers = ['ID', 'Nom', 'Email', 'Téléphone', 'Statut', 'Date de création', 'Événement']
+      const csvContent = [
+        headers.join(','),
+        ...reservations.value.map(reservation => [
+          reservation.id,
+          `"${reservation.fullName || reservation.data?.name || ''}"`,
+          `"${reservation.email || reservation.data?.email || ''}"`,
+          `"${reservation.phone || ''}"`,
+          `"${reservation.status}"`,
+          `"${reservation.createdAt || reservation.created_at || ''}"`,
+          `"${reservation.event?.title || ''}"`
+        ].join(','))
+      ].join('\n')
+      
+      // Créer et télécharger le fichier
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `reservations_${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      toast.add({
+        title: 'Export réussi',
+        description: 'Fichier CSV généré',
+        color: 'success'
+      })
+    } else {
+      // Pour Excel et PDF, utiliser l'API serveur
+      await exportReservations(format, {
+        reservation_form_id: formId,
+        event_id: eventId,
+        status: selectedStatus.value as 'pending' | 'confirmed' | 'cancelled' | undefined,
+        search: searchQuery.value,
+        date_from: dateFrom.value,
+        date_to: dateTo.value
+      })
+    }
+    
+  } catch (err: any) {
+    console.error('Erreur export:', err)
+    toast.add({
+      title: 'Erreur d\'export',
+      description: err.message || 'Impossible d\'exporter les réservations',
+      color: 'error'
+    })
+  }
+}
+
+// Gérer l'export des réservations
+const handleExport = async (format: 'csv' | 'excel' | 'pdf') => {
+  try {
+    // Pour CSV, utiliser l'export côté client
+    if (format === 'csv') {
+      await exportClientSide('csv')
+    } else {
+      // Pour Excel et PDF, utiliser l'API serveur
+      const filters: any = {
+        reservation_form_id: formId,
+        event_id: eventId
+      }
+      
+      // Appliquer les filtres actifs
+      if (selectedStatus.value) filters.status = selectedStatus.value
+      if (searchQuery.value) filters.search = searchQuery.value
+      if (dateFrom.value) filters.date_from = dateFrom.value
+      if (dateTo.value) filters.date_to = dateTo.value
+      
+      // Afficher un toast de chargement
+      toast.add({
+        title: 'Export en cours...',
+        description: `Génération du fichier ${format.toUpperCase()}`,
+        color: 'primary'
+      })
+      
+      await exportReservations(format, filters)
+      
+      toast.add({
+        title: 'Export réussi',
+        description: `Fichier ${format.toUpperCase()} téléchargé`,
+        color: 'success'
+      })
+    }
+  } catch (err: any) {
+    console.error('Erreur lors de l\'export:', err)
+    toast.add({
+      title: 'Erreur d\'export',
+      description: err.message || 'Impossible d\'exporter les réservations',
+      color: 'error'
+    })
+  }
+}
+
 // Copier le lien public du formulaire
 const copyPublicLink = async () => {
   try {
@@ -679,7 +963,7 @@ const copyPublicLink = async () => {
 }
 
 // Watcher pour réinitialiser la pagination quand les filtres changent
-watch([selectedStatus], () => {
+watch([selectedStatus, searchQuery, dateFrom, dateTo], () => {
   currentPage.value = 1
 })
 

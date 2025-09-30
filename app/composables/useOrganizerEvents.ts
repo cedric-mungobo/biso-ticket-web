@@ -141,7 +141,9 @@ export const useOrganizerEvents = () => {
       
       return unwrap<Event>(res)
     } catch (error: any) {
-      throw error
+      // Log l'erreur technique en dev seulement
+      if (process.dev) console.error('Erreur fetchEvent:', error)
+      throw new Error('Impossible de récupérer l\'événement')
     }
   }
 
@@ -309,7 +311,9 @@ export const useOrganizerEvents = () => {
         throw new Error(`Erreur serveur lors de la création du ticket. Veuillez vérifier que l'événement existe et réessayer.`)
       }
       
-      throw error
+      // Log l'erreur technique en dev seulement
+      if (process.dev) console.error('Erreur addTicket:', error)
+      throw new Error('Impossible de créer le ticket')
     }
   }
 
@@ -492,7 +496,9 @@ export const useOrganizerEvents = () => {
         events.value = (pagination.items || []).map(toUiEvent)
         lastFetchedAt.value = Date.now()
       } catch (e: any) {
-        error.value = e?.message || 'Erreur lors du chargement des événements'
+        // Log l'erreur technique en dev seulement
+        if (process.dev) console.error('Erreur fetchEventsWithState:', e)
+        error.value = 'Impossible de charger les événements. Veuillez réessayer.'
       } finally {
         loading.value = false
       }
@@ -504,10 +510,12 @@ export const useOrganizerEvents = () => {
         const ev = await fetchEvent(eventId)
         currentEvent.value = toUiEvent(ev)
       } catch (e: any) {
-        error.value = e?.message || 'Erreur lors du chargement de l\'événement'
+        // Log l'erreur technique en dev seulement
+        if (process.dev) console.error('Erreur fetchEventWithState:', e)
+        error.value = 'Impossible de charger l\'événement. Veuillez réessayer.'
       } finally {
         loading.value = false
       }
-    }
+    },
   }
 }

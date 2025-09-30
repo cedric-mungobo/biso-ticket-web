@@ -47,7 +47,7 @@ export const useCanvasImage = () => {
         
         await new Promise((resolve) => {
           img.onload = () => {
-            console.log('🎨 Dessin de l\'image de fond sur le canvas')
+            if (process.dev) console.log('🎨 Dessin de l\'image de fond sur le canvas')
             // Dessiner l'image de fond par-dessus le fond blanc
             ctx.drawImage(img, 0, 0, width, height)
             // Forcer le redraw
@@ -56,19 +56,19 @@ export const useCanvasImage = () => {
             resolve(true)
           }
           img.onerror = () => {
-            console.log('❌ Erreur chargement image principale, utilisation du fallback')
+            if (process.dev) console.log('❌ Erreur chargement image principale, utilisation du fallback')
             // Fallback vers template_default.png
             const fallbackImg = new Image()
             fallbackImg.crossOrigin = 'anonymous'
             fallbackImg.onload = () => {
-              console.log('🎨 Dessin de l\'image de fallback sur le canvas')
+              if (process.dev) console.log('🎨 Dessin de l\'image de fallback sur le canvas')
               ctx.drawImage(fallbackImg, 0, 0, width, height)
               ctx.save()
               ctx.restore()
               resolve(true)
             }
             fallbackImg.onerror = () => {
-              console.log('❌ Erreur chargement fallback, garde le fond blanc')
+              if (process.dev) console.log('❌ Erreur chargement fallback, garde le fond blanc')
               resolve(true)
             }
             fallbackImg.src = '/models/template_default.png'
@@ -98,21 +98,21 @@ export const useCanvasImage = () => {
         ctx.textAlign = align
         ctx.textBaseline = 'top'
         
-        console.log('🎨 Dessin du texte avec couleur:', color)
+        if (process.dev) console.log('🎨 Dessin du texte avec couleur:', color)
 
         // Traiter le formatage personnalisé
         const processedText = processCanvasFormatting(text)
-        console.log('🎨 Texte original:', text)
-        console.log('🎨 Texte traité:', processedText)
+        if (process.dev) console.log('🎨 Texte original:', text)
+        if (process.dev) console.log('🎨 Texte traité:', processedText)
         
         // Diviser le texte en lignes (retours à la ligne)
         const lines = processedText.split('\n')
-        console.log('🎨 Lignes à traiter:', lines.length, lines)
+        if (process.dev) console.log('🎨 Lignes à traiter:', lines.length, lines)
         let lineY = y
 
         for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
           const line = lines[lineIndex]
-          console.log(`🎨 Traitement ligne ${lineIndex + 1}/${lines.length}:`, line)
+          if (process.dev) console.log(`🎨 Traitement ligne ${lineIndex + 1}/${lines.length}:`, line)
           
           if (!line || line.trim() === '') {
             // Ligne vide - ajouter un espacement
@@ -122,7 +122,7 @@ export const useCanvasImage = () => {
 
           // Traitement spécial pour la première ligne non-vide (titre automatique)
           if (lineIndex === 0 || (lineIndex === 1 && !lines[0]?.trim())) {
-            console.log('🎨 Première ligne détectée comme titre:', line)
+            if (process.dev) console.log('🎨 Première ligne détectée comme titre:', line)
             
             // Détecter le niveau du titre et nettoyer le texte
             let cleanTitle = line
@@ -147,7 +147,7 @@ export const useCanvasImage = () => {
             // Enlever les espaces en début et fin
             cleanTitle = cleanTitle.trim()
             
-            console.log(`🎨 Titre niveau ${titleLevel} nettoyé:`, cleanTitle, `(taille: ${titleSize})`)
+            if (process.dev) console.log(`🎨 Titre niveau ${titleLevel} nettoyé:`, cleanTitle, `(taille: ${titleSize})`)
             
             // Dessiner le titre avec la taille appropriée
             ctx.font = `bold ${titleSize}px ${fontFamily}`
@@ -174,7 +174,7 @@ export const useCanvasImage = () => {
           
           if (titleMatch) {
             const content = titleMatch[1] || ''
-            console.log('🎨 Titre principal détecté:', content)
+            if (process.dev) console.log('🎨 Titre principal détecté:', content)
             
             // Dessiner le titre en plus grand et en gras
             ctx.font = `bold ${fontSize * 1.5}px ${fontFamily}`
@@ -189,7 +189,7 @@ export const useCanvasImage = () => {
           
           if (subtitleMatch) {
             const content = subtitleMatch[1] || ''
-            console.log('🎨 Sous-titre détecté:', content)
+            if (process.dev) console.log('🎨 Sous-titre détecté:', content)
             
             // Dessiner le sous-titre en plus grand
             ctx.font = `bold ${fontSize * 1.2}px ${fontFamily}`
@@ -204,7 +204,7 @@ export const useCanvasImage = () => {
           
           if (subsubtitleMatch) {
             const content = subsubtitleMatch[1] || ''
-            console.log('🎨 Sous-sous-titre détecté:', content)
+            if (process.dev) console.log('🎨 Sous-sous-titre détecté:', content)
             
             // Dessiner le sous-sous-titre en légèrement plus grand
             ctx.font = `bold ${fontSize * 1.1}px ${fontFamily}`
@@ -224,7 +224,7 @@ export const useCanvasImage = () => {
           
           if (rightAlignMatch) {
             const content = rightAlignMatch[1]
-            console.log('🎨 Alignement à droite détecté:', content)
+            if (process.dev) console.log('🎨 Alignement à droite détecté:', content)
             
             // Vérifier si le texte déborde
             ctx.font = `${fontSize}px ${fontFamily}`
@@ -269,7 +269,7 @@ export const useCanvasImage = () => {
               ctx.textAlign = 'right'
               const lineX = width - (invitationData.messagePadding || 120)
               
-              console.log('🎨 Position de dessin (droite):', { lineX, lineY })
+              if (process.dev) console.log('🎨 Position de dessin (droite):', { lineX, lineY })
               drawFormattedText(ctx, content || '', lineX, lineY, fontSize, fontFamily, color)
               lineY += fontSize * 1.4
             }
@@ -280,7 +280,7 @@ export const useCanvasImage = () => {
           
           if (leftAlignMatch) {
             const content = leftAlignMatch[1]
-            console.log('🎨 Alignement à gauche détecté:', content)
+            if (process.dev) console.log('🎨 Alignement à gauche détecté:', content)
             
             // Vérifier si le texte déborde
             ctx.font = `${fontSize}px ${fontFamily}`
@@ -325,7 +325,7 @@ export const useCanvasImage = () => {
               ctx.textAlign = 'left'
               const lineX = invitationData.messagePadding || 120
               
-              console.log('🎨 Position de dessin (gauche):', { lineX, lineY })
+              if (process.dev) console.log('🎨 Position de dessin (gauche):', { lineX, lineY })
               drawFormattedText(ctx, content || '', lineX, lineY, fontSize, fontFamily, color)
               lineY += fontSize * 1.4
             }
@@ -336,7 +336,7 @@ export const useCanvasImage = () => {
           
           if (centerAlignMatch) {
             const content = centerAlignMatch[1]
-            console.log('🎨 Alignement centré détecté:', content)
+            if (process.dev) console.log('🎨 Alignement centré détecté:', content)
             
             // Vérifier si le texte déborde
             ctx.font = `${fontSize}px ${fontFamily}`
@@ -381,7 +381,7 @@ export const useCanvasImage = () => {
               ctx.textAlign = 'center'
               const lineX = width / 2
               
-              console.log('🎨 Position de dessin (centré):', { lineX, lineY })
+              if (process.dev) console.log('🎨 Position de dessin (centré):', { lineX, lineY })
               drawFormattedText(ctx, content || '', lineX, lineY, fontSize, fontFamily, color)
               lineY += fontSize * 1.4
             }
@@ -396,12 +396,12 @@ export const useCanvasImage = () => {
           
           if (lineMetrics.width <= maxWidth) {
             // La ligne tient dans la largeur maximale
-            console.log('🎨 Ligne complète dessinée:', line)
+            if (process.dev) console.log('🎨 Ligne complète dessinée:', line)
             drawFormattedText(ctx, line, x, lineY, fontSize, fontFamily, color)
             lineY += fontSize * 1.4
           } else {
             // La ligne est trop longue, la diviser en mots
-            console.log('🎨 Ligne trop longue, division en cours:', line)
+            if (process.dev) console.log('🎨 Ligne trop longue, division en cours:', line)
             const words = line.split(' ')
             let currentLine = ''
             
@@ -417,7 +417,7 @@ export const useCanvasImage = () => {
               } else {
                 // Dessiner la ligne actuelle si elle n'est pas vide
                 if (currentLine) {
-                  console.log('🎨 Ligne partielle dessinée:', currentLine)
+                  if (process.dev) console.log('🎨 Ligne partielle dessinée:', currentLine)
                   drawFormattedText(ctx, currentLine, x, lineY, fontSize, fontFamily, color)
                   lineY += fontSize * 1.4
                 }
@@ -427,14 +427,14 @@ export const useCanvasImage = () => {
             
             // Dessiner la dernière ligne
             if (currentLine) {
-              console.log('🎨 Dernière ligne dessinée:', currentLine)
+              if (process.dev) console.log('🎨 Dernière ligne dessinée:', currentLine)
               drawFormattedText(ctx, currentLine, x, lineY, fontSize, fontFamily, color)
               lineY += fontSize * 1.4
             }
           }
         }
 
-        console.log('🎨 Fin du traitement du texte. Dernière position Y:', lineY)
+        if (process.dev) console.log('🎨 Fin du traitement du texte. Dernière position Y:', lineY)
         return lineY
       }
 
@@ -469,7 +469,7 @@ export const useCanvasImage = () => {
         ctx.textAlign = 'center'
         ctx.textBaseline = 'top'
         
-        console.log('🎨 Dessin du texte centré avec couleur:', color)
+        if (process.dev) console.log('🎨 Dessin du texte centré avec couleur:', color)
 
         if (maxWidth) {
           return drawText(text, width / 2, y, maxWidth, fontSize, fontFamily, color, 'center')
@@ -516,7 +516,7 @@ export const useCanvasImage = () => {
         
         // Utiliser la fonction drawText améliorée pour gérer les retours à la ligne
         const fontSize = invitationData.messageFontSize || 20
-        console.log('🎨 Taille de police du message:', fontSize)
+        if (process.dev) console.log('🎨 Taille de police du message:', fontSize)
         currentY = drawText(invitationData.guestMessage, textX, currentY, messageWidth, fontSize, primaryFont, primaryColor, textAlign)
       }
 

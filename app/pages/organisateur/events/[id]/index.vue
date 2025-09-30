@@ -122,8 +122,11 @@
         />
             
         <div v-if="error" class="p-4 rounded-md bg-red-50 border border-red-200 text-red-800">
-          {{ error }}
-      </div>
+          <div class="flex items-center">
+            <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 mr-2" />
+            <span>Impossible de charger l'événement. Veuillez réessayer.</span>
+          </div>
+        </div>
 
         <div v-else-if="event" class="space-y-6 py-2">
        
@@ -297,6 +300,58 @@
         @delete-form="openDeleteReservationForm"
       />
 
+      <!-- Modal Liste des sponsors -->
+      <Modal v-model="showSponsorsList" title="Mes sponsors">
+        <div class="modal-content-mobile">
+          <SponsorList
+            :sponsors="sponsors"
+            :loading="sponsorsLoading"
+            @add-sponsor="openAddSponsor"
+            @view-sponsor="openEditSponsor"
+            @edit-sponsor="openEditSponsor"
+            @delete-sponsor="openDeleteSponsor"
+          />
+        </div>
+      </Modal>
+
+      <!-- Modal Création sponsor -->
+      <Modal v-model="showSponsorCreate" title="Ajouter un sponsor">
+        <div class="modal-content-mobile">
+          <SponsorForm
+            v-model="sponsorForm"
+            :submitting="sponsorsSubmitting"
+            submit-label="Ajouter"
+            @cancel="showSponsorCreate=false"
+            @submit="handleCreateSponsor"
+          />
+        </div>
+      </Modal>
+
+      <!-- Modal Édition sponsor -->
+      <Modal v-model="showSponsorEdit" title="Modifier le sponsor">
+        <div class="modal-content-mobile">
+          <SponsorForm
+            v-model="sponsorForm"
+            :submitting="sponsorsSubmitting"
+            submit-label="Enregistrer"
+            @cancel="showSponsorEdit=false"
+            @submit="handleUpdateSponsor"
+          />
+        </div>
+      </Modal>
+
+      <!-- Modal Suppression sponsor -->
+      <Modal v-model="showSponsorDelete" title="Supprimer le sponsor">
+        <div class="modal-content-mobile">
+          <p class="text-sm text-gray-600">
+            Confirmer la suppression du sponsor "{{ currentSponsor?.name }}" ?
+          </p>
+        </div>
+        <template #footer>
+          <UButton variant="ghost" @click="showSponsorDelete=false">Annuler</UButton>
+          <UButton color="error" :loading="sponsorsSubmitting" @click="handleDeleteSponsor">Supprimer</UButton>
+        </template>
+      </Modal>
 
     </div>
   </OrganizerNavigation>
@@ -307,6 +362,8 @@
 import TicketForm from '~/components/organizer/forms/TicketForm.vue'
 import LoadingOverlay from '~/components/LoadingOverlay.vue'
 import ReservationFormList from '~/components/organizer/ReservationFormList.vue'
+import SponsorList from '~/components/organizer/SponsorList.vue'
+import SponsorForm from '~/components/organizer/forms/SponsorForm.vue'
 
 definePageMeta({ middleware: 'authenticated' })
 
@@ -316,6 +373,7 @@ const eventId = Number(route.params.id)
 
 const { fetchEventWithState, fetchEventTickets, updateTicket, deleteTicket, currentEvent, formatDate, loading, error } = useOrganizerEvents()
 const { isLoading, withLoading, preventMultipleSubmissions } = useLoading()
+const { fetchSponsors, createSponsor, createSponsorWithLogo, updateSponsor, deleteSponsor } = useSponsors()
 // Plus besoin du composable useReservationForms ici, il est maintenant dans le composant
 
 const event = computed(() => currentEvent.value)
@@ -392,8 +450,20 @@ const actionButtons = computed(() => [
     class: 'shadow-sm w-full sm:w-auto rounded-2xl',
     ui: { base: 'min-h-[44px] touch-manipulation' },
     action: () => { 
-      console.log('Bouton formulaires de réservation cliqué')
       showReservationFormsList.value = true 
+    }
+  },
+  {
+    id: 'sponsors',
+    label: 'Mes sponsors',
+    icon: 'i-heroicons-building-office',
+    variant: 'soft',
+    size: 'md',
+    color: 'info',
+    class: 'shadow-sm w-full sm:w-auto rounded-2xl',
+    ui: { base: 'min-h-[44px] touch-manipulation' },
+    action: () => { 
+      showSponsorsList.value = true 
     }
   },
  
@@ -405,14 +475,8 @@ const { pending } = await useAsyncData(`organizer-event-${eventId}`, async () =>
   
   // Debug : afficher la structure complète de l'événement pour identifier les champs d'approbation
   if (process.client && process.dev && currentEvent.value) {
-    console.log('[DEBUG] Structure complète de l\'événement organisateur:', JSON.stringify(currentEvent.value, null, 2))
-    console.log('[DEBUG] Champ d\'approbation principal:', {
-      approvedAt: currentEvent.value.approvedAt,
-      isApproved: !!currentEvent.value.approvedAt,
-      status: currentEvent.value.status,
-      is_public: currentEvent.value.is_public
-    })
-    console.log('[DEBUG] Tous les champs disponibles:', Object.keys(currentEvent.value))
+    // Logs de debug masqués en production
+    console.log('[DEBUG] Événement chargé:', currentEvent.value.id)
   }
   
   return currentEvent.value
@@ -427,6 +491,14 @@ const { pending: ticketsPending, refresh: refreshTickets } = await useAsyncData(
 })
 const ticketsLoading = computed(() => ticketsPending.value)
 
+// Chargement des sponsors de l'organisateur
+const { pending: sponsorsPending, refresh: refreshSponsors } = await useAsyncData(`organizer-sponsors-${eventId}`, async () => {
+  const sponsorsList = await fetchSponsors({ is_active: true })
+  sponsors.value = sponsorsList
+  return sponsorsList
+})
+const sponsorsLoading = computed(() => sponsorsPending.value)
+
 
 // La logique des formulaires de réservation est maintenant dans le composant ReservationFormList
 
@@ -436,11 +508,21 @@ const showTicketEdit = ref(false)
 const showTicketDelete = ref(false)
 const showTicketsList = ref(false)
 const showReservationFormsList = ref(false)
+const showSponsorsList = ref(false)
+const showSponsorCreate = ref(false)
+const showSponsorEdit = ref(false)
+const showSponsorDelete = ref(false)
 const showScanSecret = ref(false)
 const showPublicId = ref(false)
 
 const currentTicket = ref<any>(null)
 const ticketForm = ref<any>({ type: '', price: 0, quantity: 1, devise: 'USD' })
+
+// Variables pour les sponsors
+const sponsors = ref<any[]>([])
+const currentSponsor = ref<any>(null)
+const sponsorForm = ref<any>({ name: '', logo_url: '', website_url: '', description: '', is_active: true })
+const sponsorsSubmitting = ref(false)
 
 
 
@@ -545,6 +627,98 @@ const openDeleteReservationForm = (form: any) => {
   useAppToast().showInfo('Fonctionnalité à venir', 'La suppression des formulaires de réservation sera bientôt disponible.')
 }
 
+// Fonctions pour les sponsors
+const openAddSponsor = () => {
+  sponsorForm.value = { name: '', logo_url: '', website_url: '', description: '', is_active: true }
+  showSponsorCreate.value = true
+}
+
+const openEditSponsor = (sponsor: any) => {
+  currentSponsor.value = sponsor
+  sponsorForm.value = { ...sponsor }
+  showSponsorsList.value = false
+  showSponsorEdit.value = true
+}
+
+const openDeleteSponsor = (sponsor: any) => {
+  currentSponsor.value = sponsor
+  showSponsorsList.value = false
+  showSponsorDelete.value = true
+}
+
+const handleCreateSponsor = async (payload: any) => {
+  try {
+    sponsorsSubmitting.value = true
+    
+    // Si il y a un logo, créer FormData, sinon envoyer JSON
+    if (payload.logo) {
+      const formData = new FormData()
+      formData.append('name', payload.name)
+      formData.append('website_url', payload.website_url || '')
+      formData.append('description', payload.description || '')
+      formData.append('is_active', payload.is_active ? '1' : '0') // Convertir boolean en string
+      formData.append('logo', payload.logo)
+      await createSponsorWithLogo(formData)
+    } else {
+      // Envoyer JSON sans logo
+      const { createSponsor } = useSponsors()
+      await createSponsor(payload)
+    }
+    
+    showSponsorCreate.value = false
+    await refreshSponsors()
+    useAppToast().showSuccess('Sponsor ajouté', 'Le sponsor a été créé avec succès.')
+  } catch (e: any) {
+    useAppToast().showError('Erreur lors de la création du sponsor', getApiErrorMessage(e))
+  } finally {
+    sponsorsSubmitting.value = false
+  }
+}
+
+const handleUpdateSponsor = async (payload: any) => {
+  if (!currentSponsor.value) return
+  try {
+    sponsorsSubmitting.value = true
+    
+    // Si il y a un logo, créer FormData, sinon envoyer JSON
+    if (payload.logo) {
+      const formData = new FormData()
+      formData.append('name', payload.name)
+      formData.append('website_url', payload.website_url || '')
+      formData.append('description', payload.description || '')
+      formData.append('is_active', payload.is_active ? '1' : '0') // Convertir boolean en string
+      formData.append('logo', payload.logo)
+      await updateSponsor(currentSponsor.value.id, formData)
+    } else {
+      // Envoyer JSON sans logo
+      await updateSponsor(currentSponsor.value.id, payload)
+    }
+    
+    showSponsorEdit.value = false
+    await refreshSponsors()
+    useAppToast().showSuccess('Sponsor mis à jour', 'Le sponsor a été modifié avec succès.')
+  } catch (e: any) {
+    useAppToast().showError('Erreur lors de la mise à jour', getApiErrorMessage(e))
+  } finally {
+    sponsorsSubmitting.value = false
+  }
+}
+
+const handleDeleteSponsor = async () => {
+  if (!currentSponsor.value) return
+  try {
+    sponsorsSubmitting.value = true
+    await deleteSponsor(currentSponsor.value.id)
+    showSponsorDelete.value = false
+    await refreshSponsors()
+    useAppToast().showSuccess('Sponsor supprimé', 'Le sponsor a été supprimé avec succès.')
+  } catch (e: any) {
+    useAppToast().showError('Erreur lors de la suppression', getApiErrorMessage(e))
+  } finally {
+    sponsorsSubmitting.value = false
+  }
+}
+
 
 
 
@@ -555,7 +729,8 @@ const handleCreateTicket = async (payload: any) => {
     ticketSubmitting.value = true
     // add via existing addTicket from repository
     const { addTicket } = useOrganizerEvents()
-    if (process.dev) console.log('[UI] handleCreateTicket → payload (UI):', JSON.stringify(payload))
+    // Log en dev seulement
+    if (process.dev) console.log('[UI] handleCreateTicket')
     await addTicket(eventId, payload)
     showTicketCreate.value = false
     await refreshTickets()
@@ -571,7 +746,8 @@ const handleUpdateTicket = async (payload: any) => {
   if (!currentTicket.value) return
   try {
     ticketSubmitting.value = true
-    if (process.dev) console.log('[UI] handleUpdateTicket → ticketId:', currentTicket.value.id, 'payload (UI):', JSON.stringify(payload))
+    // Log en dev seulement
+    if (process.dev) console.log('[UI] handleUpdateTicket')
     await updateTicket(eventId, currentTicket.value.id, payload)
     showTicketEdit.value = false
     await refreshTickets()

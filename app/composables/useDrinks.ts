@@ -20,7 +20,7 @@ export const useDrinks = () => {
       const response = await $myFetch<DrinksResponse>(`/events/${eventId}/drinks`)
       return response.data || []
     } catch (error: any) {
-      console.error('Erreur lors de la récupération des boissons:', error)
+      if (process.dev) console.error('Erreur lors de la récupération des boissons:', error)
       throw new Error('Impossible de récupérer les boissons')
     }
   }
@@ -34,7 +34,7 @@ export const useDrinks = () => {
       })
       return response.data || []
     } catch (error: any) {
-      console.error('Erreur lors de l\'ajout des boissons:', error)
+      if (process.dev) console.error('Erreur lors de l\'ajout des boissons:', error)
       throw new Error('Impossible d\'ajouter les boissons')
     }
   }
@@ -48,7 +48,7 @@ export const useDrinks = () => {
       })
       return response.data || []
     } catch (error: any) {
-      console.error('Erreur lors de la mise à jour des boissons:', error)
+      if (process.dev) console.error('Erreur lors de la mise à jour des boissons:', error)
       throw new Error('Impossible de mettre à jour les boissons')
     }
   }
@@ -60,7 +60,7 @@ export const useDrinks = () => {
         method: 'DELETE'
       })
     } catch (error: any) {
-      console.error('Erreur lors de la suppression des boissons:', error)
+      if (process.dev) console.error('Erreur lors de la suppression des boissons:', error)
       throw new Error('Impossible de supprimer les boissons')
     }
   }
