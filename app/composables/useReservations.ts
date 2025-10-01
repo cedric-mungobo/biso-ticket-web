@@ -261,10 +261,8 @@ export const useReservations = () => {
       loading.value = true
       error.value = null
 
-      // L'export est géré côté client
-
-      // Construire l'URL avec les filtres
-      let url = '/reservations/export'
+      // Construire l'URL complète avec les filtres
+      let url = 'https://api.bisoticket.com/api/reservations/export'
       const queryParams = new URLSearchParams()
       
       // Format d'export
@@ -302,7 +300,8 @@ export const useReservations = () => {
         url += '?' + queryParams.toString()
       }
       
-      console.log('Export des réservations:', { format, filters, url })
+      console.log('🚀 Export des réservations:', { format, filters, url })
+      console.log('🔗 URL complète:', `${url}?${queryParams.toString()}`)
       
       // Récupérer le token d'authentification
       const token = useCookie('auth_token').value
@@ -322,7 +321,16 @@ export const useReservations = () => {
       })
       
       if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`)
+        // Gestion d'erreurs selon le guide
+        if (response.status === 401) {
+          throw new Error('Non authentifié - Veuillez vous reconnecter')
+        } else if (response.status === 422) {
+          throw new Error('Paramètres invalides - Vérifiez les filtres')
+        } else if (response.status === 500) {
+          throw new Error('Erreur serveur - Réessayez plus tard')
+        } else {
+          throw new Error(`Erreur HTTP ${response.status}: ${response.statusText}`)
+        }
       }
       
       console.log('📡 Réponse du serveur:', {
@@ -378,10 +386,11 @@ export const useReservations = () => {
       const link = document.createElement('a')
       link.href = downloadUrl
       
-      // Nom du fichier avec timestamp
+      // Nom du fichier avec timestamp selon le guide
       const timestamp = new Date().toISOString().split('T')[0]
       const extension = format === 'excel' ? 'xlsx' : format
-      link.download = `reservations_${timestamp}.${extension}`
+      const filename = `reservations_${timestamp}.${extension}`
+      link.download = filename
       
       // Déclencher le téléchargement
       document.body.appendChild(link)
@@ -391,7 +400,7 @@ export const useReservations = () => {
       // Nettoyer l'URL
       window.URL.revokeObjectURL(downloadUrl)
       
-      console.log(`✅ ${format.toUpperCase()} téléchargé avec succès`)
+      console.log(`✅ ${format.toUpperCase()} téléchargé avec succès: ${filename}`)
       
       if (process.client && process.dev) {
         console.log('[API] /reservations/export', { format, filters, success: true })

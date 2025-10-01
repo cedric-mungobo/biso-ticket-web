@@ -90,38 +90,71 @@ export default defineNuxtPlugin((nuxtApp) => {
         // Si on ne peut pas parser la réponse, utiliser les messages par défaut
       }
 
-      // Gérer les erreurs API selon la nouvelle structure
-      if (response.status === 401) {
-        // Log en dev seulement
-        if (process.dev) console.error('Erreur 401: Accès non autorisé')
-        // Nettoyer le token invalide
-        const token = useCookie('auth_token')
-        token.value = null
-        errorMessage = 'Session expirée. Veuillez vous reconnecter.'
-      } else if (response.status === 422) {
-        // Log en dev seulement
-        if (process.dev) console.error('Erreur 422: Données de validation invalides')
-        if (Object.keys(errorDetails).length > 0) {
-          // Stocker les erreurs de validation globalement
-          validationErrors.value = errorDetails
-        } else {
-          errorMessage = 'Veuillez vérifier les informations saisies'
-        }
-      } else if (response.status === 404) {
-        // Log en dev seulement
-        if (process.dev) console.error('Erreur 404: Ressource non trouvée')
-        errorMessage = 'Contenu non trouvé'
-      } else if (response.status >= 500) {
-        // Log en dev seulement
-        if (process.dev) console.error('Erreur serveur:', response.status)
-        errorMessage = 'Service temporairement indisponible. Veuillez réessayer.'
-      } else if (response.status === 0 || !response.status) {
-        // Erreur de réseau
-        errorMessage = 'Problème de connexion. Vérifiez votre internet.'
+      // Gérer les erreurs API selon les codes de statut HTTP standardisés
+      switch (response.status) {
+        case 400:
+          // Requête invalide
+          if (process.dev) console.error('Erreur 400: Requête invalide')
+          errorMessage = 'Requête invalide. Vérifiez les paramètres envoyés.'
+          break
+          
+        case 401:
+          // Non authentifié
+          if (process.dev) console.error('Erreur 401: Non authentifié')
+          // Nettoyer le token invalide
+          const token = useCookie('auth_token')
+          token.value = null
+          errorMessage = 'Non authentifié. Veuillez vous reconnecter.'
+          break
+          
+        case 403:
+          // Non autorisé
+          if (process.dev) console.error('Erreur 403: Non autorisé')
+          errorMessage = 'Non autorisé. Vous n\'avez pas les permissions nécessaires.'
+          break
+          
+        case 404:
+          // Réservation non trouvée
+          if (process.dev) console.error('Erreur 404: Ressource non trouvée')
+          errorMessage = 'Réservation non trouvée.'
+          break
+          
+        case 422:
+          // Erreur de validation
+          if (process.dev) console.error('Erreur 422: Erreur de validation')
+          if (Object.keys(errorDetails).length > 0) {
+            // Stocker les erreurs de validation globalement
+            validationErrors.value = errorDetails
+            errorMessage = 'Erreur de validation. Vérifiez les informations saisies.'
+          } else {
+            errorMessage = 'Erreur de validation. Vérifiez les informations saisies.'
+          }
+          break
+          
+        case 500:
+          // Erreur serveur
+          if (process.dev) console.error('Erreur 500: Erreur serveur')
+          errorMessage = 'Erreur serveur. Veuillez réessayer plus tard.'
+          break
+          
+        default:
+          if (response.status >= 500) {
+            // Autres erreurs serveur (5xx)
+            if (process.dev) console.error('Erreur serveur:', response.status)
+            errorMessage = 'Service temporairement indisponible. Veuillez réessayer.'
+          } else if (response.status === 0 || !response.status) {
+            // Erreur de réseau
+            errorMessage = 'Problème de connexion. Vérifiez votre connexion internet.'
+          } else {
+            // Autres erreurs client (4xx)
+            errorMessage = `Erreur ${response.status}. Veuillez réessayer.`
+          }
+          break
       }
 
-      // Afficher le toast d'erreur seulement si ce n'est pas une erreur de validation
-      if (response.status !== 422 || Object.keys(errorDetails).length === 0) {
+      // Afficher le toast d'erreur seulement si ce n'est pas une erreur de validation (422)
+      // Les erreurs 422 sont gérées par les composants de formulaire
+      if (response.status !== 422) {
         try {
           const { showError } = useAppToast()
           showError('Erreur', errorMessage)
