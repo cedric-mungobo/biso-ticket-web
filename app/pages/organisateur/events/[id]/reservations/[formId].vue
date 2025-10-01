@@ -30,19 +30,19 @@
             </p>
           </div>
           
-          <!-- Filtres et actions -->
-          <div class="flex flex-col sm:flex-row gap-2">
-            <!-- Boutons d'export et lien public -->
-            <div class="flex flex-wrap gap-1">
+          <!-- Actions d'export et lien public -->
+          <div class="space-y-2 sm:space-y-0">
+            <!-- Boutons d'export - Mobile: 2 lignes, Desktop: 1 ligne -->
+            <div class="grid grid-cols-3 gap-2 sm:flex sm:gap-2">
               <UButton
                 @click="() => handleExport('csv')"
                 variant="outline"
                 color="neutral"
                 size="sm"
                 icon="i-heroicons-document-text"
-                class="flex-shrink-0"
+                class="w-full sm:w-auto"
               >
-                CSV
+                <span class="text-xs sm:text-sm">CSV</span>
               </UButton>
               <UButton
                 @click="() => handleExport('excel')"
@@ -50,9 +50,9 @@
                 color="neutral"
                 size="sm"
                 icon="i-heroicons-table-cells"
-                class="flex-shrink-0"
+                class="w-full sm:w-auto"
               >
-                Excel
+                <span class="text-xs sm:text-sm">Excel</span>
               </UButton>
               <UButton
                 @click="() => handleExport('pdf')"
@@ -60,80 +60,72 @@
                 color="neutral"
                 size="sm"
                 icon="i-heroicons-document"
-                class="flex-shrink-0"
+                class="w-full sm:w-auto"
               >
-                PDF
-              </UButton>
-              <UButton
-                @click="copyPublicLink"
-                variant="outline"
-                color="primary"
-                size="sm"
-                class="flex-shrink-0"
-              >
-                <UIcon name="i-heroicons-link" class="w-4 h-4 mr-2" />
-                Copier le lien public
+                <span class="text-xs sm:text-sm">PDF</span>
               </UButton>
             </div>
+            
+            <!-- Bouton copier lien - Pleine largeur sur mobile -->
+            <UButton
+              @click="copyPublicLink"
+              variant="outline"
+              color="primary"
+              size="sm"
+              class="w-full sm:w-auto"
+            >
+              <UIcon name="i-heroicons-link" class="w-4 h-4 mr-2" />
+              <span class="text-xs sm:text-sm">Copier le lien public</span>
+            </UButton>
           </div>
         </div>
       </div>
 
       <!-- Filtres et statistiques compacts -->
       <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-3 mb-4">
-        <!-- Filtres organisés pour mobile -->
-        <div class="space-y-3 mb-3">
-          <!-- Ligne 1: Recherche (pleine largeur) -->
-          <div>
+        <!-- Filtres compacts avec grille responsive -->
+        <div class="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-3 mb-3">
+          <!-- Recherche - Pleine largeur sur mobile -->
+          <div class="sm:col-span-2 lg:col-span-1">
             <label class="block text-xs font-medium text-slate-600 mb-1">Recherche</label>
             <UInput
               v-model="searchQuery"
               placeholder="Nom, email, téléphone..."
               @input="debouncedSearch"
               size="sm"
+              class="w-full"
             />
           </div>
           
-          <!-- Ligne 2: Statut et bouton reset -->
-          <div class="flex gap-3 items-end">
-            <div class="flex-1">
-              <label class="block text-xs font-medium text-slate-600 mb-1">Statut</label>
+          <!-- Statut - Pleine largeur sur mobile -->
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Statut</label>
             <select
               v-model="selectedStatus"
               @change="applyFilters"
-                class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
             >
-                <option value="">Tous</option>
+              <option value="">Tous</option>
               <option value="pending">En attente</option>
               <option value="confirmed">Confirmée</option>
               <option value="cancelled">Annulée</option>
             </select>
-            </div>
-            
-            <UButton
-              v-if="hasActiveFilters"
-              @click="resetFilters"
-              variant="ghost"
-              color="neutral"
-              size="sm"
-              class="flex-shrink-0"
-            >
-              <UIcon name="i-heroicons-x-mark" class="w-4 h-4" />
-            </UButton>
           </div>
           
-          <!-- Ligne 3: Dates (2 colonnes sur mobile) -->
-          <div class="grid grid-cols-2 gap-3">
+          <!-- Dates en grid 2 colonnes -->
+          <div class="grid grid-cols-2 gap-2">
+            <!-- Date début -->
             <div>
               <label class="block text-xs font-medium text-slate-600 mb-1">Date début</label>
               <UInput
                 v-model="dateFrom"
                 type="date"
                 @change="applyFilters"
-              size="sm"
+                size="sm"
               />
             </div>
             
+            <!-- Date fin -->
             <div>
               <label class="block text-xs font-medium text-slate-600 mb-1">Date fin</label>
               <UInput
@@ -144,6 +136,20 @@
               />
             </div>
           </div>
+        </div>
+        
+        <!-- Bouton reset (centré) -->
+        <div v-if="hasActiveFilters" class="flex justify-center mb-3">
+          <UButton
+            @click="resetFilters"
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            class="text-xs"
+          >
+            <UIcon name="i-heroicons-x-mark" class="w-4 h-4 mr-1" />
+            Réinitialiser les filtres
+          </UButton>
         </div>
 
         <!-- Statistiques compactes -->
