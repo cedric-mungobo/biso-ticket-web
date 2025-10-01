@@ -361,12 +361,25 @@
             <UIcon name="i-heroicons-arrow-down-tray" class="w-4 h-4 mr-2" />
             Télécharger le billet
           </UButton>
+          
+          <!-- Lien vers la page de téléchargement -->
+          <TicketDownloadLink
+            v-if="reservationData?.publicId"
+            :public-id="reservationData.publicId"
+            label="Lien permanent du billet"
+            color="secondary"
+            variant="outline"
+            icon="i-heroicons-link"
+            button-class="order-2 w-full"
+            size="sm"
+          />
+          
           <UButton 
-            color="secondary" 
-            variant="outline" 
+            color="neutral" 
+            variant="ghost" 
             block
             @click="showConfirmationModal = false"
-            class="order-2"
+            class="order-3"
             size="sm"
           >
             Fermer

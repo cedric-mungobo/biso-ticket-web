@@ -335,10 +335,11 @@
 
         <!-- Informations essentielles -->
         <div class="space-y-3">
+          
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="text-xs font-medium text-gray-500">ID Réservation</label>
-              <p class="text-gray-900 font-mono text-sm">#{{ selectedReservation.id }}</p>
+              <p class="text-gray-900 font-mono text-sm">#{{ selectedReservation.publicId || selectedReservation.id }}</p>
             </div>
             
             <div>
