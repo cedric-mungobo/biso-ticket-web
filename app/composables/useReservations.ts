@@ -261,87 +261,50 @@ export const useReservations = () => {
       loading.value = true
       error.value = null
 
-      // Construire l'URL complète avec les filtres
-      let url = 'https://api.bisoticket.com/api/reservations/export'
-      const queryParams = new URLSearchParams()
-      
-      // Format d'export
-      queryParams.append('format', format)
+      // Construire les paramètres de requête
+      const queryParams: any = {
+        format: format
+      }
       
       // Appliquer les mêmes filtres que pour la récupération
       if (filters.search) {
-        queryParams.append('search', filters.search)
+        queryParams.search = filters.search
       }
       if (filters.date_from) {
-        queryParams.append('date_from', filters.date_from)
+        queryParams.date_from = filters.date_from
       }
       if (filters.date_to) {
-        queryParams.append('date_to', filters.date_to)
+        queryParams.date_to = filters.date_to
       }
       if (filters.event_id) {
-        queryParams.append('event_id', filters.event_id.toString())
+        queryParams.event_id = filters.event_id
       }
       if (filters.user_id) {
-        queryParams.append('user_id', filters.user_id.toString())
+        queryParams.user_id = filters.user_id
       }
       if (filters.status) {
-        queryParams.append('status', filters.status)
+        queryParams.status = filters.status
       }
       if (filters.payment_status) {
-        queryParams.append('payment_status', filters.payment_status)
+        queryParams.payment_status = filters.payment_status
       }
       
       // Filtres de compatibilité (legacy)
       if (filters.reservation_form_id) {
-        queryParams.append('reservation_form_id', filters.reservation_form_id.toString())
+        queryParams.reservation_form_id = filters.reservation_form_id
       }
       
-      if (queryParams.toString()) {
-        url += '?' + queryParams.toString()
-      }
+      console.log('🚀 Export des réservations:', { format, filters, queryParams })
       
-      console.log('🚀 Export des réservations:', { format, filters, url })
-      console.log('🔗 URL complète:', `${url}?${queryParams.toString()}`)
-      
-      // Récupérer le token d'authentification
-      const token = useCookie('auth_token').value
-      if (!token) {
-        throw new Error('Token d\'authentification manquant')
-      }
-      
-      // Faire la requête pour télécharger le fichier avec fetch
-      const response = await fetch(url, {
+      // Utiliser $myFetch avec l'URL relative (le plugin gère l'URL de base)
+      const response = await $myFetch('/reservations/export', {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': format === 'pdf' ? 'application/pdf' : 
-                   format === 'excel' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 
-                   'text/csv'
-        }
+        query: queryParams,
+        responseType: 'blob'
       })
       
-      if (!response.ok) {
-        // Gestion d'erreurs selon le guide
-        if (response.status === 401) {
-          throw new Error('Non authentifié - Veuillez vous reconnecter')
-        } else if (response.status === 422) {
-          throw new Error('Paramètres invalides - Vérifiez les filtres')
-        } else if (response.status === 500) {
-          throw new Error('Erreur serveur - Réessayez plus tard')
-        } else {
-          throw new Error(`Erreur HTTP ${response.status}: ${response.statusText}`)
-        }
-      }
-      
-      console.log('📡 Réponse du serveur:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-        url: response.url
-      })
-      
-      // Récupérer le blob
-      const blob = await response.blob()
+      // $myFetch avec responseType: 'blob' retourne directement le blob
+      const blob = response as Blob
       
       console.log('📄 Informations du blob:', {
         size: blob.size,
