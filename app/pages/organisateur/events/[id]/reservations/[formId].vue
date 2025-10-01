@@ -2,7 +2,7 @@
     <OrganizerNavigation>
       <div class="px-2 md:p-0 py-0">
         <!-- En-tête -->
-      <div class="mb-4">
+        <div class="mb-4">
         <!-- Navigation de retour -->
         <div class="mb-3">
           <NuxtLink
@@ -32,39 +32,59 @@
           
           <!-- Filtres et actions -->
           <div class="flex flex-col sm:flex-row gap-2">
-            <!-- Menu d'export -->
-            <UDropdownMenu :items="exportMenuItems">
+            <!-- Boutons d'export et lien public -->
+            <div class="flex flex-wrap gap-1">
               <UButton
+                @click="() => handleExport('csv')"
                 variant="outline"
                 color="neutral"
                 size="sm"
-                class="w-full sm:w-auto"
-                icon="i-heroicons-arrow-down-tray"
+                icon="i-heroicons-document-text"
+                class="flex-shrink-0"
               >
-                Exporter
+                CSV
               </UButton>
-            </UDropdownMenu>
-            
-            <!-- Bouton pour copier le lien public -->
-            <UButton
-              @click="copyPublicLink"
-              variant="outline"
-              color="primary"
-              size="sm"
-              class="w-full sm:w-auto"
-            >
-              <UIcon name="i-heroicons-link" class="w-4 h-4 mr-2" />
-              Copier le lien public
-            </UButton>
+              <UButton
+                @click="() => handleExport('excel')"
+                variant="outline"
+                color="neutral"
+                size="sm"
+                icon="i-heroicons-table-cells"
+                class="flex-shrink-0"
+              >
+                Excel
+              </UButton>
+              <UButton
+                @click="() => handleExport('pdf')"
+                variant="outline"
+                color="neutral"
+                size="sm"
+                icon="i-heroicons-document"
+                class="flex-shrink-0"
+              >
+                PDF
+              </UButton>
+              <UButton
+                @click="copyPublicLink"
+                variant="outline"
+                color="primary"
+                size="sm"
+                class="flex-shrink-0"
+              >
+                <UIcon name="i-heroicons-link" class="w-4 h-4 mr-2" />
+                Copier le lien public
+              </UButton>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Filtres et statistiques compacts -->
       <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-3 mb-4">
-        <!-- Filtres en ligne -->
-        <div class="flex flex-wrap items-end gap-3 mb-3">
-          <div class="flex-1 min-w-48">
+        <!-- Filtres organisés pour mobile -->
+        <div class="space-y-3 mb-3">
+          <!-- Ligne 1: Recherche (pleine largeur) -->
+          <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">Recherche</label>
             <UInput
               v-model="searchQuery"
@@ -74,54 +94,62 @@
             />
           </div>
           
-          <div class="w-32">
-            <label class="block text-xs font-medium text-slate-600 mb-1">Statut</label>
+          <!-- Ligne 2: Statut et bouton reset -->
+          <div class="flex gap-3 items-end">
+            <div class="flex-1">
+              <label class="block text-xs font-medium text-slate-600 mb-1">Statut</label>
             <select
               v-model="selectedStatus"
               @change="applyFilters"
-              class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
             >
-              <option value="">Tous</option>
+                <option value="">Tous</option>
               <option value="pending">En attente</option>
               <option value="confirmed">Confirmée</option>
               <option value="cancelled">Annulée</option>
             </select>
-          </div>
-          
-          <div class="w-36">
-            <label class="block text-xs font-medium text-slate-600 mb-1">Date début</label>
-            <UInput
-              v-model="dateFrom"
-              type="date"
-              @change="applyFilters"
+            </div>
+            
+            <UButton
+              v-if="hasActiveFilters"
+              @click="resetFilters"
+              variant="ghost"
+              color="neutral"
               size="sm"
-            />
+              class="flex-shrink-0"
+            >
+              <UIcon name="i-heroicons-x-mark" class="w-4 h-4" />
+            </UButton>
           </div>
           
-          <div class="w-36">
-            <label class="block text-xs font-medium text-slate-600 mb-1">Date fin</label>
-            <UInput
-              v-model="dateTo"
-              type="date"
-              @change="applyFilters"
+          <!-- Ligne 3: Dates (2 colonnes sur mobile) -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Date début</label>
+              <UInput
+                v-model="dateFrom"
+                type="date"
+                @change="applyFilters"
               size="sm"
-            />
+              />
+            </div>
+            
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Date fin</label>
+              <UInput
+                v-model="dateTo"
+                type="date"
+                @change="applyFilters"
+                size="sm"
+              />
+            </div>
           </div>
-          
-          <UButton
-            v-if="hasActiveFilters"
-            @click="resetFilters"
-            variant="ghost"
-            color="neutral"
-            size="sm"
-          >
-            <UIcon name="i-heroicons-x-mark" class="w-4 h-4" />
-          </UButton>
         </div>
 
         <!-- Statistiques compactes -->
-        <div v-if="stats" class="flex items-center justify-between text-sm">
-          <div class="flex items-center gap-6">
+        <div v-if="stats" class="space-y-2">
+          <!-- Statistiques principales -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             <div class="flex items-center gap-2">
               <div class="w-2 h-2 bg-slate-400 rounded-full"></div>
               <span class="text-slate-600">Total: <strong class="text-slate-900">{{ stats.total }}</strong></span>
@@ -139,7 +167,9 @@
               <span class="text-slate-600">Annulées: <strong class="text-slate-900">{{ stats.by_status.cancelled }}</strong></span>
             </div>
           </div>
-          <div class="text-xs text-slate-500">
+          
+          <!-- Timestamp de mise à jour -->
+          <div class="text-xs text-slate-500 text-center sm:text-right">
             Mis à jour: {{ lastUpdated }}
           </div>
         </div>
@@ -477,26 +507,6 @@ const hasActiveFilters = computed(() => {
   return selectedStatus.value || searchQuery.value || dateFrom.value || dateTo.value
 })
 
-// Menu d'export
-const exportMenuItems = [
-  [
-    {
-      label: 'Exporter en CSV',
-      icon: 'i-heroicons-document-text',
-      click: () => handleExport('csv')
-    },
-    {
-      label: 'Exporter en Excel',
-      icon: 'i-heroicons-table-cells',
-      click: () => handleExport('excel')
-    },
-    {
-      label: 'Exporter en PDF',
-      icon: 'i-heroicons-document',
-      click: () => handleExport('pdf')
-    }
-  ]
-]
 
 // Charger les réservations
 const loadReservations = async (page: number = currentPage.value) => {
