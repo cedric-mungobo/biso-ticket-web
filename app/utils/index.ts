@@ -40,13 +40,13 @@ export const calculateDynamicFontSize = (text: string): number => {
   if (!text) return 32
   
   const textLength = text.length
-  let baseSize = 32
+  let baseSize = 40
   
-  if (textLength > 200) baseSize = 28
-  if (textLength > 400) baseSize = 24
-  if (textLength > 600) baseSize = 20
-  if (textLength > 800) baseSize = 18
-  if (textLength > 1000) baseSize = 16
+  if (textLength > 200) baseSize = 38
+  if (textLength > 400) baseSize = 32
+  if (textLength > 600) baseSize = 26
+  if (textLength > 800) baseSize = 20
+  if (textLength > 1000) baseSize = 18
   
   return baseSize
 }

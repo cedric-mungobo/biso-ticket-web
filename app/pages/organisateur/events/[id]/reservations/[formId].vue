@@ -39,7 +39,9 @@
                 variant="outline"
                 color="neutral"
                 size="sm"
-                icon="i-heroicons-document-text"
+                :icon="isExporting && currentExportFormat === 'csv' ? 'i-heroicons-arrow-path' : 'i-heroicons-document-text'"
+                :loading="isExporting && currentExportFormat === 'csv'"
+                :disabled="isExporting"
                 class="w-full sm:w-auto"
               >
                 <span class="text-xs sm:text-sm">CSV</span>
@@ -49,7 +51,9 @@
                 variant="outline"
                 color="neutral"
                 size="sm"
-                icon="i-heroicons-table-cells"
+                :icon="isExporting && currentExportFormat === 'excel' ? 'i-heroicons-arrow-path' : 'i-heroicons-table-cells'"
+                :loading="isExporting && currentExportFormat === 'excel'"
+                :disabled="isExporting"
                 class="w-full sm:w-auto"
               >
                 <span class="text-xs sm:text-sm">Excel</span>
@@ -59,7 +63,9 @@
                 variant="outline"
                 color="neutral"
                 size="sm"
-                icon="i-heroicons-document"
+                :icon="isExporting && currentExportFormat === 'pdf' ? 'i-heroicons-arrow-path' : 'i-heroicons-document'"
+                :loading="isExporting && currentExportFormat === 'pdf'"
+                :disabled="isExporting"
                 class="w-full sm:w-auto"
               >
                 <span class="text-xs sm:text-sm">PDF</span>
@@ -186,6 +192,15 @@
         :show="loading"
         title="Chargement des réservations..."
         description="Veuillez patienter ..."
+        color="primary"
+        :size="48"
+      />
+
+      <!-- Loading Export -->
+      <LoadingOverlay
+        :show="isExporting"
+        :title="`Export ${currentExportFormat?.toUpperCase()} en cours...`"
+        :description="`Génération du fichier ${currentExportFormat?.toUpperCase()}, veuillez patienter...`"
         color="primary"
         :size="48"
       />
@@ -429,6 +444,10 @@ const {
 // État local pour les données
 const reservations = ref<Reservation[]>([])
 const stats = ref<ReservationStats | null>(null)
+
+// État de chargement pour l'export
+const isExporting = ref(false)
+const currentExportFormat = ref<string | null>(null)
 
 const toast = useToast()
 
@@ -826,107 +845,40 @@ const printReservation = () => {
   printWindow.print()
 }
 
-// Export côté client (fallback pour CSV)
-const exportClientSide = async (format: 'csv' | 'excel' | 'pdf') => {
-  try {
-    if (reservations.value.length === 0) {
-      toast.add({
-        title: 'Aucune donnée',
-        description: 'Aucune réservation à exporter',
-        color: 'warning'
-      })
-      return
-    }
-    
-    if (format === 'csv') {
-      // Créer le contenu CSV
-      const headers = ['ID', 'Nom', 'Email', 'Téléphone', 'Statut', 'Date de création', 'Événement']
-      const csvContent = [
-        headers.join(','),
-        ...reservations.value.map(reservation => [
-          reservation.id,
-          `"${reservation.fullName || reservation.data?.name || ''}"`,
-          `"${reservation.email || reservation.data?.email || ''}"`,
-          `"${reservation.phone || ''}"`,
-          `"${reservation.status}"`,
-          `"${reservation.createdAt || reservation.created_at || ''}"`,
-          `"${reservation.event?.title || ''}"`
-        ].join(','))
-      ].join('\n')
-      
-      // Créer et télécharger le fichier
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const link = document.createElement('a')
-      const url = URL.createObjectURL(blob)
-      link.setAttribute('href', url)
-      link.setAttribute('download', `reservations_${new Date().toISOString().split('T')[0]}.csv`)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-      
-      toast.add({
-        title: 'Export réussi',
-        description: 'Fichier CSV généré',
-        color: 'success'
-      })
-    } else {
-      // Pour Excel et PDF, utiliser l'API serveur
-      await exportReservations(format, {
-        reservation_form_id: formId,
-        event_id: eventId,
-        status: selectedStatus.value as 'pending' | 'confirmed' | 'cancelled' | undefined,
-        search: searchQuery.value,
-        date_from: dateFrom.value,
-        date_to: dateTo.value
-      })
-    }
-    
-  } catch (err: any) {
-    console.error('Erreur export:', err)
-    toast.add({
-      title: 'Erreur d\'export',
-      description: err.message || 'Impossible d\'exporter les réservations',
-      color: 'error'
-    })
-  }
-}
 
 // Gérer l'export des réservations
 const handleExport = async (format: 'csv' | 'excel' | 'pdf') => {
   try {
-    // Pour CSV, utiliser l'export côté client
-    if (format === 'csv') {
-      await exportClientSide('csv')
-    } else {
-      // Pour Excel et PDF, utiliser l'API serveur
-      const filters: any = {
-        reservation_form_id: formId,
-        event_id: eventId
-      }
-      
-      // Appliquer les filtres actifs
-      if (selectedStatus.value) filters.status = selectedStatus.value
-      if (searchQuery.value) filters.search = searchQuery.value
-      if (dateFrom.value) filters.date_from = dateFrom.value
-      if (dateTo.value) filters.date_to = dateTo.value
-      
-      // Afficher un toast de chargement
-      toast.add({
-        title: 'Export en cours...',
-        description: `Génération du fichier ${format.toUpperCase()}`,
-        color: 'primary'
-      })
-      
-      await exportReservations(format, filters)
-      
-      toast.add({
-        title: 'Export réussi',
-        description: `Fichier ${format.toUpperCase()} téléchargé`,
-        color: 'success'
-      })
+    // Activer le loading d'export
+    isExporting.value = true
+    currentExportFormat.value = format
+    
+    // Utiliser l'API serveur pour tous les formats (CSV, Excel, PDF)
+    const filters: any = {
+      reservation_form_id: formId,
+      event_id: eventId
     }
+    
+    // Appliquer les filtres actifs
+    if (selectedStatus.value) filters.status = selectedStatus.value
+    if (searchQuery.value) filters.search = searchQuery.value
+    if (dateFrom.value) filters.date_from = dateFrom.value
+    if (dateTo.value) filters.date_to = dateTo.value
+    
+    // Afficher un toast de chargement
+    toast.add({
+      title: 'Export en cours...',
+      description: `Génération du fichier ${format.toUpperCase()}`,
+      color: 'primary'
+    })
+    
+    await exportReservations(format, filters)
+    
+    toast.add({
+      title: 'Export réussi',
+      description: `Fichier ${format.toUpperCase()} téléchargé`,
+      color: 'success'
+    })
   } catch (err: any) {
     console.error('Erreur lors de l\'export:', err)
     toast.add({
@@ -934,6 +886,10 @@ const handleExport = async (format: 'csv' | 'excel' | 'pdf') => {
       description: err.message || 'Impossible d\'exporter les réservations',
       color: 'error'
     })
+  } finally {
+    // Désactiver le loading d'export
+    isExporting.value = false
+    currentExportFormat.value = null
   }
 }
 
