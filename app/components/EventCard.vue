@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink :to="`/evenements/${slug}`" class="block group p-[1px] bg-primary-500 rounded-2xl">
+  <NuxtLink :to="`/evenements/${slug}`" class="block group p-[1sssspx] bg-primary-500 rounded-2xl">
     <article
       class="w-full bg-white/10 backdrop-blur-md text-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] border border-white/20 hover:border-purple-500/40 relative aspect-square"
     >
