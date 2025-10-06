@@ -98,6 +98,8 @@ export const useCanvasImage = () => {
         ctx.textAlign = align
         ctx.textBaseline = 'top'
         
+        if (process.dev) console.log('🎨 === DEBUT DRAWTEXT ===')
+        if (process.dev) console.log('🎨 Paramètres:', { text: text.substring(0, 100) + '...', x, y, maxWidth, fontSize, fontFamily, color, align })
         if (process.dev) console.log('🎨 Dessin du texte avec couleur:', color)
 
         // Traiter le formatage personnalisé
@@ -108,6 +110,8 @@ export const useCanvasImage = () => {
         // Diviser le texte en lignes (retours à la ligne)
         const lines = processedText.split('\n')
         if (process.dev) console.log('🎨 Lignes à traiter:', lines.length, lines)
+        if (process.dev) console.log('🎨 Largeur maximale disponible:', maxWidth)
+        
         let lineY = y
 
         for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
@@ -394,13 +398,15 @@ export const useCanvasImage = () => {
           ctx.font = `${fontSize}px ${fontFamily}`
           const lineMetrics = ctx.measureText(line)
           
+          if (process.dev) console.log(`🎨 Ligne "${line.substring(0, 50)}..." - Largeur: ${lineMetrics.width}px vs Max: ${maxWidth}px`)
+          
           if (lineMetrics.width <= maxWidth) {
             // La ligne tient dans la largeur maximale
-            if (process.dev) console.log('🎨 Ligne complète dessinée:', line)
+            if (process.dev) console.log('✅ Ligne complète dessinée (tient):', line)
             drawFormattedText(ctx, line, x, lineY, fontSize, fontFamily, color)
             lineY += fontSize * 1.4
           } else {
-            // La ligne est trop longue, la diviser en mots
+            // La ligne est trop longue, la diviser en mots avec gestion des mots longs
             if (process.dev) console.log('🎨 Ligne trop longue, division en cours:', line)
             const words = line.split(' ')
             let currentLine = ''
@@ -409,57 +415,344 @@ export const useCanvasImage = () => {
               const word = words[i]
               if (!word) continue
               
-              const testLine = currentLine + (currentLine ? ' ' : '') + word
-              const testMetrics = ctx.measureText(testLine)
+              // Vérifier si le mot seul est trop long
+              ctx.font = `${fontSize}px ${fontFamily}`
+              const wordMetrics = ctx.measureText(word)
               
-              if (testMetrics.width <= maxWidth) {
-                currentLine = testLine
-              } else {
-                // Dessiner la ligne actuelle si elle n'est pas vide
-                if (currentLine) {
-                  if (process.dev) console.log('🎨 Ligne partielle dessinée:', currentLine)
-                  drawFormattedText(ctx, currentLine, x, lineY, fontSize, fontFamily, color)
+              if (wordMetrics.width > maxWidth) {
+                // Le mot est trop long, le diviser caractère par caractère
+                if (process.dev) console.log('🎨 Mot trop long, division par caractères:', word)
+                
+                // D'abord dessiner la ligne en cours si elle n'est pas vide
+                if (currentLine.trim()) {
+                  drawFormattedText(ctx, currentLine.trim(), x, lineY, fontSize, fontFamily, color)
+                  lineY += fontSize * 1.4
+                  currentLine = ''
+                }
+                
+                // Diviser le mot long en parties
+                let wordPart = ''
+                for (let j = 0; j < word.length; j++) {
+                  const char = word[j]
+                  const testWord = wordPart + (char || '')
+                  const testMetrics = ctx.measureText(testWord)
+                  
+                  if (testMetrics.width <= maxWidth) {
+                    wordPart = testWord
+                  } else {
+                    // Dessiner la partie du mot
+                    if (wordPart) {
+                      drawFormattedText(ctx, wordPart, x, lineY, fontSize, fontFamily, color)
+                      lineY += fontSize * 1.4
+                    }
+                    wordPart = char || ''
+                  }
+                }
+                
+                // Dessiner la dernière partie du mot
+                if (wordPart) {
+                  drawFormattedText(ctx, wordPart, x, lineY, fontSize, fontFamily, color)
                   lineY += fontSize * 1.4
                 }
-                currentLine = word
+              } else {
+                // Le mot n'est pas trop long, traitement normal
+                const testLine = currentLine + (currentLine ? ' ' : '') + word
+                const testMetrics = ctx.measureText(testLine)
+                
+                if (testMetrics.width <= maxWidth) {
+                  currentLine = testLine
+                } else {
+                  // Dessiner la ligne actuelle si elle n'est pas vide
+                  if (currentLine.trim()) {
+                    if (process.dev) console.log('🎨 Ligne partielle dessinée:', currentLine.trim())
+                    drawFormattedText(ctx, currentLine.trim(), x, lineY, fontSize, fontFamily, color)
+                    lineY += fontSize * 1.4
+                  }
+                  currentLine = word
+                }
               }
             }
             
             // Dessiner la dernière ligne
-            if (currentLine) {
-              if (process.dev) console.log('🎨 Dernière ligne dessinée:', currentLine)
-              drawFormattedText(ctx, currentLine, x, lineY, fontSize, fontFamily, color)
+            if (currentLine.trim()) {
+              if (process.dev) console.log('🎨 Dernière ligne dessinée:', currentLine.trim())
+              drawFormattedText(ctx, currentLine.trim(), x, lineY, fontSize, fontFamily, color)
               lineY += fontSize * 1.4
             }
           }
         }
 
+        if (process.dev) console.log('🎨 === FIN DRAWTEXT ===')
         if (process.dev) console.log('🎨 Fin du traitement du texte. Dernière position Y:', lineY)
         return lineY
+      }
+      
+      // Fonction utilitaire pour dessiner du texte avec wrap automatique
+      const drawTextWithWrap = (text: string, y: number, maxWidth: number, fontSize: number, fontFamily: string, color: string, align: 'left' | 'center' | 'right' = 'left') => {
+        ctx.font = `${fontSize}px ${fontFamily}`
+        ctx.fillStyle = color
+        ctx.textAlign = align
+        ctx.textBaseline = 'top'
+        
+        if (process.dev) console.log(`🎨 drawTextWithWrap: "${text.substring(0, 50)}..." (maxWidth: ${maxWidth}px)`)
+        
+        // Mesurer le texte
+        const metrics = ctx.measureText(text)
+        
+        if (metrics.width <= maxWidth) {
+          // Le texte tient sur une ligne
+          let xPos = 0
+          if (align === 'center') xPos = width / 2
+          else if (align === 'right') xPos = width - (invitationData.messagePadding || 120)
+          else xPos = invitationData.messagePadding || 120
+          
+          ctx.fillText(text, xPos, y)
+          if (process.dev) console.log('🎨 Texte sur une ligne:', text)
+          return 1
+        } else {
+          // Le texte doit être divisé
+          const words = text.split(' ')
+          let lines = []
+          let currentLine = ''
+          
+          for (let i = 0; i < words.length; i++) {
+            const word = words[i]
+            const testLine = currentLine + (currentLine ? ' ' : '') + word
+            const testMetrics = ctx.measureText(testLine)
+            
+            if (testMetrics.width <= maxWidth) {
+              currentLine = testLine
+            } else {
+              if (currentLine) {
+                lines.push(currentLine)
+                currentLine = word || ''
+              } else {
+                // Le mot seul est trop long, le diviser caractère par caractère
+                if (word) lines.push(...breakLongWord(word, maxWidth, fontSize, fontFamily))
+              }
+            }
+          }
+          
+          if (currentLine) {
+            lines.push(currentLine)
+          }
+          
+          // Dessiner chaque ligne
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            let xPos = 0
+            if (align === 'center') xPos = width / 2
+            else if (align === 'right') xPos = width - (invitationData.messagePadding || 120)
+            else xPos = invitationData.messagePadding || 120
+            
+            if (line) ctx.fillText(line, xPos, y + i * fontSize * 1.4)
+            if (process.dev) console.log(`🎨 Ligne ${i + 1}/${lines.length}:`, line)
+          }
+          
+          return lines.length
+        }
+      }
+      
+      // Fonction pour diviser un mot trop long
+      const breakLongWord = (word: string, maxWidth: number, fontSize: number, fontFamily: string): string[] => {
+        ctx.font = `${fontSize}px ${fontFamily}`
+        const parts = []
+        let currentPart = ''
+        
+        for (let i = 0; i < word.length; i++) {
+          const char = word[i]
+          const testPart = currentPart + char
+          const metrics = ctx.measureText(testPart)
+          
+          if (metrics.width <= maxWidth) {
+            currentPart = testPart
+          } else {
+            if (currentPart) {
+              parts.push(currentPart)
+              currentPart = char || ''
+            } else {
+              parts.push(char)
+            }
+          }
+        }
+        
+        if (currentPart) {
+          parts.push(currentPart)
+        }
+        
+        return parts.filter(p => p !== undefined) as string[]
       }
 
       // Fonction pour traiter le formatage Canvas
       const processCanvasFormatting = (text: string): string => {
-        return text
-          // Supprimer le formatage pour l'instant
-          .replace(/\*\*(.*?)\*\*/g, '$1') // **gras** → gras
-          .replace(/\*(.*?)\*/g, '$1')     // *italique* → italique
-          .replace(/_(.*?)_/g, '$1')       // _souligné_ → souligné
-          .replace(/~(.*?)~/g, '$1')       // ~barré~ → barré
-          .replace(/`(.*?)`/g, '$1')       // `code` → code
-          // NE PAS toucher aux alignements: [>texte<], [<texte<], [>texte>] - les garder intacts
-          // Séparateur: [---] → ligne vide
-          .replace(/\[---\]/g, '\n\n')
-          // Ne pas traiter les titres ici, ils seront gérés dans drawText
+        if (process.dev) console.log('🎨 === PROCESS CANVAS FORMATTING ===')
+        if (process.dev) console.log('🎨 Texte HTML entrant:', text)
+        
+        // Créer un élément temporaire pour parser le HTML
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = text
+        
+        // Fonction récursive pour extraire le texte avec formatage
+        const extractText = (element: Element): string => {
+          let result = ''
+          
+          for (const node of Array.from(element.childNodes)) {
+            if (node.nodeType === Node.TEXT_NODE) {
+              result += node.textContent || ''
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+              const el = node as Element
+              const tagName = el.tagName.toLowerCase()
+              
+              // Ajouter des retours à la ligne selon les balises
+              if (['br', 'br/'].includes(tagName)) {
+                result += '\n'
+              } else if (['p', 'div'].includes(tagName)) {
+                result += extractText(el) + '\n\n'
+              } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+                result += '\n' + extractText(el) + '\n'
+              } else if (['strong', 'b'].includes(tagName)) {
+                result += '**' + extractText(el) + '**'
+              } else if (['em', 'i'].includes(tagName)) {
+                result += '*' + extractText(el) + '*'
+              } else if (['u'].includes(tagName)) {
+                result += '_' + extractText(el) + '_'
+              } else if (['s', 'strike'].includes(tagName)) {
+                result += '~' + extractText(el) + '~'
+              } else if (['code'].includes(tagName)) {
+                result += '`' + extractText(el) + '`'
+              } else {
+                result += extractText(el)
+              }
+            }
+          }
+          
+          return result
+        }
+        
+        // Extraire le texte formaté
+        let processed = extractText(tempDiv)
+        
+        // Nettoyer les espaces et retours à la ligne
+        processed = processed
+          .replace(/\n\s*\n\s*\n+/g, '\n\n') // Remplacer les retours à la ligne multiples
+          .replace(/[ \t]+/g, ' ') // Nettoyer les espaces multiples
+          .replace(/^[ \t]+|[ \t]+$/gm, '') // Nettoyer les espaces en début/fin de ligne
+          .trim() // Supprimer les espaces en début/fin
+        
+        if (process.dev) console.log('🎨 Texte formaté sortant:', processed)
+        if (process.dev) console.log('🎨 === FIN PROCESS CANVAS FORMATTING ===')
+        
+        return processed
       }
       
       // Fonction pour dessiner du texte avec formatage
       const drawFormattedText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, fontSize: number, fontFamily: string, color: string) => {
-        // Pour l'instant, dessiner le texte normal sans formatage
-        // Le formatage sera géré plus tard
+        if (process.dev) console.log('🎨 drawFormattedText:', { text: text.substring(0, 50) + '...', x, y, fontSize })
+        
+        // Diviser le texte en segments avec formatage
+        const segments = parseFormattedText(text)
+        let currentX = x
+        
+        for (const segment of segments) {
+          // Appliquer le formatage approprié
+          if (segment.bold) {
+            ctx.font = `bold ${fontSize}px ${fontFamily}`
+          } else if (segment.italic) {
+            ctx.font = `italic ${fontSize}px ${fontFamily}`
+          } else if (segment.underline) {
+            ctx.font = `${fontSize}px ${fontFamily}`
+            // Note: Canvas ne supporte pas nativement le soulignement, on peut l'ajouter manuellement
+          } else if (segment.strikethrough) {
+            ctx.font = `${fontSize}px ${fontFamily}`
+            // Note: Canvas ne supporte pas nativement le barré, on peut l'ajouter manuellement
+          } else {
         ctx.font = `${fontSize}px ${fontFamily}`
+          }
+          
         ctx.fillStyle = color
-        ctx.fillText(text, x, y)
+          ctx.fillText(segment.text, currentX, y)
+          
+          // Mesurer le texte pour positionner le suivant
+          const metrics = ctx.measureText(segment.text)
+          currentX += metrics.width
+        }
+      }
+      
+      // Fonction pour parser le texte formaté
+      const parseFormattedText = (text: string) => {
+        const segments: Array<{text: string, bold?: boolean, italic?: boolean, underline?: boolean, strikethrough?: boolean}> = []
+        let currentText = text
+        
+        // Traiter le formatage dans l'ordre de priorité (le plus spécifique en premier)
+        while (currentText.length > 0) {
+          // Chercher le prochain formatage
+          const boldMatch = currentText.match(/\*\*(.*?)\*\*/)
+          const italicMatch = currentText.match(/\*(.*?)\*/)
+          const underlineMatch = currentText.match(/_(.*?)_/)
+          const strikethroughMatch = currentText.match(/~(.*?)~/)
+          const codeMatch = currentText.match(/`(.*?)`/)
+          
+          // Trouver le match le plus proche
+          let closestMatch = null
+          let closestIndex = Infinity
+          let matchType = ''
+          
+          if (boldMatch && boldMatch.index! < closestIndex) {
+            closestMatch = boldMatch
+            closestIndex = boldMatch.index!
+            matchType = 'bold'
+          }
+          if (italicMatch && italicMatch.index! < closestIndex) {
+            closestMatch = italicMatch
+            closestIndex = italicMatch.index!
+            matchType = 'italic'
+          }
+          if (underlineMatch && underlineMatch.index! < closestIndex) {
+            closestMatch = underlineMatch
+            closestIndex = underlineMatch.index!
+            matchType = 'underline'
+          }
+          if (strikethroughMatch && strikethroughMatch.index! < closestIndex) {
+            closestMatch = strikethroughMatch
+            closestIndex = strikethroughMatch.index!
+            matchType = 'strikethrough'
+          }
+          if (codeMatch && codeMatch.index! < closestIndex) {
+            closestMatch = codeMatch
+            closestIndex = codeMatch.index!
+            matchType = 'code'
+          }
+          
+          if (closestMatch && closestIndex < Infinity) {
+            // Ajouter le texte avant le formatage
+            if (closestIndex > 0) {
+              segments.push({ text: currentText.substring(0, closestIndex) })
+            }
+            
+            // Ajouter le texte formaté
+            const formattedText = closestMatch[1]
+            const segment: any = { text: formattedText }
+            
+            if (matchType === 'bold') segment.bold = true
+            else if (matchType === 'italic') segment.italic = true
+            else if (matchType === 'underline') segment.underline = true
+            else if (matchType === 'strikethrough') segment.strikethrough = true
+            else if (matchType === 'code') segment.code = true
+            
+            segments.push(segment)
+            
+            // Continuer avec le reste du texte
+            currentText = currentText.substring(closestIndex + closestMatch[0].length)
+          } else {
+            // Plus de formatage, ajouter le reste du texte
+            if (currentText.length > 0) {
+              segments.push({ text: currentText })
+            }
+            break
+          }
+        }
+        
+        return segments
       }
 
       // Fonction pour dessiner du texte centré
@@ -516,8 +809,12 @@ export const useCanvasImage = () => {
         
         // Utiliser la fonction drawText améliorée pour gérer les retours à la ligne
         const fontSize = invitationData.messageFontSize || 20
+        if (process.dev) console.log('🎨 === APPEL DRAWTEXT POUR MESSAGE ===')
         if (process.dev) console.log('🎨 Taille de police du message:', fontSize)
+        if (process.dev) console.log('🎨 Message à traiter:', invitationData.guestMessage?.substring(0, 200) + '...')
+        if (process.dev) console.log('🎨 Paramètres canvas:', { textX, currentY, messageWidth, fontSize, textAlign })
         currentY = drawText(invitationData.guestMessage, textX, currentY, messageWidth, fontSize, primaryFont, primaryColor, textAlign)
+        if (process.dev) console.log('🎨 === FIN APPEL DRAWTEXT ===')
       }
 
       currentY += 80

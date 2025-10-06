@@ -99,6 +99,7 @@
             Invitation
           </h2>
           
+        
           <!-- Texte de l'invitation -->
           <div class="text-start"    v-motion
         :initial="{ opacity: 0, x: 80 }"
@@ -264,41 +265,10 @@ const messageFontSize = computed(() => {
 
 const handleDownloadInvitation = async () => {
   try {
-    // Nettoyer le message pour le canvas en préservant le formatage
-    let cleanMessage = processedGuestMessage.value || ''
-    if (cleanMessage) {
-      // Remplacer les <br> par des retours à la ligne pour le canvas
-      cleanMessage = cleanMessage.replace(/<br\s*\/?>/gi, '\n')
-      
-      // Convertir le HTML en formatage Canvas-friendly
-      cleanMessage = cleanMessage
-        // Gras: <strong>texte</strong> → **texte**
-        .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
-        // Italique: <em>texte</em> → *texte*
-        .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
-        // Souligné: <u>texte</u> → _texte_
-        .replace(/<u[^>]*>(.*?)<\/u>/gi, '_$1_')
-        // Barré: <s>texte</s> → ~texte~
-        .replace(/<s[^>]*>(.*?)<\/s>/gi, '~$1~')
-        // Code: <code>texte</code> → `texte`
-        .replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`')
-        // Alignement à droite: <div class="text-right">texte</div> → [>texte<]
-        .replace(/<div[^>]*class="[^"]*text-right[^"]*"[^>]*>(.*?)<\/div>/gi, '[>$1<]')
-        // Alignement à gauche: <div class="text-left">texte</div> → [<texte<]
-        .replace(/<div[^>]*class="[^"]*text-left[^"]*"[^>]*>(.*?)<\/div>/gi, '[<$1<]')
-        // Centré: <div class="text-center">texte</div> → [>texte>]
-        .replace(/<div[^>]*class="[^"]*text-center[^"]*"[^>]*>(.*?)<\/div>/gi, '[>$1>]')
-        // Séparateur: <hr> → [---]
-        .replace(/<hr[^>]*>/gi, '[---]')
-        // Titres: <h1>texte</h1> → [#texte#]
-        .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '[#$1#]')
-        .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '[##$1##]')
-        .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '[###$1###]')
-        // Enlever toute autre balise HTML restante
-        .replace(/<[^>]*>/g, '')
-        // Nettoyer les espaces multiples
-        .replace(/\n\s*\n\s*\n/g, '\n\n')
-    }
+    // Utiliser directement le message HTML - le canvas va le traiter
+    const cleanMessage = processedGuestMessage.value || ''
+    
+    console.log('📤 Message HTML envoyé au canvas:', cleanMessage)
     
     const invitationData = {
       guestMessage: cleanMessage || undefined,
@@ -313,10 +283,20 @@ const handleDownloadInvitation = async () => {
       messageFontSize: messageFontSize.value
     }
     
+    console.log('📤 === DONNÉES ENVOYÉES AU CANVAS (MARIAGE) ===')
+    console.log('📤 Données complètes:', invitationData)
+    console.log('📤 Message original:', processedGuestMessage.value)
+    console.log('📤 Message nettoyé:', cleanMessage)
+    console.log('📤 Message nettoyé (avec retours à la ligne visibles):', cleanMessage?.replace(/\n/g, '\\n'))
+    console.log('📤 Nombre de lignes dans le message:', cleanMessage?.split('\n').length)
     console.log('📤 Données envoyées au canvas (mariage):', {
       messageFontSize: invitationData.messageFontSize,
-      guestMessage: invitationData.guestMessage?.substring(0, 50) + '...'
+      guestMessage: invitationData.guestMessage?.substring(0, 100) + '...',
+      guestMessageLength: invitationData.guestMessage?.length,
+      hasLineBreaks: invitationData.guestMessage?.includes('\n'),
+      lineCount: invitationData.guestMessage?.split('\n').length
     })
+    console.log('📤 === FIN DONNÉES CANVAS ===')
     
     await downloadInvitationImage(invitationData)
   } catch (error) {
