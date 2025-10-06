@@ -79,9 +79,9 @@
                 <tr class="text-left text-gray-600 border-b">
                   <th class="py-2 pr-4">Nom</th>
                  
-                  <th class="py-2 pr-4">Table</th>
-                  <th class="py-2 pr-4">Statut</th>
-                  <th class="py-2 pr-4">Actions</th>
+                  <th class="py-2 md:pr-4 pr-1">Table</th>
+                  <th class="py-2 md:pr-4 pr-1">Statut</th>
+                  <th class="py-2 md:pr-4 pr-1">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -89,8 +89,8 @@
                 
                   <td class="py-2 pr-4">{{ inv.guestName || '—' }}</td>
 
-                  <td class="py-2 pr-4">{{ inv.guestTableName || '—' }}</td>
-                  <td class="py-2 pr-4">
+                  <td class="py-2 md:pr-4 pr-1">{{ inv.guestTableName || '—' }}</td>
+                  <td class="py-2 md:pr-4 pr-1">
                     <!-- Mobile: point coloré -->
                     <div class="sm:hidden flex items-center">
                       <div 
@@ -110,8 +110,8 @@
                       {{ statusLabel(inv.status) }}
                     </div>
                   </td>
-                  <td class="py-2 pr-4">
-                    <div class="flex items-center gap-1">
+                  <td class="py-2 md:pr-4 pr-1">
+                    <div class="flex items-center">
                       <UTooltip text="Voir">
                         <UButton size="xs" variant="ghost" color="neutral" aria-label="Voir" @click="openView(inv)">
                           <UIcon name="i-heroicons-eye" class="w-4 h-4" />
