@@ -105,7 +105,7 @@ export const useInvitations = () => {
     if (invitationData.status !== undefined) body.status = invitationData.status
     if (invitationData.metadata !== undefined) body.metadata = invitationData.metadata
 
-    const response = await $myFetch<any>(`/events/${eventId}/invitations/${invitationId}`, {
+    const response = await $myFetch<any>(`/invitations/${invitationId}`, {
       method: 'PUT',
       body
     })
@@ -114,7 +114,7 @@ export const useInvitations = () => {
   }
 
   const deleteInvitation = async (eventId: number, invitationId: number): Promise<boolean> => {
-    await $myFetch(`/events/${eventId}/invitations/${invitationId}`, { method: 'DELETE' })
+    await $myFetch(`/invitations/${invitationId}`, { method: 'DELETE' })
     return true
   }
 

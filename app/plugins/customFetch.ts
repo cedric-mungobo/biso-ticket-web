@@ -69,27 +69,6 @@ export default defineNuxtPlugin((nuxtApp) => {
       let errorMessage = 'Une erreur est survenue'
       let errorDetails = {}
       
-      try {
-        // @ts-ignore - certaines implémentations exposent _data
-        const responseData = (response as any)._data
-        
-        if (responseData) {
-          // Format API Biso Ticket: { status: false, message: "...", errors: { } }
-          // Mais pour les erreurs 422, l'API envoie directement { message: "...", errors: { } }
-          if (responseData.status === false) {
-            errorMessage = responseData.message || errorMessage
-            errorDetails = responseData.errors || {}
-          } else if (responseData.message) {
-            errorMessage = responseData.message
-            errorDetails = responseData.errors || {}
-          }
-        }
-      } catch (_e) {
-        // Log en dev seulement
-        if (process.dev) console.error('Error parsing response:', _e)
-        // Si on ne peut pas parser la réponse, utiliser les messages par défaut
-      }
-
       // Gérer les erreurs API selon les codes de statut HTTP standardisés
       switch (response.status) {
         case 400:
@@ -114,9 +93,9 @@ export default defineNuxtPlugin((nuxtApp) => {
           break
           
         case 404:
-          // Réservation non trouvée
+          // Ressource non trouvée
           if (process.dev) console.error('Erreur 404: Ressource non trouvée')
-          errorMessage = 'Réservation non trouvée.'
+          errorMessage = 'Ressource non trouvée. L\'élément demandé n\'existe plus.'
           break
           
         case 422:
@@ -150,6 +129,44 @@ export default defineNuxtPlugin((nuxtApp) => {
             errorMessage = `Erreur ${response.status}. Veuillez réessayer.`
           }
           break
+      }
+
+      // Essayer d'utiliser le message de l'API si disponible et plus spécifique
+      try {
+        // @ts-ignore - certaines implémentations exposent _data
+        const responseData = (response as any)._data
+        
+        if (responseData) {
+          // Format API Biso Ticket: { status: false, message: "...", errors: { } }
+          // Mais pour les erreurs 422, l'API envoie directement { message: "...", errors: { } }
+          let apiMessage = null
+          if (responseData.status === false && responseData.message) {
+            apiMessage = responseData.message
+            errorDetails = responseData.errors || {}
+          } else if (responseData.message) {
+            apiMessage = responseData.message
+            errorDetails = responseData.errors || {}
+          }
+          
+          // Utiliser le message de l'API si :
+          // 1. Il existe
+          // 2. Il n'est pas trop technique (pas de stack trace, etc.)
+          // 3. Il est plus spécifique que le message par défaut
+          if (apiMessage && 
+              !apiMessage.includes('Stack trace') && 
+              !apiMessage.includes('Exception') &&
+              !apiMessage.includes('Error:') &&
+              !apiMessage.includes('could not be found') &&
+              !apiMessage.includes('Route not found') &&
+              !apiMessage.includes('404 Not Found') &&
+              apiMessage.length < 200) {
+            errorMessage = apiMessage
+          }
+        }
+      } catch (_e) {
+        // Log en dev seulement
+        if (process.dev) console.error('Error parsing API response:', _e)
+        // Si on ne peut pas parser la réponse, garder le message par défaut
       }
 
       // Afficher le toast d'erreur seulement si ce n'est pas une erreur de validation (422)

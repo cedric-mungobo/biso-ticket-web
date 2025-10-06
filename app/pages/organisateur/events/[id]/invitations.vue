@@ -117,6 +117,16 @@
                           <UIcon name="i-heroicons-eye" class="w-4 h-4" />
                         </UButton>
                       </UTooltip>
+                      <UTooltip text="Modifier">
+                        <UButton size="xs" variant="ghost" color="warning" aria-label="Modifier" @click="openEditGuest(inv)">
+                          <UIcon name="i-heroicons-pencil" class="w-4 h-4" />
+                        </UButton>
+                      </UTooltip>
+                      <UTooltip text="Supprimer">
+                        <UButton size="xs" variant="ghost" color="red" aria-label="Supprimer" @click="openDeleteGuest(inv)">
+                          <UIcon name="i-heroicons-trash" class="w-4 h-4" />
+                        </UButton>
+                      </UTooltip>
                       <UDropdownMenu
                         :items="shareItems(inv)"
                         :content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
@@ -255,6 +265,40 @@
         <template #footer>
           <UButton variant="ghost" @click="showAddGuest=false">Annuler</UButton>
           <UButton color="primary" @click="addGuest">Ajouter</UButton>
+        </template>
+      </Modal>
+
+      <!-- Modal d'édition d'invité -->
+      <Modal v-model="showEditGuest" title="Modifier l'invité">
+        <div class="space-y-3">
+          <input v-model="editGuest.name" placeholder="Nom" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
+          <input v-model="editGuest.email" placeholder="Email" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
+          <input v-model="editGuest.phone" placeholder="Téléphone" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
+          <input v-model="editGuest.table" placeholder="Table" class="rounded-lg border border-gray-300 px-3 py-1 w-full" />
+        </div>
+        <template #footer>
+          <UButton variant="ghost" @click="showEditGuest=false">Annuler</UButton>
+          <UButton color="primary" :loading="editSubmitting" @click="updateGuest">Modifier</UButton>
+        </template>
+      </Modal>
+
+      <!-- Modal de suppression d'invité -->
+      <Modal v-model="showDeleteGuest" title="Supprimer l'invité">
+        <div class="text-center py-4">
+          <UIcon name="i-heroicons-exclamation-triangle" class="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Confirmer la suppression</h3>
+          <p class="text-sm text-gray-600 mb-4">
+            Êtes-vous sûr de vouloir supprimer l'invité <strong>{{ deleteGuest?.guestName || 'cet invité' }}</strong> ?
+          </p>
+          <p class="text-xs text-gray-500">
+            Cette action est irréversible.
+          </p>
+        </div>
+        <template #footer>
+          <UButton variant="ghost" @click="showDeleteGuest=false">Annuler</UButton>
+          <UButton color="red" :loading="deleteSubmitting" @click="confirmDeleteGuest">
+            Supprimer
+          </UButton>
         </template>
       </Modal>
 
@@ -408,7 +452,7 @@ const route = useRoute()
 const eventId = Number(route.params.id)
 const backUrl = computed(() => `/organisateur/events/${eventId}`)
 
-const { fetchEventInvitations, fetchInvitationTemplates, createInvitation, createInvitationsBatch, shareInvitation } = useInvitations()
+const { fetchEventInvitations, fetchInvitationTemplates, createInvitation, createInvitationsBatch, shareInvitation, updateInvitation, deleteInvitation } = useInvitations()
 const { fetchEventWithState, currentEvent } = useOrganizerEvents()
 const { fetchEventDrinks, addEventDrinks, updateEventDrinks, deleteEventDrinks } = useDrinks()
 const toast = useToast()
@@ -514,12 +558,9 @@ const onShare = async (inv: any) => {
     useAppToast().showSuccess('Invitation envoyée', `Partage effectué pour ${inv.guestName || 'invité'}.`)
     await refresh()
     await refreshCredits()
-  } catch (_e) {
-    const e: any = _e
-    const resp = e?.response
-    const data = resp?._data || resp?.data || {}
-    const msg = data?.message || e?.message || 'Une erreur est survenue.'
-    useAppToast().showError('Erreur', String(msg))
+  } catch (e: any) {
+    // L'erreur est déjà gérée par le plugin customFetch
+    console.error('Erreur lors de l\'envoi de l\'invitation:', e)
   } finally {
     sendingIds.delete(inv.id)
   }
@@ -571,10 +612,8 @@ const selectTemplate = async (templateId: number) => {
     useAppToast().showSuccess('Template sélectionné', 'Le template d\'invitation par défaut a été mis à jour.')
     showTemplate.value = false
   } catch (e: any) {
-    const resp = e?.response
-    const data = resp?._data || resp?.data || {}
-    const msg = data?.message || e?.message || 'Impossible de sélectionner le template.'
-    useAppToast().showError('Erreur', String(msg))
+    // L'erreur est déjà gérée par le plugin customFetch
+    console.error('Erreur lors de la sélection du template:', e)
   } finally {
     templateSubmitting.value = false
   }
@@ -658,12 +697,9 @@ const saveGuestMessage = async () => {
     
     useAppToast().showSuccess('Message enregistré', 'Le message invité a été mis à jour.')
     showMessage.value = false
-  } catch (_e) {
-    const e: any = _e
-    const resp = e?.response
-    const data = resp?._data || resp?.data || {}
-    const msg = data?.message || e?.message || 'Impossible d\'enregistrer.'
-    useAppToast().showError('Erreur', String(msg))
+  } catch (e: any) {
+    // L'erreur est déjà gérée par le plugin customFetch
+    console.error('Erreur lors de l\'enregistrement du message:', e)
   }
 }
 
@@ -712,12 +748,9 @@ const submitBuyCredits = async () => {
     await purchaseAndPayCredits({ credits: buy.credits as any, currency: buy.currency as any, phone: buy.phone })
     useAppToast().showSuccess('Paiement initié', 'Une notification de paiement a été envoyée. Veuillez confirmer.')
     startCountdown()
-  } catch (_e) {
-    const e: any = _e
-    const resp = e?.response
-    const data = resp?._data || resp?.data || {}
-    const msg = data?.message || e?.message || 'Une erreur est survenue.'
-    useAppToast().showError('Erreur', String(msg))
+  } catch (e: any) {
+    // L'erreur est déjà gérée par le plugin customFetch
+    console.error('Erreur lors de l\'initiation du paiement:', e)
   } finally {
     buySubmitting.value = false
   }
@@ -727,6 +760,16 @@ const submitBuyCredits = async () => {
 const showAddGuest = ref(false)
 const newGuest = reactive({ name: '', email: '', phone: '', table: '' })
 const addSubmitting = ref(false)
+
+// Edit guest modal
+const showEditGuest = ref(false)
+const editGuest = reactive({ id: null, name: '', email: '', phone: '', table: '' })
+const editSubmitting = ref(false)
+
+// Delete guest modal
+const showDeleteGuest = ref(false)
+const deleteGuest = ref(null)
+const deleteSubmitting = ref(false)
 const addGuest = async () => {
   if (!newGuest.name?.trim()) {
     useAppToast().showWarning('Nom requis', 'Veuillez saisir le nom de l\'invité.')
@@ -745,14 +788,69 @@ const addGuest = async () => {
     newGuest.name = ''; newGuest.email = ''; newGuest.phone = ''; newGuest.table = ''
     await refresh()
     await refreshCredits()
-  } catch (_e) {
-    const e: any = _e
-    const resp = e?.response
-    const data = resp?._data || resp?.data || {}
-    const msg = data?.message || e?.message || 'Une erreur est survenue.'
-    useAppToast().showError('Erreur', String(msg))
+  } catch (e: any) {
+    // L'erreur est déjà gérée par le plugin customFetch
+    console.error('Erreur lors de l\'ajout de l\'invité:', e)
   } finally {
     addSubmitting.value = false
+  }
+}
+
+// Fonctions pour l'édition d'invité
+const openEditGuest = (inv: any) => {
+  editGuest.id = inv.id
+  editGuest.name = inv.guestName || ''
+  editGuest.email = inv.guestEmail || ''
+  editGuest.phone = inv.guestPhone || ''
+  editGuest.table = inv.guestTableName || ''
+  showEditGuest.value = true
+}
+
+const updateGuest = async () => {
+  if (!editGuest.name?.trim()) {
+    useAppToast().showWarning('Nom requis', 'Veuillez saisir le nom de l\'invité.')
+    return
+  }
+  try {
+    editSubmitting.value = true
+    await updateInvitation(eventId, editGuest.id, {
+      guestName: editGuest.name.trim(),
+      guestEmail: editGuest.email?.trim() || undefined,
+      guestPhone: editGuest.phone?.trim() || undefined,
+      guestTableName: editGuest.table?.trim() || undefined
+    })
+    useAppToast().showSuccess('Invité modifié', 'L\'invité a été modifié avec succès.')
+    showEditGuest.value = false
+    await refresh()
+  } catch (e: any) {
+    // L'erreur est déjà gérée par le plugin customFetch
+    console.error('Erreur lors de la modification de l\'invité:', e)
+  } finally {
+    editSubmitting.value = false
+  }
+}
+
+// Fonctions pour la suppression d'invité
+const openDeleteGuest = (inv: any) => {
+  deleteGuest.value = inv
+  showDeleteGuest.value = true
+}
+
+const confirmDeleteGuest = async () => {
+  if (!deleteGuest.value?.id) return
+  
+  try {
+    deleteSubmitting.value = true
+    await deleteInvitation(eventId, deleteGuest.value.id)
+    useAppToast().showSuccess('Invité supprimé', 'L\'invité a été supprimé avec succès.')
+    showDeleteGuest.value = false
+    deleteGuest.value = null
+    await refresh()
+  } catch (e: any) {
+    // L'erreur est déjà gérée par le plugin customFetch
+    console.error('Erreur lors de la suppression de l\'invité:', e)
+  } finally {
+    deleteSubmitting.value = false
   }
 }
 
@@ -864,12 +962,9 @@ const importParsedBatch = async () => {
     showImport.value = false
     await refresh()
     await refreshCredits()
-  } catch (_e) {
-    const e: any = _e
-    const resp = e?.response
-    const data = resp?._data || resp?.data || {}
-    const msg = data?.message || e?.message || 'Une erreur est survenue.'
-    useAppToast().showError('Erreur import', String(msg))
+  } catch (e: any) {
+    // L'erreur est déjà gérée par le plugin customFetch
+    console.error('Erreur lors de l\'import des invités:', e)
   } finally {
     importSubmitting.value = false
   }
@@ -910,18 +1005,6 @@ const openDeleteDrink = (drink: any) => {
   showDrinkDelete.value = true
 }
 
-const getApiErrorMessage = (err: any): string => {
-  const response = err?.response
-  const data = response?._data || response?.data
-  if (data?.message) return String(data.message)
-  if (data?.errors) {
-    if (Array.isArray(data.errors)) return data.errors.join(', ')
-    const values = Object.values(data.errors as Record<string, any>)
-    const flat = ([] as any[]).concat(...values as any)
-    if (flat.length) return String(flat[0])
-  }
-  return String(err?.message || 'Erreur inattendue')
-}
 
 const handleAddDrinks = async (drinksData: any[]) => {
   try {
