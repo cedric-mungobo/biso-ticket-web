@@ -155,7 +155,12 @@
             <USkeleton class="h-32 w-full" />
           </div>
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div v-for="t in templates" :key="t.id" class="border rounded-lg p-3">
+            <div v-for="t in templates" :key="t.id" 
+                 class="border rounded-lg p-3 transition-all duration-200"
+                 :class="{
+                   'border-primary-500 bg-primary-50 shadow-md': selectedTemplateId === t.id,
+                   'border-gray-200 hover:border-gray-300': selectedTemplateId !== t.id
+                 }">
               <div class="aspect-video w-full overflow-hidden rounded-lg bg-gray-100">
                 <img :src="t.previewImageUrl" :alt="t.title" class="h-full w-full object-cover" />
               </div>
@@ -542,6 +547,13 @@ const { pending: templatesPending, data: templatesData } = await useAsyncData<{ 
 )
 const templates = computed<any[]>(() => Array.isArray((templatesData.value as any)?.items) ? (templatesData.value as any).items : [])
 
+// Template actuellement sélectionné
+const selectedTemplateId = computed(() => {
+  return currentEvent.value?.settings?.defaultInvitationTemplateId || 
+         currentEvent.value?.settings?.default_invitation_template_id || 
+         null
+})
+
 // Fonction pour sélectionner un template
 const { updateEvent } = useOrganizerEvents()
 const selectTemplate = async (templateId: number) => {
@@ -552,6 +564,10 @@ const selectTemplate = async (templateId: number) => {
         default_invitation_template_id: templateId 
       } 
     })
+    
+    // Recharger les données de l'événement pour mettre à jour le template sélectionné
+    await fetchEventWithState(eventId)
+    
     useAppToast().showSuccess('Template sélectionné', 'Le template d\'invitation par défaut a été mis à jour.')
     showTemplate.value = false
   } catch (e: any) {
@@ -636,6 +652,10 @@ const saveGuestMessage = async () => {
       method: 'PUT',
       body: { settings: { guest_message: htmlMessage } }
     })
+    
+    // Recharger les données de l'événement pour mettre à jour le message
+    await fetchEventWithState(eventId)
+    
     useAppToast().showSuccess('Message enregistré', 'Le message invité a été mis à jour.')
     showMessage.value = false
   } catch (_e) {
