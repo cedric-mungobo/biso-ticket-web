@@ -120,11 +120,184 @@ export const useCanvasImage = () => {
           
           if (!line || line.trim() === '') {
             // Ligne vide - ajouter un espacement
-            lineY += fontSize * 0.8
+            lineY += fontSize * 1.2
             continue
           }
 
-          // Traitement spécial pour la première ligne non-vide (titre automatique)
+          // Vérifier d'abord les alignements spéciaux
+          const rightAlignMatch = line.match(/^\[>(.*?)<\]$/)
+          const leftAlignMatch = line.match(/^\[<(.*?)<\]$/)
+          const centerAlignMatch = line.match(/^\[>(.*?)>\]$/)
+          
+          if (rightAlignMatch) {
+            const content = rightAlignMatch[1]
+            if (process.dev) console.log('🎨 Alignement à droite détecté:', content)
+            
+            // Vérifier si le texte déborde
+            ctx.font = `${fontSize}px ${fontFamily}`
+            const textMetrics = ctx.measureText(content || '')
+            const availableWidth = width - 2 * (invitationData.messagePadding || 120)
+            
+            if (textMetrics.width > availableWidth) {
+              // Diviser le texte en plusieurs lignes
+              const words = (content || '').split(' ')
+              let currentLine = ''
+              
+              for (let i = 0; i < words.length; i++) {
+                const word = words[i]
+                if (!word) continue
+                
+                const testLine = currentLine + (currentLine ? ' ' : '') + word
+                const testMetrics = ctx.measureText(testLine)
+                
+                if (testMetrics.width <= availableWidth) {
+                  currentLine = testLine
+                } else {
+                  // Dessiner la ligne actuelle
+                  if (currentLine) {
+                    ctx.textAlign = 'right'
+                    const lineX = width - (invitationData.messagePadding || 120)
+                    drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
+                    lineY += fontSize * 1.8
+                  }
+                  currentLine = word
+                }
+              }
+              
+              // Dessiner la dernière ligne
+              if (currentLine) {
+                ctx.textAlign = 'right'
+                const lineX = width - (invitationData.messagePadding || 120)
+                drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
+                lineY += fontSize * 1.8
+              }
+            } else {
+              // Le texte tient sur une ligne
+              ctx.textAlign = 'right'
+              const lineX = width - (invitationData.messagePadding || 120)
+              
+              if (process.dev) console.log('🎨 Position de dessin (droite):', { lineX, lineY })
+              drawFormattedText(ctx, content || '', lineX, lineY, fontSize, fontFamily, color)
+              lineY += fontSize * 1.8
+            }
+            
+            ctx.textAlign = align // Restaurer l'alignement par défaut
+            continue
+          }
+          
+          if (leftAlignMatch) {
+            const content = leftAlignMatch[1]
+            if (process.dev) console.log('🎨 Alignement à gauche détecté:', content)
+            
+            // Vérifier si le texte déborde
+            ctx.font = `${fontSize}px ${fontFamily}`
+            const textMetrics = ctx.measureText(content || '')
+            const availableWidth = width - 2 * (invitationData.messagePadding || 120)
+            
+            if (textMetrics.width > availableWidth) {
+              // Diviser le texte en plusieurs lignes
+              const words = (content || '').split(' ')
+              let currentLine = ''
+              
+              for (let i = 0; i < words.length; i++) {
+                const word = words[i]
+                if (!word) continue
+                
+                const testLine = currentLine + (currentLine ? ' ' : '') + word
+                const testMetrics = ctx.measureText(testLine)
+                
+                if (testMetrics.width <= availableWidth) {
+                  currentLine = testLine
+                } else {
+                  // Dessiner la ligne actuelle
+                  if (currentLine) {
+                    ctx.textAlign = 'left'
+                    const lineX = invitationData.messagePadding || 120
+                    drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
+                    lineY += fontSize * 1.8
+                  }
+                  currentLine = word
+                }
+              }
+              
+              // Dessiner la dernière ligne
+              if (currentLine) {
+                ctx.textAlign = 'left'
+                const lineX = invitationData.messagePadding || 120
+                drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
+                lineY += fontSize * 1.8
+              }
+            } else {
+              // Le texte tient sur une ligne
+              ctx.textAlign = 'left'
+              const lineX = invitationData.messagePadding || 120
+              
+              if (process.dev) console.log('🎨 Position de dessin (gauche):', { lineX, lineY })
+              drawFormattedText(ctx, content || '', lineX, lineY, fontSize, fontFamily, color)
+              lineY += fontSize * 1.8
+            }
+            
+            ctx.textAlign = align // Restaurer l'alignement par défaut
+            continue
+          }
+
+          if (centerAlignMatch) {
+            const content = centerAlignMatch[1]
+            if (process.dev) console.log('🎨 Alignement centré détecté:', content)
+            
+            // Vérifier si le texte déborde
+            ctx.font = `${fontSize}px ${fontFamily}`
+            const textMetrics = ctx.measureText(content || '')
+            const availableWidth = width - 2 * (invitationData.messagePadding || 120)
+            
+            if (textMetrics.width > availableWidth) {
+              // Diviser le texte en plusieurs lignes
+              const words = (content || '').split(' ')
+              let currentLine = ''
+              
+              for (let i = 0; i < words.length; i++) {
+                const word = words[i]
+                if (!word) continue
+                
+                const testLine = currentLine + (currentLine ? ' ' : '') + word
+                const testMetrics = ctx.measureText(testLine)
+                
+                if (testMetrics.width <= availableWidth) {
+                  currentLine = testLine
+                } else {
+                  // Dessiner la ligne actuelle
+                  if (currentLine) {
+                    ctx.textAlign = 'center'
+                    const lineX = width / 2
+                    drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
+                    lineY += fontSize * 1.8
+                  }
+                  currentLine = word
+                }
+              }
+              
+              // Dessiner la dernière ligne
+              if (currentLine) {
+                ctx.textAlign = 'center'
+                const lineX = width / 2
+                drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
+                lineY += fontSize * 1.8
+              }
+            } else {
+              // Le texte tient sur une ligne
+              ctx.textAlign = 'center'
+              const lineX = width / 2
+              
+              if (process.dev) console.log('🎨 Position de dessin (centré):', { lineX, lineY })
+              drawFormattedText(ctx, content || '', lineX, lineY, fontSize, fontFamily, color)
+              lineY += fontSize * 1.8
+            }
+            
+            ctx.textAlign = align // Restaurer l'alignement par défaut
+            continue
+          }
+
+          // Traitement spécial pour les titres (seulement si ce n'est pas un alignement)
           if (lineIndex === 0 || (lineIndex === 1 && !lines[0]?.trim())) {
             if (process.dev) console.log('🎨 Première ligne détectée comme titre:', line)
             
@@ -221,178 +394,6 @@ export const useCanvasImage = () => {
             continue
           }
 
-          // Vérifier si la ligne a un alignement spécial
-          const rightAlignMatch = line.match(/^\[>(.*?)<\]$/)
-          const leftAlignMatch = line.match(/^\[<(.*?)<\]$/)
-          const centerAlignMatch = line.match(/^\[>(.*?)>\]$/)
-          
-          if (rightAlignMatch) {
-            const content = rightAlignMatch[1]
-            if (process.dev) console.log('🎨 Alignement à droite détecté:', content)
-            
-            // Vérifier si le texte déborde
-            ctx.font = `${fontSize}px ${fontFamily}`
-            const textMetrics = ctx.measureText(content || '')
-            const availableWidth = width - 2 * (invitationData.messagePadding || 120)
-            
-            if (textMetrics.width > availableWidth) {
-              // Diviser le texte en plusieurs lignes
-              const words = (content || '').split(' ')
-              let currentLine = ''
-              
-              for (let i = 0; i < words.length; i++) {
-                const word = words[i]
-                if (!word) continue
-                
-                const testLine = currentLine + (currentLine ? ' ' : '') + word
-                const testMetrics = ctx.measureText(testLine)
-                
-                if (testMetrics.width <= availableWidth) {
-                  currentLine = testLine
-                } else {
-                  // Dessiner la ligne actuelle
-                  if (currentLine) {
-                    ctx.textAlign = 'right'
-                    const lineX = width - (invitationData.messagePadding || 120)
-                    drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
-                    lineY += fontSize * 1.4
-                  }
-                  currentLine = word
-                }
-              }
-              
-              // Dessiner la dernière ligne
-              if (currentLine) {
-                ctx.textAlign = 'right'
-                const lineX = width - (invitationData.messagePadding || 120)
-                drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
-                lineY += fontSize * 1.4
-              }
-            } else {
-              // Le texte tient sur une ligne
-              ctx.textAlign = 'right'
-              const lineX = width - (invitationData.messagePadding || 120)
-              
-              if (process.dev) console.log('🎨 Position de dessin (droite):', { lineX, lineY })
-              drawFormattedText(ctx, content || '', lineX, lineY, fontSize, fontFamily, color)
-              lineY += fontSize * 1.4
-            }
-            
-            ctx.textAlign = align // Restaurer l'alignement par défaut
-            continue
-          }
-          
-          if (leftAlignMatch) {
-            const content = leftAlignMatch[1]
-            if (process.dev) console.log('🎨 Alignement à gauche détecté:', content)
-            
-            // Vérifier si le texte déborde
-            ctx.font = `${fontSize}px ${fontFamily}`
-            const textMetrics = ctx.measureText(content || '')
-            const availableWidth = width - 2 * (invitationData.messagePadding || 120)
-            
-            if (textMetrics.width > availableWidth) {
-              // Diviser le texte en plusieurs lignes
-              const words = (content || '').split(' ')
-              let currentLine = ''
-              
-              for (let i = 0; i < words.length; i++) {
-                const word = words[i]
-                if (!word) continue
-                
-                const testLine = currentLine + (currentLine ? ' ' : '') + word
-                const testMetrics = ctx.measureText(testLine)
-                
-                if (testMetrics.width <= availableWidth) {
-                  currentLine = testLine
-                } else {
-                  // Dessiner la ligne actuelle
-                  if (currentLine) {
-                    ctx.textAlign = 'left'
-                    const lineX = invitationData.messagePadding || 120
-                    drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
-                    lineY += fontSize * 1.4
-                  }
-                  currentLine = word
-                }
-              }
-              
-              // Dessiner la dernière ligne
-              if (currentLine) {
-                ctx.textAlign = 'left'
-                const lineX = invitationData.messagePadding || 120
-                drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
-                lineY += fontSize * 1.4
-              }
-            } else {
-              // Le texte tient sur une ligne
-              ctx.textAlign = 'left'
-              const lineX = invitationData.messagePadding || 120
-              
-              if (process.dev) console.log('🎨 Position de dessin (gauche):', { lineX, lineY })
-              drawFormattedText(ctx, content || '', lineX, lineY, fontSize, fontFamily, color)
-              lineY += fontSize * 1.4
-            }
-            
-            ctx.textAlign = align // Restaurer l'alignement par défaut
-            continue
-          }
-          
-          if (centerAlignMatch) {
-            const content = centerAlignMatch[1]
-            if (process.dev) console.log('🎨 Alignement centré détecté:', content)
-            
-            // Vérifier si le texte déborde
-            ctx.font = `${fontSize}px ${fontFamily}`
-            const textMetrics = ctx.measureText(content || '')
-            const availableWidth = width - 2 * (invitationData.messagePadding || 120)
-            
-            if (textMetrics.width > availableWidth) {
-              // Diviser le texte en plusieurs lignes
-              const words = (content || '').split(' ')
-              let currentLine = ''
-              
-              for (let i = 0; i < words.length; i++) {
-                const word = words[i]
-                if (!word) continue
-                
-                const testLine = currentLine + (currentLine ? ' ' : '') + word
-                const testMetrics = ctx.measureText(testLine)
-                
-                if (testMetrics.width <= availableWidth) {
-                  currentLine = testLine
-                } else {
-                  // Dessiner la ligne actuelle
-                  if (currentLine) {
-                    ctx.textAlign = 'center'
-                    const lineX = width / 2
-                    drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
-                    lineY += fontSize * 1.4
-                  }
-                  currentLine = word
-                }
-              }
-              
-              // Dessiner la dernière ligne
-              if (currentLine) {
-                ctx.textAlign = 'center'
-                const lineX = width / 2
-                drawFormattedText(ctx, currentLine, lineX, lineY, fontSize, fontFamily, color)
-                lineY += fontSize * 1.4
-              }
-            } else {
-              // Le texte tient sur une ligne
-              ctx.textAlign = 'center'
-              const lineX = width / 2
-              
-              if (process.dev) console.log('🎨 Position de dessin (centré):', { lineX, lineY })
-              drawFormattedText(ctx, content || '', lineX, lineY, fontSize, fontFamily, color)
-              lineY += fontSize * 1.4
-            }
-            
-            ctx.textAlign = align // Restaurer l'alignement par défaut
-            continue
-          }
 
           // Mesurer la ligne complète
           ctx.font = `${fontSize}px ${fontFamily}`
@@ -404,7 +405,7 @@ export const useCanvasImage = () => {
             // La ligne tient dans la largeur maximale
             if (process.dev) console.log('✅ Ligne complète dessinée (tient):', line)
             drawFormattedText(ctx, line, x, lineY, fontSize, fontFamily, color)
-            lineY += fontSize * 1.4
+            lineY += fontSize * 1.8
           } else {
             // La ligne est trop longue, la diviser en mots avec gestion des mots longs
             if (process.dev) console.log('🎨 Ligne trop longue, division en cours:', line)
@@ -426,7 +427,7 @@ export const useCanvasImage = () => {
                 // D'abord dessiner la ligne en cours si elle n'est pas vide
                 if (currentLine.trim()) {
                   drawFormattedText(ctx, currentLine.trim(), x, lineY, fontSize, fontFamily, color)
-                  lineY += fontSize * 1.4
+                  lineY += fontSize * 1.8
                   currentLine = ''
                 }
                 
@@ -443,7 +444,7 @@ export const useCanvasImage = () => {
                     // Dessiner la partie du mot
                     if (wordPart) {
                       drawFormattedText(ctx, wordPart, x, lineY, fontSize, fontFamily, color)
-                      lineY += fontSize * 1.4
+                      lineY += fontSize * 1.8
                     }
                     wordPart = char || ''
                   }
@@ -452,7 +453,7 @@ export const useCanvasImage = () => {
                 // Dessiner la dernière partie du mot
                 if (wordPart) {
                   drawFormattedText(ctx, wordPart, x, lineY, fontSize, fontFamily, color)
-                  lineY += fontSize * 1.4
+                  lineY += fontSize * 1.8
                 }
               } else {
                 // Le mot n'est pas trop long, traitement normal
@@ -466,7 +467,7 @@ export const useCanvasImage = () => {
                   if (currentLine.trim()) {
                     if (process.dev) console.log('🎨 Ligne partielle dessinée:', currentLine.trim())
                     drawFormattedText(ctx, currentLine.trim(), x, lineY, fontSize, fontFamily, color)
-                    lineY += fontSize * 1.4
+                    lineY += fontSize * 1.8
                   }
                   currentLine = word
                 }
@@ -477,7 +478,7 @@ export const useCanvasImage = () => {
             if (currentLine.trim()) {
               if (process.dev) console.log('🎨 Dernière ligne dessinée:', currentLine.trim())
               drawFormattedText(ctx, currentLine.trim(), x, lineY, fontSize, fontFamily, color)
-              lineY += fontSize * 1.4
+              lineY += fontSize * 1.8
             }
           }
         }
@@ -545,7 +546,7 @@ export const useCanvasImage = () => {
             else if (align === 'right') xPos = width - (invitationData.messagePadding || 120)
             else xPos = invitationData.messagePadding || 120
             
-            if (line) ctx.fillText(line, xPos, y + i * fontSize * 1.4)
+            if (line) ctx.fillText(line, xPos, y + i * fontSize * 1.8)
             if (process.dev) console.log(`🎨 Ligne ${i + 1}/${lines.length}:`, line)
           }
           
@@ -607,7 +608,19 @@ export const useCanvasImage = () => {
               if (['br', 'br/'].includes(tagName)) {
                 result += '\n'
               } else if (['p', 'div'].includes(tagName)) {
-                result += extractText(el) + '\n\n'
+                // Vérifier les classes d'alignement
+                const className = el.getAttribute('class') || ''
+                const textContent = extractText(el)
+                
+                if (className.includes('text-right')) {
+                  result += '[>' + textContent + '<]\n'
+                } else if (className.includes('text-left')) {
+                  result += '[<' + textContent + '<]\n'
+                } else if (className.includes('text-center')) {
+                  result += '[>' + textContent + '>]\n'
+                } else {
+                  result += textContent + '\n\n'
+                }
               } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
                 result += '\n' + extractText(el) + '\n'
               } else if (['strong', 'b'].includes(tagName)) {
@@ -660,7 +673,7 @@ export const useCanvasImage = () => {
           } else if (segment.italic) {
             ctx.font = `italic ${fontSize}px ${fontFamily}`
           } else if (segment.underline) {
-            ctx.font = `${fontSize}px ${fontFamily}`
+        ctx.font = `${fontSize}px ${fontFamily}`
             // Note: Canvas ne supporte pas nativement le soulignement, on peut l'ajouter manuellement
           } else if (segment.strikethrough) {
             ctx.font = `${fontSize}px ${fontFamily}`

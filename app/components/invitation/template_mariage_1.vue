@@ -283,20 +283,6 @@ const handleDownloadInvitation = async () => {
       messageFontSize: messageFontSize.value
     }
     
-    console.log('📤 === DONNÉES ENVOYÉES AU CANVAS (MARIAGE) ===')
-    console.log('📤 Données complètes:', invitationData)
-    console.log('📤 Message original:', processedGuestMessage.value)
-    console.log('📤 Message nettoyé:', cleanMessage)
-    console.log('📤 Message nettoyé (avec retours à la ligne visibles):', cleanMessage?.replace(/\n/g, '\\n'))
-    console.log('📤 Nombre de lignes dans le message:', cleanMessage?.split('\n').length)
-    console.log('📤 Données envoyées au canvas (mariage):', {
-      messageFontSize: invitationData.messageFontSize,
-      guestMessage: invitationData.guestMessage?.substring(0, 100) + '...',
-      guestMessageLength: invitationData.guestMessage?.length,
-      hasLineBreaks: invitationData.guestMessage?.includes('\n'),
-      lineCount: invitationData.guestMessage?.split('\n').length
-    })
-    console.log('📤 === FIN DONNÉES CANVAS ===')
     
     await downloadInvitationImage(invitationData)
   } catch (error) {
