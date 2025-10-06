@@ -337,51 +337,82 @@ export const useInvitationVariables = (data: InvitationData) => {
   const htmlToSimpleText = (html: string): string => {
     if (!html) return ''
     
-    let text = html
+    // Créer un élément temporaire pour parser le HTML
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = html
     
-    // Remplacer les balises HTML par des équivalents texte avec la syntaxe personnalisée
-    text = text.replace(/<h1[^>]*>/g, '[#')
-    text = text.replace(/<h2[^>]*>/g, '[##')
-    text = text.replace(/<h3[^>]*>/g, '[###')
-    text = text.replace(/<\/h1>/g, '#]')
-    text = text.replace(/<\/h2>/g, '##]')
-    text = text.replace(/<\/h3>/g, '###]')
+    // Fonction récursive pour extraire le texte avec formatage
+    const extractText = (element: Element, isInsideTitle = false): string => {
+      let result = ''
+      
+      for (const node of Array.from(element.childNodes)) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          result += node.textContent || ''
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const el = node as Element
+          const tagName = el.tagName.toLowerCase()
+          
+          // Gestion des balises
+          if (['br', 'br/'].includes(tagName)) {
+            result += '\n'
+          } else if (['p'].includes(tagName)) {
+            result += extractText(el, isInsideTitle) + '\n\n'
+          } else if (['div'].includes(tagName)) {
+            // Vérifier les classes d'alignement
+            const className = el.getAttribute('class') || ''
+            const textContent = extractText(el, isInsideTitle)
+            
+            if (className.includes('text-right')) {
+              result += '[>' + textContent + '<]'
+            } else if (className.includes('text-left')) {
+              result += '[<' + textContent + '<]'
+            } else if (className.includes('text-center')) {
+              result += '[>' + textContent + '>]'
+            } else {
+              result += textContent
+            }
+          } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+            // Pour les titres, extraire le contenu sans ajouter de retours à la ligne supplémentaires
+            const titleContent = extractText(el, true)
+            result += titleContent
+          } else if (['strong', 'b'].includes(tagName)) {
+            result += '[**' + extractText(el, isInsideTitle) + '**]'
+          } else if (['em', 'i'].includes(tagName)) {
+            result += '[*' + extractText(el, isInsideTitle) + '*]'
+          } else if (['u'].includes(tagName)) {
+            result += '[_' + extractText(el, isInsideTitle) + '_]'
+          } else if (['s', 'strike'].includes(tagName)) {
+            result += '[~' + extractText(el, isInsideTitle) + '~]'
+          } else if (['code'].includes(tagName)) {
+            result += '[`' + extractText(el, isInsideTitle) + '`]'
+          } else {
+            result += extractText(el, isInsideTitle)
+          }
+        }
+      }
+      
+      return result
+    }
     
-    text = text.replace(/<strong[^>]*>/g, '[**')
-    text = text.replace(/<\/strong>/g, '**]')
+    // Extraire le texte formaté
+    let text = extractText(tempDiv)
     
-    text = text.replace(/<em[^>]*>/g, '[*')
-    text = text.replace(/<\/em>/g, '*]')
+    // Debug temporaire
+    if (process.dev) {
+      console.log('🔧 HTML original:', html)
+      console.log('🔧 Texte extrait:', text)
+    }
     
-    text = text.replace(/<u[^>]*>/g, '[_')
-    text = text.replace(/<\/u>/g, '_]')
+    // Nettoyer les espaces et retours à la ligne
+    text = text
+      .replace(/\n\s*\n\s*\n+/g, '\n\n') // Remplacer les retours à la ligne multiples
+      .replace(/[ \t]+/g, ' ') // Nettoyer les espaces multiples
+      .replace(/^[ \t]+|[ \t]+$/gm, '') // Nettoyer les espaces en début/fin de ligne
+      .trim() // Supprimer les espaces en début/fin
     
-    text = text.replace(/<s[^>]*>/g, '[~')
-    text = text.replace(/<\/s>/g, '~]')
-    
-    text = text.replace(/<code[^>]*>/g, '[`')
-    text = text.replace(/<\/code>/g, '`]')
-    
-    text = text.replace(/<div[^>]*class="[^"]*text-center[^"]*"[^>]*>/g, '[>')
-    text = text.replace(/<div[^>]*class="[^"]*text-right[^"]*"[^>]*>/g, '[>')
-    text = text.replace(/<div[^>]*class="[^"]*text-left[^"]*"[^>]*>/g, '[<')
-    text = text.replace(/<\/div>/g, '<]')
-    
-    text = text.replace(/<hr[^>]*>/g, '[---]')
-    text = text.replace(/<br\s*\/?>/g, '\n')
-    
-    // Nettoyer les autres balises HTML
-    text = text.replace(/<[^>]*>/g, '')
-    
-    // Corriger les titres mal formatés (sans crochets)
-    text = text.replace(/^##\s*(.*?)\s*##$/gm, '[##$1##]')
-    text = text.replace(/^#\s*(.*?)\s*#$/gm, '[$1]')
-    text = text.replace(/^###\s*(.*?)\s*###$/gm, '[###$1###]')
-    
-    // Nettoyer les espaces multiples et les retours à la ligne
-    text = text.replace(/\n\s*\n\s*\n/g, '\n\n')
-    text = text.replace(/[ \t]+/g, ' ')
-    text = text.trim()
+    if (process.dev) {
+      console.log('🔧 Texte final:', text)
+    }
     
     return text
   }
