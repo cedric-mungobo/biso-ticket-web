@@ -214,8 +214,8 @@ export const useInvitationVariables = (data: InvitationData) => {
                      invitationData?.tableName ||
                      null
 
-    // Si pas de table assignée, ne rien afficher (pas de fallback [TABLE])
-    const finalTableName = tableName || ''
+    // Si pas de table assignée, afficher "null" au lieu de [TABLE]
+    const finalTableName = tableName || 'null'
 
     // Remplacer les variables dynamiques (avec et sans crochets)
     const replaceVariable = (pattern: RegExp, value: string, fallback: string) => {
@@ -228,7 +228,7 @@ export const useInvitationVariables = (data: InvitationData) => {
     processedMessage = replaceVariable(/\[LOCATION\]/g, eventData?.location || '', '[LOCATION]')
     processedMessage = replaceVariable(/\[GUEST_NAME\]/g, invitationData?.guestName || invitationData?.guest_name || '', '[GUEST_NAME]')
     processedMessage = replaceVariable(/\[EVENT_TITLE\]/g, eventData?.title || '', '[EVENT_TITLE]')
-    processedMessage = replaceVariable(/\[TABLE\]/g, finalTableName, '[TABLE]')
+    processedMessage = replaceVariable(/\[TABLE\]/g, finalTableName, 'null')
     processedMessage = replaceVariable(/\[YEARS\]/g, '', '[YEARS]') // Variable spéciale pour les anniversaires
 
     // Corriger les titres mal formatés (sans crochets) AVANT le formatage

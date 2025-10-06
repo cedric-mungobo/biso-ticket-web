@@ -273,12 +273,12 @@ const handleDownloadInvitation = async () => {
     const invitationData = {
       guestMessage: cleanMessage || undefined,
       backgroundImage: templateBackground,
-      textStartY: 180,
+      textStartY: 120,
       textColor: textColor,
       titleColor: titleColor,
       accentColor: accentColor,
       signatureColor: signatureColor,
-      messagePadding: 180,
+      messagePadding: 140,
       textAlign: 'left' as const,
       messageFontSize: messageFontSize.value
     }
