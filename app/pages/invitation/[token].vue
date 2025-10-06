@@ -9,6 +9,7 @@
       color="primary"
     />
 
+
     <!-- État d'erreur -->
     <div v-if="hasError && !isLoading" class="min-h-screen flex items-center justify-center bg-gray-50">
       <div class="text-center">
@@ -106,8 +107,10 @@ const load = async () => {
       throw new Error('Invitation introuvable')
     }
     
-    // Récupérer le design_key du template d'invitation
-    const designKey = invitation.value?.invitationTemplate?.designKey || 
+    // Récupérer le design_key du template d'invitation depuis les settings de l'événement
+    const designKey = event.value?.settings?.defaultInvitationTemplate?.designKey || 
+                     event.value?.settings?.default_invitation_template?.design_key ||
+                     invitation.value?.invitationTemplate?.designKey || 
                      invitation.value?.invitation_template?.design_key || 
                      'template_default'
     
