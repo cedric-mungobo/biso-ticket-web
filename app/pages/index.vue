@@ -15,40 +15,7 @@ if (process.dev) {
   console.log('🔍 SEO Home page configuré')
 }
 
-// Utilisation du composable useEvents
-const { fetchPublicEvents, formatDate } = useEvents()
-
-// Récupération des événements avec useAsyncData optimisé
-const { data, pending: loading, error, refresh } = await useAsyncData('featured:events', async () => {
-  try {
-    if (process.dev) {
-      console.log('[DEBUG] Starting fetchPublicEvents...')
-    }
-    const result = await fetchPublicEvents({
-      per_page: 6,
-      page: 1,
-      date_filter: 'all'
-    })
-    if (process.dev) {
-      console.log('[DEBUG] fetchPublicEvents result:', result)
-    }
-    return result
-  } catch (err) {
-    if (process.dev) {
-      console.error('[DEBUG] fetchPublicEvents error:', err)
-    }
-    throw err
-  }
-}, { 
-  server: true, // Activer le SSR pour un chargement plus rapide
-  lazy: true, // Chargement paresseux
-  default: () => ({ items: [] }) // Valeur par défaut
-})
-
-const events = computed(() => {
-  const result = Array.isArray(data.value?.items) ? data.value!.items : []
-  return result
-})
+// La logique des événements est maintenant gérée dans heroSection.vue
 </script>
 
 <template>

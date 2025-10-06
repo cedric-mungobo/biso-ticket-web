@@ -44,6 +44,36 @@ export const useEvents = () => {
     return payload as PaginatedResponse<any>
   }
 
+  const fetchFeaturedEvents = async (params: {
+    per_page?: number
+    limit?: number
+  } = {}) => {
+    const res = await $myFetch<ApiResponse<PaginatedResponse<Event>> | PaginatedResponse<Event> | Event[]>(`/public/events/discover`, {
+      method: 'GET',
+      params
+    })
+    // Déballer l'enveloppe standard { status, message, data }
+    const payload = (res as any)?.data ?? res
+    if (process.client && process.dev) {
+      console.log('[API] /public/events/discover', { params, raw: res, payload, items: payload?.items?.length || payload?.length })
+    }
+    
+    // Si c'est un tableau direct (avec limit), le transformer en format paginé
+    if (Array.isArray(payload)) {
+      return {
+        items: payload,
+        meta: {
+          currentPage: 1,
+          lastPage: 1,
+          perPage: payload.length,
+          total: payload.length
+        }
+      } as PaginatedResponse<Event>
+    }
+    
+    return payload as PaginatedResponse<Event>
+  }
+
   const formatDate = (dateString: string): string => {
     try {
       const date = new Date(dateString)
@@ -63,6 +93,7 @@ export const useEvents = () => {
     fetchPublicEvents,
     fetchEventBySlug,
     fetchEventTickets,
+    fetchFeaturedEvents,
     formatDate
   }
 }

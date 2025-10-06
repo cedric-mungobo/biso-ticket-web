@@ -2,7 +2,7 @@
   <div>
     <!-- Hero Section -->
   <!-- Hero Section -->
-<div class=" flex flex-col items-center justify-center text-sm px-2 pt-5 md:px-16 lg:px-24 xl:px-32 text-gray-900 min-h-screen md:py-20">
+<div class=" flex flex-col items-center justify-center text-sm px-2 pt-5 md:px-16 lg:px-24 xl:px-32 text-gray-900 min-h-screen md:py-10">
  
     <!-- Badge d'annonce avec animation slide depuis le haut -->
     <NuxtLink 
@@ -12,7 +12,7 @@
       :visible-once="{ opacity: 1, y: 0 }"
       :delay="200"
       :duration="1200"
-      class="group flex items-center gap-2 rounded-full p-1 pr-3 mt-16 mb-2 md:mt-36 text-purple-700 bg-purple-100"
+      class="group flex items-center gap-2 rounded-full p-1 pr-3 md:mt-0 mb-2 mt-16 text-purple-700 bg-purple-100"
     >
         <span class="bg-purple-600 text-white text-xs px-3.5 py-1 rounded-full">
             NEW
@@ -110,7 +110,7 @@
               :duration="1200"
               class="text-2xl font-semibold text-gray-800 mb-2"
             >
-              Découvrez nos événements
+              Événements mis en avant
             </h2>
             <p 
               v-motion
@@ -120,7 +120,7 @@
               :duration="1200"
               class="text-gray-600"
             >
-              Des événements exceptionnels vous attendent
+              Découvrez nos événements exceptionnels
             </p>
         </div>
         
@@ -155,20 +155,21 @@
 import type { MarqueeCard } from '~/types/marquee'
 
 // Utilisation du composable existant
-const { fetchPublicEvents } = useEvents()
+const { fetchFeaturedEvents } = useEvents()
 
-// Récupération des événements en vedette
+// Récupération des événements mis en avant uniquement
 const { data: eventsData, pending, error } = await useAsyncData('hero:featured-events', async () => {
   try {
-    const result = await fetchPublicEvents({
-      per_page: 6,
-      page: 1,
-      date_filter: 'all'
+    // Récupérer uniquement les événements mis en avant
+    const featuredResult = await fetchFeaturedEvents({
+      limit: 6
     })
-    console.log('Événements récupérés:', result)
-    return result
+    
+    console.log('Événements mis en avant récupérés:', featuredResult)
+    return featuredResult
+    
   } catch (err) {
-    console.error('Erreur lors de la récupération des événements:', err)
+    console.error('Erreur lors de la récupération des événements mis en avant:', err)
     // Retourner un tableau vide en cas d'erreur
     return { items: [] }
   }
