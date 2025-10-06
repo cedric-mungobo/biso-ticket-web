@@ -1,5 +1,7 @@
 <template>
   <OrganizerNavigation>
+
+
     <div class=" p-2 md:p-0">
     <div class="">
         <!-- En-tête responsive -->

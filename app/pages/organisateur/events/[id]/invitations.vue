@@ -1,5 +1,7 @@
 <template>
   <OrganizerNavigation>
+
+    <pre>{{ invitations }}</pre>
     <!-- Loading Overlay pour les actions importantes -->
     <LoadingOverlay 
       :show="templateSubmitting || importSubmitting || buySubmitting"
@@ -245,6 +247,7 @@
           <div><span class="text-gray-600">Email:</span> <span class="font-medium">{{ currentView.guestEmail || '—' }}</span></div>
           <div><span class="text-gray-600">Téléphone:</span> <span class="font-medium">{{ currentView.guestPhone || '—' }}</span></div>
           <div><span class="text-gray-600">Table:</span> <span class="font-medium">{{ currentView.guestTableName || '—' }}</span></div>
+          <div><span class="text-gray-600">Boissons:</span> <span class="font-medium">{{ currentView.drinkChoice?.length ? currentView.drinkChoice.join(', ') : 'Aucune' }}</span></div>
           <div><span class="text-gray-600">Statut:</span> <span class="font-medium capitalize">{{ statusLabel(currentView.status) }}</span></div>
           <div v-if="currentView.token"><span class="text-gray-600">Token:</span> <span class="font-mono break-all">{{ currentView.token }}</span></div>
           <div v-if="currentView.sentAt"><span class="text-gray-600">Envoyé le:</span> <span>{{ currentView.sentAt }}</span></div>
