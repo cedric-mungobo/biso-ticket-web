@@ -1,7 +1,6 @@
 <template>
   <OrganizerNavigation>
 
-    <pre>{{ invitations }}</pre>
     <!-- Loading Overlay pour les actions importantes -->
     <LoadingOverlay 
       :show="templateSubmitting || importSubmitting || buySubmitting"
@@ -43,34 +42,47 @@
           <USkeleton class="h-10 w-full" />
         </div>
         <div v-else>
-          <div class="flex flex-row items-center gap-2 flex-wrap">
-            <div class="flex items-center gap-2 min-w-0">
-              <label for="status" class="text-xs sm:text-sm text-gray-700 whitespace-nowrap">Statut</label>
-              <select id="status" v-model="statusFilter" class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-primary-500 focus:ring-primary-500 w-24 sm:w-auto min-w-0">
-                <option value="all">Tous</option>
-                <option value="pending">En attente</option>
-                <option value="sent">Envoyé</option>
-                <option value="viewed">Consulté</option>
-                <option value="confirmed">Confirmé</option>
-                <option value="cancelled">Annulé</option>
-              </select>
+          <!-- Filtres - Mobile: vertical, Desktop: horizontal -->
+          <div class="space-y-3 sm:space-y-0">
+            <!-- Filtres de statut et boisson -->
+            <div class="flex flex-row items-center gap-2 flex-wrap">
+              <div class="flex items-center gap-2 min-w-0">
+                <label for="status" class="text-xs sm:text-sm text-gray-700 whitespace-nowrap">Statut</label>
+                <select id="status" v-model="statusFilter" class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-primary-500 focus:ring-primary-500 w-24 sm:w-auto min-w-0">
+                  <option value="all">Tous</option>
+                  <option value="pending">En attente</option>
+                  <option value="sent">Envoyé</option>
+                  <option value="viewed">Consulté</option>
+                  <option value="confirmed">Confirmé</option>
+                  <option value="cancelled">Annulé</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-2 min-w-0">
+                <label for="drink" class="text-xs sm:text-sm text-gray-700 whitespace-nowrap">
+                  Boisson
+                  <span v-if="drinks.length > 0" class="text-gray-500">({{ drinks.length }})</span>
+                </label>
+                <select id="drink" v-model="drinkFilter" class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-primary-500 focus:ring-primary-500 w-32 sm:w-auto min-w-0" :disabled="drinks.length === 0">
+                  <option value="all">Toutes</option>
+                  <option v-if="drinks.length === 0" value="all" disabled>Aucune boisson configurée</option>
+                  <option v-for="drink in drinks" :key="drink.id || drink.name" :value="drink.name">
+                    {{ drink.name }}
+                  </option>
+                </select>
+              </div>
+              <!-- Barre de recherche - visible uniquement sur desktop -->
+              <div class="hidden sm:flex items-center gap-2 flex-1 min-w-0">
+                <label for="search" class="text-sm text-gray-700 whitespace-nowrap">Recherche</label>
+                <input id="search" v-model="searchQuery" type="text" placeholder="Nom, email..." class="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500 flex-1 min-w-0" />
+              </div>
             </div>
-            <div class="flex items-center gap-2 min-w-0">
-              <label for="drink" class="text-xs sm:text-sm text-gray-700 whitespace-nowrap">
-                Boisson
-                <span v-if="drinks.length > 0" class="text-gray-500">({{ drinks.length }})</span>
-              </label>
-              <select id="drink" v-model="drinkFilter" class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-primary-500 focus:ring-primary-500 w-32 sm:w-auto min-w-0" :disabled="drinks.length === 0">
-                <option value="all">Toutes</option>
-                <option v-if="drinks.length === 0" value="all" disabled>Aucune boisson configurée</option>
-                <option v-for="drink in drinks" :key="drink.id || drink.name" :value="drink.name">
-                  {{ drink.name }}
-                </option>
-              </select>
-            </div>
-            <div class="flex items-center gap-2 flex-1 min-w-0">
-              <label for="search" class="text-xs sm:text-sm text-gray-700 whitespace-nowrap">Recherche</label>
-              <input id="search" v-model="searchQuery" type="text" placeholder="Nom, email..." class="rounded-lg border border-gray-300 px-2 py-1 text-xs sm:text-sm focus:border-primary-500 focus:ring-primary-500 flex-1 min-w-0" />
+            
+            <!-- Barre de recherche - visible uniquement sur mobile -->
+            <div class="sm:hidden">
+              <div class="flex items-center gap-2">
+                <label for="search-mobile" class="text-xs text-gray-700 whitespace-nowrap">Recherche</label>
+                <input id="search-mobile" v-model="searchQuery" type="text" placeholder="Nom, email..." class="rounded-lg border border-gray-300 px-2 py-1 text-xs focus:border-primary-500 focus:ring-primary-500 flex-1 min-w-0" />
+              </div>
             </div>
           </div>
 
@@ -629,7 +641,26 @@ const credits = computed(() => creditsData.value || { balance: 0 })
 
 // Prix crédits
 const { fetchCreditPrice } = useCredits()
-const { pending: pricePending, data: priceData } = await useAsyncData(`invitations-credit-price`, () => fetchCreditPrice(), { server: false })
+const { pending: pricePending, data: priceData } = await useAsyncData(`invitations-credit-price`, async () => {
+  if (process.dev) {
+    console.log('[CREDITS] Chargement du prix unitaire...')
+  }
+  try {
+    const result = await fetchCreditPrice()
+    if (process.dev) {
+      console.log('[CREDITS] Prix unitaire chargé:', result)
+    }
+    return result
+  } catch (error) {
+    if (process.dev) {
+      console.error('[CREDITS] Erreur lors du chargement du prix:', error)
+    }
+    throw error
+  }
+}, { server: false })
+
+// Variables pour les boissons (déclarées avant utilisation)
+const drinks = ref<any[]>([])
 
 // Chargement des boissons
 const { pending: drinksPending, refresh: refreshDrinks } = await useAsyncData(`organizer-event-drinks-${eventId}`, async () => {
@@ -644,8 +675,42 @@ const { pending: drinksPending, refresh: refreshDrinks } = await useAsyncData(`o
   }
 })
 const drinksLoading = computed(() => drinksPending.value)
-const unitPriceUsd = computed(() => (priceData.value?.unitPriceUsd ?? 0).toFixed(2))
-const totalUsd = computed(() => (Number(priceData.value?.unitPriceUsd || 0) * Math.max(0, Number(buy?.credits || 0))).toFixed(2))
+const unitPriceUsd = computed(() => {
+  // Gestion de la structure API standard { success, message, data: { unitPriceUsd } }
+  const unitPrice = priceData.value?.data?.unitPriceUsd ?? priceData.value?.unitPriceUsd ?? 0
+  const price = unitPrice.toFixed(2)
+  if (process.dev) {
+    console.log('[CREDITS] Prix unitaire calculé:', {
+      rawPrice: unitPrice,
+      formattedPrice: price,
+      priceData: priceData.value,
+      extractedFromData: priceData.value?.data?.unitPriceUsd,
+      directAccess: priceData.value?.unitPriceUsd
+    })
+  }
+  return price
+})
+const totalUsd = computed(() => {
+  // Gestion de la structure API standard { success, message, data: { unitPriceUsd } }
+  const unitPrice = Number(priceData.value?.data?.unitPriceUsd ?? priceData.value?.unitPriceUsd ?? 0)
+  const credits = Math.max(0, Number(buy?.credits || 0))
+  const total = (unitPrice * credits).toFixed(2)
+  
+  if (process.dev) {
+    console.log('[CREDITS] Total calculé:', {
+      unitPrice,
+      credits,
+      total,
+      buyCredits: buy?.credits,
+      currency: buy?.currency,
+      priceData: priceData.value,
+      extractedFromData: priceData.value?.data?.unitPriceUsd,
+      directAccess: priceData.value?.unitPriceUsd
+    })
+  }
+  
+  return total
+})
 
 // Message config (local UI state)
 const showMessage = ref(false)
@@ -738,20 +803,53 @@ const startCountdown = () => {
   }, 1000)
 }
 const submitBuyCredits = async () => {
+  if (process.dev) {
+    console.log('[CREDITS] Tentative d\'achat de crédits:', {
+      buyData: buy,
+      unitPrice: priceData.value?.unitPriceUsd,
+      totalCalculated: totalUsd.value
+    })
+  }
+  
   if (!buy.phone || !/^\d{12}$/.test(buy.phone)) {
+    if (process.dev) {
+      console.warn('[CREDITS] Validation échouée - Téléphone invalide:', buy.phone)
+    }
     useAppToast().showWarning('Téléphone invalide', 'Format attendu: 243XXXXXXXXX')
     return
   }
   if (!buy.credits || buy.credits < 1) {
+    if (process.dev) {
+      console.warn('[CREDITS] Validation échouée - Crédits invalides:', buy.credits)
+    }
     useAppToast().showWarning('Crédits invalides', 'Saisissez un nombre de crédits ≥ 1.')
     return
   }
   try {
     buySubmitting.value = true
-    await purchaseAndPayCredits({ credits: buy.credits as any, currency: buy.currency as any, phone: buy.phone })
+    
+    const purchaseData = { 
+      credits: buy.credits as any, 
+      currency: buy.currency as any, 
+      phone: buy.phone 
+    }
+    
+    if (process.dev) {
+      console.log('[CREDITS] Envoi de la requête d\'achat:', purchaseData)
+    }
+    
+    const result = await purchaseAndPayCredits(purchaseData)
+    
+    if (process.dev) {
+      console.log('[CREDITS] Réponse de l\'achat:', result)
+    }
+    
     useAppToast().showSuccess('Paiement initié', 'Une notification de paiement a été envoyée. Veuillez confirmer.')
     startCountdown()
   } catch (e: any) {
+    if (process.dev) {
+      console.error('[CREDITS] Erreur lors de l\'initiation du paiement:', e)
+    }
     // L'erreur est déjà gérée par le plugin customFetch
     console.error('Erreur lors de l\'initiation du paiement:', e)
   } finally {
@@ -864,7 +962,6 @@ const showImport = ref(false)
 const showDrinksList = ref(false)
 const showDrinkForm = ref(false)
 const showDrinkDelete = ref(false)
-const drinks = ref<any[]>([])
 const drinkForm = ref<any[]>([])
 const currentDrink = ref<any>(null)
 const drinksSubmitting = ref(false)

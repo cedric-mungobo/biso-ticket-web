@@ -1,4 +1,5 @@
 <template>
+  
   <OrganizerNavigation>
     <div class="md:p-4 p-2 max-w-4xl mx-auto">
       <!-- En-tête de la page -->

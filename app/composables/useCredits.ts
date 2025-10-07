@@ -29,7 +29,14 @@ export const useCredits = () => {
   }
 
   const fetchCreditPrice = async (): Promise<{ unitPriceUsd: number }> => {
-    return $myFetch<{ unitPriceUsd: number }>('/credits/price', { method: 'GET' })
+    const response = await $myFetch<{
+      success: boolean
+      message: string
+      data: { unitPriceUsd: number }
+    }>('/credits/price', { method: 'GET' })
+    
+    // Retourner directement data pour maintenir la compatibilité
+    return response.data || { unitPriceUsd: 0 }
   }
 
   const fetchCreditLedger = async (params: {
