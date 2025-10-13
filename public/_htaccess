@@ -1,0 +1,92 @@
+# Configuration .htaccess pour Nuxt 4 sur hébergement mutualisé
+# Résolution des problèmes MIME type pour les modules JavaScript
+
+# Activer le moteur de réécriture
+RewriteEngine On
+
+# MIME types pour Nuxt 4
+<IfModule mod_mime.c>
+  # JavaScript modules
+  AddType application/javascript .js
+  AddType application/javascript .mjs
+  AddType text/javascript .js
+
+  # Types modernes
+  AddType application/wasm .wasm
+  AddType application/json .json
+  AddType text/css .css
+  AddType image/svg+xml .svg
+  AddType image/webp .webp
+  AddType font/woff .woff
+  AddType font/woff2 .woff2
+  AddType application/font-woff .woff
+  AddType application/font-woff2 .woff2
+
+  # Forcer le bon MIME type pour les modules
+  <Files "*.js">
+    ForceType application/javascript
+  </Files>
+
+  <Files "*.mjs">
+    ForceType application/javascript
+  </Files>
+</IfModule>
+
+# Headers pour sécurité et performance
+<IfModule mod_headers.c>
+  # Sécurité
+  Header always set X-Content-Type-Options nosniff
+  Header always set X-Frame-Options DENY
+  Header always set X-XSS-Protection "1; mode=block"
+
+  # CORS pour les assets
+  <FilesMatch "\.(js|css|woff|woff2|svg|webp|png|jpg|jpeg|gif)$">
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
+
+  # Cache control pour les assets statiques
+  <FilesMatch "\.(js|css|woff|woff2|svg|webp|png|jpg|jpeg|gif)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # Pas de cache pour les fichiers HTML
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# Compression Gzip
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/plain
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/xml
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE application/xml
+  AddOutputFilterByType DEFLATE application/xhtml+xml
+  AddOutputFilterByType DEFLATE application/rss+xml
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/x-javascript
+  AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# Réécriture d'URL pour Nuxt SPA
+# Router toutes les requêtes vers index.html ou 200.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/_nuxt/
+RewriteCond %{REQUEST_URI} !^/api/
+RewriteRule (.*) 200.html [QSA,L]
+
+# Gestion des ressources _nuxt
+RewriteRule ^_nuxt/(.*)$ _nuxt/$1 [QSA,L]
+
+# Sécurité - cacher les fichiers sensibles
+<FilesMatch "\.(env|log|md|txt)$">
+    Require all denied
+</FilesMatch>
+
+# Options -Indexes pour éviter la navigation dans les répertoires
+Options -Indexes
+
+# Page d'erreur personnalisée
+ErrorDocument 404 /200.html

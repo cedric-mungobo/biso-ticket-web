@@ -23,6 +23,29 @@ export default defineNuxtConfig({
         '/evenements/mariage-de-steven-et-safi',
         '/inscription'],
     },
+    // Configuration pour production et hébergement mutualisé
+    experimental: {
+      wasm: true,
+    },
+    // Headers pour corriger les MIME types
+    routeRules: {
+      "/_nuxt/**": {
+        headers: {
+          "Content-Type": "application/javascript",
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      },
+      "**/*.{js,mjs}": {
+        headers: {
+          "Content-Type": "application/javascript",
+        },
+      },
+      "**/*.css": {
+        headers: {
+          "Content-Type": "text/css",
+        },
+      },
+    },
   },
 
   // Règles de route pour optimiser le rendu - Configuration hybride SPA/Static
