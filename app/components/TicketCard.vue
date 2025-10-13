@@ -1,62 +1,52 @@
 <template>
-  <div class="w-full max-w-sm mx-auto rounded-2xl overflow-hidden shadow-2xl relative transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(0,0,0,0.2)]">
-    <!-- Section supérieure avec image de fond -->
-    <div 
-      class="px-8 py-4 relative min-h-[600px] flex flex-col justify-center items-center bg-cover bg-center bg-no-repeat"
-      :style="item.event.imageUrl ? `background-image: url('${item.event.imageUrl}')` : 'background: linear-gradient(135deg, #f8f6f0 0%, #f5f3ed 100%)'"
-    >
-      <!-- Superposition de couleur selon le type de ticket -->
-      <div 
-        class="absolute inset-0 z-10"
-        :style="{ backgroundColor: `${ticketColors?.primary || '#8b12ff'}CC` }"
-      ></div>
-    
-      <!-- Contenu principal -->
-      <div class="text-center z-40 relative">
-        <!-- Titre principal -->
-        <div class="mb-4">
-          <h1 class="text-4xl font-extrabold text-white mb-2 leading-tight tracking-tight drop-shadow-lg">{{ item.ticket.name }}</h1>
-          <p class="text-lg text-white opacity-95 drop-shadow-md">{{ item.event.title }}</p>
-          <!-- Prix affiché dans la partie haute -->
-          <div class="mt-2 text-center">
-            <span class="block text-3xl font-extrabold text-white mb-1 drop-shadow-lg">{{ item.ticket.price }} {{ item.ticket.currency }}</span>
-          </div>
-        </div>
-          
-        <!-- QR Code central -->
-        <div class="my-2">
-          <div v-if="item.qrCode" class="bg-white p-5 rounded-xl shadow-lg inline-block border-4 border-gray-100">
-            <QRCode 
-              :data="item.qrCode"
-              :size="200"
-              class="block rounded-lg"
-            />
-          </div>
-          <div v-else class="bg-white p-5 rounded-xl shadow-lg border-4 border-gray-100 w-48 h-48 flex items-center justify-center">
-            <div class="text-gray-500 text-sm">QR Code indisponible</div>
-            <div class="text-xs text-gray-400 mt-1">
-              Valeur: {{ item.qrCode || 'undefined' }}
-            </div>
-          </div>
-        </div>
-        
-        <!-- Informations supplémentaires -->
-        <div class="my-2 flex justify-center">
-          <div class="text-center flex flex-col gap-1">
-            <span class="text-xs text-white opacity-80 font-medium uppercase tracking-wider drop-shadow-md">Date</span>
-            <span class="text-base text-white font-semibold drop-shadow-md">{{ formatDate(item.event.startsAt) }}</span>
-          </div>
-        </div>
-        
-        <!-- Bouton de téléchargement -->
-        <div class="mt-2">
-          <UButton size="sm" color="neutral" variant="solid" @click="downloadTicket" class="bg-white/90 backdrop-blur-sm text-primary-600 border-none font-semibold px-6 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:-translate-y-0.5 hover:shadow-lg">
-            <Icon name="heroicons:arrow-down-tray" class="w-4 h-4 mr-2" />
-            Télécharger Ticket
-          </UButton>
-        </div>
+  <div class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-sm transition-shadow">
+    <!-- En-tête minimal -->
+    <div class="flex items-start justify-between mb-3">
+      <div class="flex-1 min-w-0">
+        <h4 class="font-medium text-gray-900 text-sm truncate">{{ item.ticket.name }}</h4>
+        <p class="text-xs text-gray-500 mt-1 truncate">{{ item.event.title }}</p>
+      </div>
+      <div class="text-right ml-2">
+        <div class="text-sm font-semibold text-gray-900">{{ item.ticket.price }} {{ item.ticket.currency }}</div>
+        <div class="text-xs text-gray-500">x{{ item.quantity }}</div>
       </div>
     </div>
+
+    <!-- QR Code compact -->
+    <div class="flex justify-center mb-3">
+      <div v-if="item.qrCode" class="bg-gray-50 p-2 rounded border">
+        <QRCode 
+          :data="item.qrCode"
+          :size="80"
+          class="block"
+        />
+      </div>
+      <div v-else class="bg-gray-50 p-2 rounded border w-20 h-20 flex items-center justify-center">
+        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Informations essentielles -->
+    <div class="text-center mb-3">
+      <div class="text-xs text-gray-500 mb-1">Total</div>
+      <div class="text-lg font-bold" :style="{ color: ticketColors?.primary || '#8b12ff' }">
+        {{ (item.ticket.price * item.quantity).toFixed(2) }} {{ item.ticket.currency }}
+      </div>
+    </div>
+
+    <!-- Bouton de téléchargement minimal -->
+    <UButton 
+      @click="downloadTicket" 
+      color="neutral"
+      variant="outline" 
+      size="xs" 
+      class="w-full"
+    >
+      <Icon name="heroicons:arrow-down-tray" class="w-3 h-3 mr-1" />
+      Télécharger
+    </UButton>
   </div>
 </template>
 

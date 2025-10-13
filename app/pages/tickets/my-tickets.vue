@@ -55,14 +55,59 @@
       </NuxtLink>
     </div>
 
-    <!-- Liste des billets (design inspiré de l'image) -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 py-4">
-      <TicketCard 
-        v-for="item in tickets" 
-        :key="item.id"
-        :item="item"
-      />
-      <!-- Pagination simple -->
+    <!-- Liste des billets groupés par événement -->
+    <div v-else class="space-y-6 py-4">
+      <div 
+        v-for="eventGroup in groupedTickets" 
+        :key="eventGroup.eventId"
+        class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm"
+      >
+        <!-- En-tête de l'événement -->
+        <div class="bg-gradient-to-r from-primary-50 to-teal-50 p-4 border-b border-gray-100">
+          <div class="flex items-start gap-3">
+            <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <NuxtImg 
+                v-if="eventGroup.event.imageUrl" 
+                :src="eventGroup.event.imageUrl" 
+                :alt="eventGroup.event.title"
+                class="w-8 h-8 rounded object-cover"
+              />
+              <svg v-else class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-semibold text-gray-900 text-lg leading-tight">{{ eventGroup.event.title }}</h3>
+              <div class="flex items-center gap-4 mt-1 text-sm text-gray-600">
+                <span class="flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {{ formatEventDate(eventGroup.event.startsAt) }}
+                </span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                {{ eventGroup.tickets.length }} billet{{ eventGroup.tickets.length > 1 ? 's' : '' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Liste des billets pour cet événement -->
+        <div class="p-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <TicketCard 
+              v-for="ticket in eventGroup.tickets" 
+              :key="ticket.id"
+              :item="ticket"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
       <div v-if="meta" class="flex justify-center items-center gap-3 pt-4">
         <UButton color="neutral" variant="soft" :disabled="(meta && meta.currentPage <= 1)" @click="() => { void changePage((meta?.currentPage || 1) - 1) }">Précédent</UButton>
         <span class="text-sm text-gray-600">Page {{ meta?.currentPage }} / {{ meta?.lastPage }}</span>
@@ -91,6 +136,16 @@ setSEO({
 })
 
 interface Pagination { currentPage: number; lastPage: number; perPage: number; total: number }
+interface GroupedTicket {
+  eventId: number
+  event: {
+    id: number
+    title: string
+    startsAt: string
+    imageUrl?: string | null
+  }
+  tickets: ClientTicketItem[]
+}
 
 // État local
 const isLoading = ref(true)
@@ -99,6 +154,53 @@ const meta = ref<Pagination | null>(null)
 const errorMessage = ref<string | null>(null)
 
 const { fetchClientTickets } = useClientTickets()
+
+// Computed pour grouper les tickets par événement
+const groupedTickets = computed(() => {
+  if (!tickets.value || tickets.value.length === 0) return []
+  
+  const groups = new Map<number, GroupedTicket>()
+  
+  tickets.value.forEach(ticket => {
+    const eventId = ticket.event.id
+    if (!groups.has(eventId)) {
+      groups.set(eventId, {
+        eventId,
+        event: {
+          id: ticket.event.id,
+          title: ticket.event.title,
+          startsAt: ticket.event.startsAt,
+          imageUrl: ticket.event.imageUrl
+        },
+        tickets: []
+      })
+    }
+    groups.get(eventId)!.tickets.push(ticket)
+  })
+  
+  return Array.from(groups.values()).sort((a, b) => 
+    new Date(b.event.startsAt).getTime() - new Date(a.event.startsAt).getTime()
+  )
+})
+
+// Fonction de formatage des dates
+const formatEventDate = (dateString: string) => {
+  try {
+    const date = new Date(dateString.replace(' ', 'T'))
+    if (isNaN(date.getTime())) return 'Date à définir'
+    
+    return date.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch {
+    return 'Date à définir'
+  }
+}
 
 // Fonctions
 const fetchMyTickets = async (page = 1) => {

@@ -1,517 +1,923 @@
 <template>
-  <main class="px-2 py-14 ">
-    <div class="mx-auto container">
-      <!-- Loading State -->
-      <LoadingOverlay :show="loading" title="Chargement de l'événement..."
-        description="Préparation des détails de l'événement..." variant="branded" :size="56" />
+    <main class="px-2 py-14">
+        <div class="mx-auto container">
+            <!-- Loading State -->
+            <LoadingOverlay
+                :show="loading"
+                title="Chargement de l'événement..."
+                description="Préparation des détails de l'événement..."
+                variant="branded"
+                :size="56"
+            />
 
-      <!-- Error State -->
-      <div v-if="error" class="text-center py-10">
-        <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-          <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
-            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-          <h3 class="text-lg font-medium text-red-800 mb-2">Événement non trouvé</h3>
-          <p class="text-red-600 mb-4">Désolé, cet événement n'existe pas ou n'est plus disponible.</p>
-          <div class="space-y-2">
-            <button @click="() => fetchEventData()"
-              class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors mr-2">
-              Réessayer
-            </button>
-            <NuxtLink to="/evenements"
-              class="inline-block bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">
-              Retour aux événements
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event Details -->
-      <div v-else-if="event" class="space-y-4">
-        <!-- Image + Tickets (desktop) -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div class="lg:col-span-2">
-            <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">{{ event.title }}</h1>
-
-            <div class="flex md:items-center m max-sm:flex-col md:gap-2">
-              <p class="text-gray-600 flex items-center">
-                <CalendarFold class="w-4 mr-2" /> {{ formatEventDate(event.startsAt) }}
-              </p>
-              <p class="text-gray-600 flex items-center">
-                <MapPin class="w-4 mr-2" />{{ event.location }}
-              </p>
-            </div>
-            <div class=" mt-2 relative  aspect-square md:aspect-video  rounded-lg overflow-hidden">
-              <NuxtImg v-if="event.imageUrl" :src="event.imageUrl" :alt="event.title"
-                class="h-full w-full  object-cover" loading="eager" format="webp" quality="90" />
-              <div v-else
-                class="h-full w-full bg-gradient-to-br from-primary-100 to-teal-200 flex items-center justify-center">
-                <svg class="w-24 h-24 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                  </path>
-                </svg>
-              </div>
-              <!-- Badge de catégorie -->
-              <div class="absolute top-4 left-4">
-                <UBadge color="primary">{{ primaryCategory }}</UBadge>
-              </div>
-              <!-- Badge événement en vedette -->
-              <div v-if="event.settings?.featured" class="absolute top-4 right-4">
-                <span
-                  class="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium bg-secondary-500 text-white border border-secondary-200">
-                  En vedette
-                </span>
-              </div>
-            </div>
-          </div>
-          <!-- Tickets à droite sur desktop -->
-          <div class="hidden lg:block lg:col-span-1">
-            <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-6 max-h-[80vh] flex flex-col">
-              <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Billets</h3>
-
-              <!-- Loading State -->
-              <div v-if="ticketsLoading" class="text-center py-8">
+            <!-- Error State -->
+            <div v-if="error" class="text-center py-10">
                 <div
-                  class="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-2">
-                </div>
-                <p class="text-sm text-gray-500">Chargement...</p>
-              </div>
-
-              <!-- Error State -->
-              <div v-else-if="ticketsError" class="text-center py-8">
-                <p class="text-sm text-red-500">{{ ticketsError }}</p>
-              </div>
-
-              <!-- Indicateur de scroll pour beaucoup de tickets -->
-              <div v-else-if="tickets.length > 3"
-                class="text-center text-xs text-gray-400 pb-2 border-b border-gray-100 mb-4">
-                <span class="inline-flex items-center gap-1">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                  </svg>
-                  Faites défiler pour voir tous les billets
-                </span>
-              </div>
-
-              <!-- Formulaires de réservation -->
-              <div v-if="reservationForms.length > 0" class="mb-4">
-                <h4 class="text-sm font-medium text-gray-700 mb-2">Formulaires de réservation</h4>
-                <div class="space-y-2">
-                  <NuxtLink v-for="form in reservationForms" :key="form.id"
-                    :to="`/evenements/${slug}/reservation/${form.public_id || form.id}`"
-                    class="block bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg p-3 transition-colors">
-                    <div class="flex items-center justify-between">
-                      <div>
-                        <h5 class="text-sm font-medium text-purple-900">{{ form.title }}</h5>
-                        <p v-if="form.description" class="text-xs text-purple-600 mt-1 line-clamp-2">{{ form.description
-                          }}</p>
-                      </div>
-                      <UIcon name="i-heroicons-arrow-right" class="w-4 h-4 text-purple-500" />
-                    </div>
-                  </NuxtLink>
-                </div>
-              </div>
-
-              <!-- Tickets List -->
-              <div v-if="tickets.length" class="flex-1 overflow-y-auto space-y-1 sm:space-y-2">
-                <div v-for="ticket in tickets" :key="ticket.id" class="group bg-gray-50 rounded-lg p-2 sm:p-3">
-                  <!-- Ticket Header -->
-                  <div class="flex justify-between items-start mb-1 sm:mb-2">
-                    <h4 class="font-medium text-gray-900 text-xs sm:text-sm pr-1">{{ ticket.name }}</h4>
-                    <span class="text-xs sm:text-sm font-semibold text-gray-900 flex-shrink-0">{{
-                      formatTicketPrice(ticket.price, ticket.currency) }}</span>
-                  </div>
-
-                  <!-- Quantity Selector -->
-                  <div class="flex items-center justify-between mb-1 sm:mb-2">
-                    <span class="text-xs text-gray-500">Qté</span>
-                    <div class="flex items-center gap-1 sm:gap-2">
-                      <button
-                        class="w-4 h-4 sm:w-6 sm:h-6 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
-                        :disabled="getQuantity(ticket.id) <= 1" @click="decrementQuantity(ticket.id)">
-                        <svg class="w-2 h-2 sm:w-3 sm:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                    class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto"
+                >
+                    <div
+                        class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full"
+                    >
+                        <svg
+                            class="w-6 h-6 text-red-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            ></path>
                         </svg>
-                      </button>
-                      <span class="w-4 sm:w-6 text-center font-medium text-xs">{{ getQuantity(ticket.id) }}</span>
-                      <button
-                        class="w-4 h-4 sm:w-6 sm:h-6 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
-                        :disabled="getQuantity(ticket.id) >= ticket.quantity"
-                        @click="incrementQuantity(ticket.id, ticket.quantity)">
-                        <svg class="w-2 h-2 sm:w-3 sm:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                      </button>
                     </div>
-                  </div>
-
-                  <!-- Total & Reserve Button -->
-                  <div class="flex justify-between items-center pt-1 sm:pt-2 border-t border-gray-200">
-                    <div>
-                      <p class="text-xs text-gray-500">Total</p>
-                      <p class="font-semibold text-gray-900 text-xs sm:text-sm">{{
-                        formatTicketPrice(ticketTotal(ticket), ticket.currency) }}</p>
+                    <h3 class="text-lg font-medium text-red-800 mb-2">
+                        Événement non trouvé
+                    </h3>
+                    <p class="text-red-600 mb-4">
+                        Désolé, cet événement n'existe pas ou n'est plus
+                        disponible.
+                    </p>
+                    <div class="space-y-2">
+                        <button
+                            @click="() => fetchEventData()"
+                            class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors mr-2"
+                        >
+                            Réessayer
+                        </button>
+                        <NuxtLink
+                            to="/evenements"
+                            class="inline-block bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                        >
+                            Retour aux événements
+                        </NuxtLink>
                     </div>
-                    <UButton color="primary" size="xs" @click="onReserve(ticket)"
-                      class="px-2 sm:px-4 text-xs py-1 sm:py-1.5">
-                      Réserver
-                    </UButton>
-                  </div>
                 </div>
-              </div>
+            </div>
 
-              <!-- Empty State -->
-              <div v-else class="text-center py-8">
-                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z">
-                    </path>
-                  </svg>
+            <!-- Event Details -->
+            <div v-else-if="event" class="space-y-4">
+                <!-- Image + Tickets (desktop) -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="lg:col-span-2 space-y-4">
+                        <!-- En-tête de l'événement -->
+                        <div class="space-y-3">
+                            <h1
+                                class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight"
+                            >
+                                {{ event.title }}
+                            </h1>
+
+                            <!-- Métadonnées de l'événement -->
+                            <div
+                                class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"
+                            >
+                                <div
+                                    class="flex items-center text-gray-600 bg-gray-50 px-3 py-2 rounded-lg"
+                                >
+                                    <CalendarFold
+                                        class="w-4 h-4 mr-2 text-primary-600"
+                                    />
+                                    <span class="text-sm sm:text-base">{{
+                                        formatEventDate(event.startsAt)
+                                    }}</span>
+                                </div>
+                                <div
+                                    class="flex items-center text-gray-600 bg-gray-50 px-3 py-2 rounded-lg"
+                                >
+                                    <MapPin
+                                        class="w-4 h-4 mr-2 text-primary-600"
+                                    />
+                                    <span class="text-sm sm:text-base">{{
+                                        event.location
+                                    }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Badges de catégorie et tags -->
+                            <div
+                                v-if="categories.length || formattedTags.length"
+                                class="flex flex-wrap items-center gap-2"
+                            >
+                                <UBadge
+                                    v-for="cat in categories"
+                                    :key="`cat-${cat}`"
+                                    color="primary"
+                                    variant="soft"
+                                    size="sm"
+                                >
+                                    #{{ cat }}
+                                </UBadge>
+                                <UBadge
+                                    v-for="tag in formattedTags"
+                                    :key="`tag-${tag}`"
+                                    color="neutral"
+                                    variant="subtle"
+                                    size="sm"
+                                >
+                                    {{ tag }}
+                                </UBadge>
+                            </div>
+                        </div>
+
+                        <!-- Conteneur d'image avec aspect ratio amélioré -->
+                        <div
+                            class="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] rounded-xl overflow-hidden shadow-lg"
+                        >
+                            <NuxtImg
+                                v-if="event.imageUrl"
+                                :src="event.imageUrl"
+                                :alt="event.title"
+                                class="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+                                loading="eager"
+                                format="webp"
+                                quality="90"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 66vw, 50vw"
+                            />
+                            <div
+                                v-else
+                                class="h-full w-full bg-gradient-to-br from-primary-50 via-primary-100 to-teal-100 flex items-center justify-center"
+                            >
+                                <div class="text-center">
+                                    <svg
+                                        class="w-16 h-16 sm:w-20 sm:h-20 text-primary-400 mx-auto mb-3"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.5"
+                                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                                        ></path>
+                                    </svg>
+                                    <p
+                                        class="text-primary-600 text-sm font-medium"
+                                    >
+                                        Image non disponible
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Badges superposés -->
+                            <div
+                                class="absolute top-4 left-4 flex items-start gap-2"
+                            >
+                                <UBadge
+                                    color="primary"
+                                    size="lg"
+                                    class="shadow-md backdrop-blur-sm bg-white/90"
+                                >
+                                    {{ primaryCategory }}
+                                </UBadge>
+                            </div>
+
+                            <div
+                                v-if="event.settings?.featured"
+                                class="absolute top-4 right-4"
+                            >
+                                <span
+                                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg backdrop-blur-sm"
+                                >
+                                    <svg
+                                        class="w-4 h-4"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                                        />
+                                    </svg>
+                                    En vedette
+                                </span>
+                            </div>
+
+                            <!-- Overlay subtil pour améliorer la lisibilité des badges -->
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"
+                            ></div>
+                        </div>
+                    </div>
+                    <!-- Tickets à droite sur desktop -->
+                    <div class="hidden lg:block lg:col-span-1">
+                        <div
+                            class="bg-white rounded-xl border border-gray-100 p-4 sm:p-6 max-h-[80vh] flex flex-col"
+                        >
+                            <h3
+                                class="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6"
+                            >
+                                Billets
+                            </h3>
+
+                            <!-- Loading State -->
+                            <div v-if="ticketsLoading" class="text-center py-8">
+                                <div
+                                    class="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"
+                                ></div>
+                                <p class="text-sm text-gray-500">
+                                    Chargement...
+                                </p>
+                            </div>
+
+                            <!-- Error State -->
+                            <div
+                                v-else-if="ticketsError"
+                                class="text-center py-8"
+                            >
+                                <p class="text-sm text-red-500">
+                                    {{ ticketsError }}
+                                </p>
+                            </div>
+
+                            <!-- Indicateur de scroll pour beaucoup de tickets -->
+                            <div
+                                v-else-if="tickets.length > 3"
+                                class="text-center text-xs text-gray-400 pb-2 border-b border-gray-100 mb-4"
+                            >
+                                <span class="inline-flex items-center gap-1">
+                                    <svg
+                                        class="w-3 h-3"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                                        ></path>
+                                    </svg>
+                                    Faites défiler pour voir tous les billets
+                                </span>
+                            </div>
+
+                            <!-- Formulaires de réservation -->
+                            <div
+                                v-if="reservationForms.length > 0"
+                                class="mb-4"
+                            >
+                                <h4
+                                    class="text-sm font-medium text-gray-700 mb-2"
+                                >
+                                    Formulaires de réservation
+                                </h4>
+                                <div class="space-y-2">
+                                    <NuxtLink
+                                        v-for="form in reservationForms"
+                                        :key="form.id"
+                                        :to="`/evenements/${slug}/reservation/${form.public_id || form.id}`"
+                                        class="block bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg p-3 transition-colors"
+                                    >
+                                        <div
+                                            class="flex items-center justify-between"
+                                        >
+                                            <div>
+                                                <h5
+                                                    class="text-sm font-medium text-purple-900"
+                                                >
+                                                    {{ form.title }}
+                                                </h5>
+                                                <p
+                                                    v-if="form.description"
+                                                    class="text-xs text-purple-600 mt-1 line-clamp-2"
+                                                >
+                                                    {{ form.description }}
+                                                </p>
+                                            </div>
+                                            <UIcon
+                                                name="i-heroicons-arrow-right"
+                                                class="w-4 h-4 text-purple-500"
+                                            />
+                                        </div>
+                                    </NuxtLink>
+                                </div>
+                            </div>
+
+                            <!-- Tickets List -->
+                            <div
+                                v-if="tickets.length"
+                                class="flex-1 overflow-y-auto space-y-1 sm:space-y-2"
+                            >
+                                <div
+                                    v-for="ticket in tickets"
+                                    :key="ticket.id"
+                                    class="group bg-gray-50 rounded-lg p-2 sm:p-3"
+                                >
+                                    <!-- Ticket Header -->
+                                    <div
+                                        class="flex justify-between items-start mb-1 sm:mb-2"
+                                    >
+                                        <h4
+                                            class="font-medium text-gray-900 text-xs sm:text-sm pr-1"
+                                        >
+                                            {{ ticket.name }}
+                                        </h4>
+                                        <span
+                                            class="text-xs sm:text-sm font-semibold text-gray-900 flex-shrink-0"
+                                            >{{
+                                                formatTicketPrice(
+                                                    ticket.price,
+                                                    ticket.currency,
+                                                )
+                                            }}</span
+                                        >
+                                    </div>
+
+                                    <!-- Quantity Selector -->
+                                    <div
+                                        class="flex items-center justify-between mb-1 sm:mb-2"
+                                    >
+                                        <span class="text-xs text-gray-500"
+                                            >Qté</span
+                                        >
+                                        <div
+                                            class="flex items-center gap-1 sm:gap-2"
+                                        >
+                                            <button
+                                                class="w-4 h-4 sm:w-6 sm:h-6 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+                                                :disabled="
+                                                    getQuantity(ticket.id) <= 1
+                                                "
+                                                @click="
+                                                    decrementQuantity(ticket.id)
+                                                "
+                                            >
+                                                <svg
+                                                    class="w-2 h-2 sm:w-3 sm:h-3"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M20 12H4"
+                                                    ></path>
+                                                </svg>
+                                            </button>
+                                            <span
+                                                class="w-4 sm:w-6 text-center font-medium text-xs"
+                                                >{{
+                                                    getQuantity(ticket.id)
+                                                }}</span
+                                            >
+                                            <button
+                                                class="w-4 h-4 sm:w-6 sm:h-6 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+                                                :disabled="
+                                                    getQuantity(ticket.id) >=
+                                                    ticket.quantity
+                                                "
+                                                @click="
+                                                    incrementQuantity(
+                                                        ticket.id,
+                                                        ticket.quantity,
+                                                    )
+                                                "
+                                            >
+                                                <svg
+                                                    class="w-2 h-2 sm:w-3 sm:h-3"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                                    ></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Total & Reserve Button -->
+                                    <div
+                                        class="flex justify-between items-center pt-1 sm:pt-2 border-t border-gray-200"
+                                    >
+                                        <div>
+                                            <p class="text-xs text-gray-500">
+                                                Total
+                                            </p>
+                                            <p
+                                                class="font-semibold text-gray-900 text-xs sm:text-sm"
+                                            >
+                                                {{
+                                                    formatTicketPrice(
+                                                        ticketTotal(ticket),
+                                                        ticket.currency,
+                                                    )
+                                                }}
+                                            </p>
+                                        </div>
+                                        <UButton
+                                            color="primary"
+                                            size="xs"
+                                            @click="onReserve(ticket)"
+                                            class="px-2 sm:px-4 text-xs py-1 sm:py-1.5"
+                                        >
+                                            Réserver
+                                        </UButton>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div v-else class="text-center py-8">
+                                <div
+                                    class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3"
+                                >
+                                    <svg
+                                        class="w-6 h-6 text-gray-400"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+                                        ></path>
+                                    </svg>
+                                </div>
+                                <p class="text-sm text-gray-500">
+                                    Aucun billet disponible
+                                </p>
+                            </div>
+
+                            <div
+                                class="p-2 border border-gray-200 rounded-2xl mt-4"
+                            >
+                                <h3
+                                    class="text-lg font-semibold text-gray-900 mb-4 text-center flex items-center justify-center gap-2"
+                                >
+                                    <svg
+                                        class="w-5 h-5 text-primary-600"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                                        ></path>
+                                    </svg>
+                                    Partager, organiser et créer
+                                </h3>
+
+                                <div
+                                    class="flex flex-col w-full gap-4 justify-center items-center"
+                                >
+                                    <EventShare
+                                        :event-title="event?.title || ''"
+                                        :event-url="fullEventUrl"
+                                        :event-description="
+                                            event?.description || ''
+                                        "
+                                    />
+
+                                    <AddToCalendar
+                                        :event-title="event?.title || ''"
+                                        :event-description="
+                                            event?.description || ''
+                                        "
+                                        :event-date="event?.startsAt || ''"
+                                        :event-location="event?.location || ''"
+                                        :event-url="fullEventUrl"
+                                    />
+
+                                    <NuxtLink
+                                        to="/organisateur"
+                                        class="w-full bg-secondary-600 text-white px-2 py-1.5 rounded-lg hover:bg-secondary-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                                    >
+                                        <svg
+                                            class="w-5 h-5"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                            ></path>
+                                        </svg>
+                                        Organiser un événement
+                                    </NuxtLink>
+                                </div>
+
+                                <p
+                                    class="text-sm text-gray-500 text-center mt-4"
+                                >
+                                    Partagez cet événement avec vos amis,
+                                    ajoutez-le à votre calendrier ou créez votre
+                                    propre événement
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-500">Aucun billet disponible</p>
-              </div>
 
+                <!-- Détails de l'événement -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <UCard class="p-2 col-span-2">
+                        <div class="">
+                            <div class="lg:col-span-2">
+                                <div
+                                    class="py-1 hidden max-sm:block"
+                                    v-if="
+                                        categories.length ||
+                                        formattedTags.length
+                                    "
+                                >
+                                    <div
+                                        class="flex flex-wrap items-center gap-2 mb-6"
+                                    >
+                                        <UBadge
+                                            v-for="cat in categories"
+                                            :key="`cat-${cat}`"
+                                            color="neutral"
+                                            variant="soft"
+                                            >#{{ cat }}
+                                        </UBadge>
+                                        <UBadge
+                                            v-for="tag in formattedTags"
+                                            :key="`tag-${tag}`"
+                                            color="neutral"
+                                            variant="subtle"
+                                            >{{ tag }}
+                                        </UBadge>
+                                    </div>
+                                </div>
+                                <p
+                                    class="text-sm sm:text-base text-gray-600 leading-relaxed mb-4 whitespace-pre-line"
+                                >
+                                    {{
+                                        event.description ||
+                                        "Aucune description disponible."
+                                    }}
+                                </p>
+                            </div>
+                        </div>
+                    </UCard>
+                </div>
+            </div>
 
-              <div class="p-2 border border-gray-200 rounded-2xl mt-4">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4 text-center flex items-center justify-center gap-2">
-                  <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                  </svg>
-                  Partager, organiser et créer
+            <div class="md:hidden p-2 border border-gray-200 rounded-2xl mt-4">
+                <h3
+                    class="text-lg font-semibold text-gray-900 mb-4 text-center flex items-center justify-center gap-2"
+                >
+                    <svg
+                        class="w-5 h-5 text-primary-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                        ></path>
+                    </svg>
+                    Partager, organiser et créer
                 </h3>
 
-                <div class="flex flex-col w-full gap-4 justify-center items-center">
-                  <EventShare :event-title="event?.title || ''" :event-url="fullEventUrl"
-                    :event-description="event?.description || ''" />
+                <div
+                    class="flex flex-col w-full gap-4 justify-center items-center"
+                >
+                    <EventShare
+                        :event-title="event?.title || ''"
+                        :event-url="fullEventUrl"
+                        :event-description="event?.description || ''"
+                    />
 
-                  <AddToCalendar :event-title="event?.title || ''" :event-description="event?.description || ''"
-                    :event-date="event?.startsAt || ''" :event-location="event?.location || ''" :event-url="fullEventUrl" />
+                    <AddToCalendar
+                        :event-title="event?.title || ''"
+                        :event-description="event?.description || ''"
+                        :event-date="event?.startsAt || ''"
+                        :event-location="event?.location || ''"
+                        :event-url="fullEventUrl"
+                    />
 
-                  <NuxtLink to="/organisateur"
-                    class="w-full bg-secondary-600 text-white px-2 py-1.5 rounded-lg hover:bg-secondary-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    Organiser un événement
-                  </NuxtLink>
+                    <NuxtLink
+                        to="/organisateur"
+                        class="w-full bg-secondary-600 text-white px-2 py-1.5 rounded-lg hover:bg-secondary-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                    >
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            ></path>
+                        </svg>
+                        Organiser un événement
+                    </NuxtLink>
                 </div>
 
                 <p class="text-sm text-gray-500 text-center mt-4">
-                  Partagez cet événement avec vos amis, ajoutez-le à votre calendrier ou créez votre propre événement
+                    Partagez cet événement avec vos amis, ajoutez-le à votre
+                    calendrier ou créez votre propre événement
                 </p>
-              </div>
             </div>
-          </div>
+
+            <!-- Modal de réservation des tickets -->
+            <TicketReservationModal
+                v-model="showTicketModal"
+                :event="event"
+                :tickets="tickets"
+            />
         </div>
 
-        <!-- Détails de l'événement -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-          <UCard class="p-2  col-span-2">
-            <div class="">
-              <div class="lg:col-span-2">
-
-                <div class=" py-1 hidden max-sm:block" v-if="categories.length || formattedTags.length">
-                  <div class="flex flex-wrap items-center gap-2 mb-6">
-                    <UBadge v-for="cat in categories" :key="`cat-${cat}`" color="neutral" variant="soft">#{{ cat }}
-                    </UBadge>
-                    <UBadge v-for="tag in formattedTags" :key="`tag-${tag}`" color="neutral" variant="subtle">{{ tag }}
-                    </UBadge>
-                  </div>
-
-                </div>
-                <p class="text-sm sm:text-base text-gray-600 leading-relaxed mb-4 whitespace-pre-line">{{
-                  event.description || 'Aucune description disponible.' }}</p>
-              </div>
-            </div>
-          </UCard>
-
-
+        <!-- Bouton fixe mobile pour réserver -->
+        <div
+            class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-50 pb-6"
+        >
+            <button
+                @click="showTicketModal = true"
+                class="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-primary-700 transition-colors shadow-lg"
+            >
+                Réserver ma place
+            </button>
         </div>
-
-
-
-      </div>
-
-      <div class=" md:hidden p-2 border border-gray-200 rounded-2xl mt-4">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4 text-center flex items-center justify-center gap-2">
-                  <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                  </svg>
-                  Partager, organiser et créer
-                </h3>
-
-                <div class="flex flex-col w-full gap-4 justify-center items-center">
-                  <EventShare :event-title="event?.title || ''" :event-url="fullEventUrl"
-                    :event-description="event?.description || ''" />
-
-                  <AddToCalendar :event-title="event?.title || ''" :event-description="event?.description || ''"
-                    :event-date="event?.startsAt || ''" :event-location="event?.location || ''" :event-url="fullEventUrl" />
-
-                  <NuxtLink to="/organisateur"
-                    class="w-full bg-secondary-600 text-white px-2 py-1.5 rounded-lg hover:bg-secondary-700 transition-all duration-200 font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    Organiser un événement
-                  </NuxtLink>
-                </div>
-
-                <p class="text-sm text-gray-500 text-center mt-4">
-                  Partagez cet événement avec vos amis, ajoutez-le à votre calendrier ou créez votre propre événement
-                </p>
-              </div>
-
-      
-      <!-- Modal de réservation des tickets -->
-      <TicketReservationModal v-model="showTicketModal" :event="event" :tickets="tickets" />
-    </div>
-
-    <!-- Bouton fixe mobile pour réserver -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-50 pb-6">
-      <button @click="showTicketModal = true"
-        class="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-primary-700 transition-colors shadow-lg">
-        Réserver ma place
-      </button>
-    </div>
-  </main>
+    </main>
 </template>
 
 <script setup lang="ts">
-import type { Event } from '~/types/api'
-import { onMounted, ref, watch, computed, nextTick } from 'vue'
-import { useEvents } from '~/composables/useEvents'
-import { formatMoney } from '~/utils'
-import { useSEO } from '~/composables/useSEO'
-import LoadingOverlay from '~/components/LoadingOverlay.vue'
-import { CalendarFold, MapPin } from 'lucide-vue-next';
-
+import type { Event } from "~/types/api";
+import { onMounted, ref, watch, computed, nextTick } from "vue";
+import { useEvents } from "~/composables/useEvents";
+import { formatMoney } from "~/utils";
+import { useSEO } from "~/composables/useSEO";
+import { useClientSEO } from "~/composables/useClientSEO";
+import LoadingOverlay from "~/components/LoadingOverlay.vue";
+import { CalendarFold, MapPin } from "lucide-vue-next";
 
 // Récupération du slug depuis l'URL
-const route = useRoute()
-const slug = route.params.slug as string
+const route = useRoute();
+const slug = route.params.slug as string;
 
 // État local
-const event = ref<Event | null>(null)
-const loading = ref(true)
-const error = ref<string | null>(null)
-const showTicketModal = ref(false)
+const event = ref<Event | null>(null);
+const loading = ref(true);
+const error = ref<string | null>(null);
+const showTicketModal = ref(false);
 // Tickets
-const tickets = ref<any[]>([])
-const ticketsLoading = ref(false)
-const ticketsError = ref<string | null>(null)
+const tickets = ref<any[]>([]);
+const ticketsLoading = ref(false);
+const ticketsError = ref<string | null>(null);
 
 // Formulaires de réservation
-const reservationForms = ref<any[]>([])
-const reservationFormsLoading = ref(false)
-const reservationFormsError = ref<string | null>(null)
+const reservationForms = ref<any[]>([]);
+const reservationFormsLoading = ref(false);
+const reservationFormsError = ref<string | null>(null);
 
 // Utilisation du composable useTickets pour la gestion des quantités
 const {
-  selectedTickets,
-  incrementQuantity: incrementTicketQuantity,
-  decrementQuantity: decrementTicketQuantity,
-  getTicketQuantity,
-  calculateTicketTotal,
-  totalPrice,
-  totalsByCurrency,
-  hasMultipleCurrencies,
-  totalQuantity,
-  currency,
-  hasSelectedTickets,
-  setEvent
-} = useTickets()
+    selectedTickets,
+    incrementQuantity: incrementTicketQuantity,
+    decrementQuantity: decrementTicketQuantity,
+    getTicketQuantity,
+    calculateTicketTotal,
+    totalPrice,
+    totalsByCurrency,
+    hasMultipleCurrencies,
+    totalQuantity,
+    currency,
+    hasSelectedTickets,
+    setEvent,
+} = useTickets();
 
 // Utilisation du composable useEvents
-const { fetchEventBySlug, fetchEventTickets } = useEvents()
+const { fetchEventBySlug, fetchEventTickets } = useEvents();
 
 // Fonction pour récupérer les données de l'événement
 const fetchEventData = async () => {
-  try {
-    loading.value = true
-    error.value = null
+    try {
+        loading.value = true;
+        error.value = null;
 
-    const eventData = await fetchEventBySlug(slug)
-    event.value = eventData
+        const eventData = await fetchEventBySlug(slug);
+        event.value = eventData;
 
-    // Synchroniser avec le composable useTickets
-    setEvent(eventData)
+        // Synchroniser avec le composable useTickets
+        setEvent(eventData);
 
-    await fetchTickets()
-  } catch (err) {
-    // Log l'erreur technique en console pour le debug
-    console.error('Erreur lors du chargement de l\'événement:', err)
+        await fetchTickets();
+    } catch (err) {
+        // Log l'erreur technique en console pour le debug
+        console.error("Erreur lors du chargement de l'événement:", err);
 
-    // Afficher un message convivial à l'utilisateur
-    error.value = 'Événement introuvable'
-  } finally {
-    loading.value = false
-  }
-}
+        // Afficher un message convivial à l'utilisateur
+        error.value = "Événement introuvable";
+    } finally {
+        loading.value = false;
+    }
+};
 
 const fetchTickets = async () => {
-  try {
-    ticketsLoading.value = true
-    ticketsError.value = null
-    const res = await fetchEventTickets(slug, { per_page: 50, page: 1 })
-    tickets.value = Array.isArray(res.items) ? res.items : []
+    try {
+        ticketsLoading.value = true;
+        ticketsError.value = null;
+        const res = await fetchEventTickets(slug, { per_page: 50, page: 1 });
+        tickets.value = Array.isArray(res.items) ? res.items : [];
 
-    // Synchroniser avec le composable useTickets
-    if (event.value) {
-      const eventWithTickets = { ...event.value, tickets: tickets.value }
-      setEvent(eventWithTickets)
+        // Synchroniser avec le composable useTickets
+        if (event.value) {
+            const eventWithTickets = { ...event.value, tickets: tickets.value };
+            setEvent(eventWithTickets);
+        }
+    } catch (err) {
+        // Log l'erreur technique en console pour le debug
+        console.error("Erreur lors du chargement des billets:", err);
+
+        // Afficher un message convivial à l'utilisateur
+        ticketsError.value = "Impossible de charger les billets";
+    } finally {
+        ticketsLoading.value = false;
     }
-  } catch (err) {
-    // Log l'erreur technique en console pour le debug
-    console.error('Erreur lors du chargement des billets:', err)
-
-    // Afficher un message convivial à l'utilisateur
-    ticketsError.value = 'Impossible de charger les billets'
-  } finally {
-    ticketsLoading.value = false
-  }
-}
+};
 
 const fetchReservationForms = async () => {
-  try {
-    reservationFormsLoading.value = true
-    reservationFormsError.value = null
+    try {
+        reservationFormsLoading.value = true;
+        reservationFormsError.value = null;
 
-    // Utiliser l'API publique pour récupérer les formulaires de réservation
-    const response = await $fetch(`/api/public/events/${slug}/reservation-forms`, {
-      method: 'GET'
-    })
+        // Utiliser l'API publique pour récupérer les formulaires de réservation
+        const response = await $fetch(
+            `/api/public/events/${slug}/reservation-forms`,
+            {
+                method: "GET",
+            },
+        );
 
-    reservationForms.value = (response as any)?.data || []
-  } catch (err) {
-    console.error('Erreur lors du chargement des formulaires de réservation:', err)
-    reservationFormsError.value = 'Impossible de charger les formulaires de réservation'
-  } finally {
-    reservationFormsLoading.value = false
-  }
-}
+        reservationForms.value = (response as any)?.data || [];
+    } catch (err) {
+        console.error(
+            "Erreur lors du chargement des formulaires de réservation:",
+            err,
+        );
+        reservationFormsError.value =
+            "Impossible de charger les formulaires de réservation";
+    } finally {
+        reservationFormsLoading.value = false;
+    }
+};
 
 // Wrapper functions pour maintenir la compatibilité
-const getQuantity = (ticketId: number) => getTicketQuantity(ticketId)
-const incrementQuantity = (ticketId: number, max: number) => incrementTicketQuantity(ticketId)
-const decrementQuantity = (ticketId: number) => decrementTicketQuantity(ticketId)
+const getQuantity = (ticketId: number) => getTicketQuantity(ticketId);
+const incrementQuantity = (ticketId: number, max: number) =>
+    incrementTicketQuantity(ticketId);
+const decrementQuantity = (ticketId: number) =>
+    decrementTicketQuantity(ticketId);
 
 // Réserver billet (ouvre le modal)
 const onReserve = (ticket: any) => {
-  showTicketModal.value = true
-}
+    showTicketModal.value = true;
+};
 
 // Helpers de total/format
-const ticketTotal = (ticket: any) => (Number(ticket?.price) || 0) * getQuantity(ticket?.id)
+const ticketTotal = (ticket: any) =>
+    (Number(ticket?.price) || 0) * getQuantity(ticket?.id);
 
 // Formatage des montants avec gestion des devises différentes
 const formatTicketPrice = (amount: number, currency?: string) => {
-  const formattedAmount = formatMoney(amount)
-  const cur = (currency || 'USD').toUpperCase()
-  return `${formattedAmount} ${cur}`
-}
+    const formattedAmount = formatMoney(amount);
+    const cur = (currency || "USD").toUpperCase();
+    return `${formattedAmount} ${cur}`;
+};
 // Récupération des données au montage du composant
 onMounted(() => {
-  nextTick(() => {
-
-    if (slug) {
-      fetchEventData()
-      fetchReservationForms()
-    }
-  })
-})
+    nextTick(() => {
+        if (slug) {
+            fetchEventData();
+            fetchReservationForms();
+        }
+    });
+});
 
 // Surveillance des changements de route
-watch(() => route.params.slug, (newSlug) => {
-  if (newSlug && newSlug !== slug) {
-    fetchEventData()
-    fetchReservationForms()
-  }
-})
+watch(
+    () => route.params.slug,
+    (newSlug) => {
+        if (newSlug && newSlug !== slug) {
+            fetchEventData();
+            fetchReservationForms();
+        }
+    },
+);
 
 // Plus de classe spécifique par catégorie; on affiche simplement le texte
-const primaryCategory = computed(() => event.value?.settings?.categories?.[0] || 'Événement')
-const categories = computed(() => event.value?.settings?.categories || [])
+const primaryCategory = computed(
+    () => event.value?.settings?.categories?.[0] || "Événement",
+);
+const categories = computed(() => event.value?.settings?.categories || []);
 const formattedTags = computed(() => {
-  const raw = event.value?.settings?.tags || []
-  return raw.map(t => {
-    const compact = String(t).trim().replace(/\s+/g, '')
-    return compact.startsWith('#') ? compact : `#${compact}`
-  })
-})
+    const raw = event.value?.settings?.tags || [];
+    return raw.map((t) => {
+        const compact = String(t).trim().replace(/\s+/g, "");
+        return compact.startsWith("#") ? compact : `#${compact}`;
+    });
+});
 
 // Formatage de la date de l'événement
 const formatEventDate = (dateString: string) => {
-  try {
-    const date = new Date(dateString.replace(' ', 'T'))
+    try {
+        const date = new Date(dateString.replace(" ", "T"));
 
-    if (isNaN(date.getTime())) {
-      return 'Date à définir'
+        if (isNaN(date.getTime())) {
+            return "Date à définir";
+        }
+
+        return date.toLocaleDateString("fr-FR", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    } catch {
+        return "Date à définir";
     }
-
-    return date.toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  } catch {
-    return 'Date à définir'
-  }
-}
+};
 
 // Formatage de la date simple
 const formatDate = (dateString: string) => {
-  try {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
-  } catch {
-    return 'Date à définir'
-  }
-}
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("fr-FR", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
+    } catch {
+        return "Date à définir";
+    }
+};
 
-// SEO pour la page événement
-const { setEventSEO } = useSEO()
-watch(event, (newEvent) => {
-  if (newEvent) {
-    setEventSEO(newEvent)
-  }
-}, { immediate: true })
+// SEO pour la page événement - Mode hybride SPA/Static
+const { setEventSEOClient } = useClientSEO();
+const { addPerformanceMeta } = useClientSEO();
+
+// Ajouter les méta de performance
+addPerformanceMeta();
+
+// SEO immédiat avec fallback
+useHead({
+    title: "Chargement...",
+    meta: [
+        { name: "robots", content: "noindex" }, // Temporairement pendant le chargement
+    ],
+});
+
+// Mettre à jour le SEO dès que les données sont disponibles
+watch(
+    event,
+    (newEvent) => {
+        if (newEvent) {
+            // Utiliser le SEO client optimisé pour SPA
+            setEventSEOClient(newEvent);
+
+            // Permettre l'indexation une fois les données chargées
+            useHead({
+                meta: [{ name: "robots", content: "index, follow" }],
+            });
+        }
+    },
+    { immediate: true },
+);
 
 // Computed property pour l'URL complète de l'événement
 const fullEventUrl = computed(() => {
-  if (process.client) {
-    return `${window.location.origin}/evenements/${slug}`
-  }
-  // Fallback pour SSR
-  return `/evenements/${slug}`
-})
+    if (process.client) {
+        return `${window.location.origin}/evenements/${slug}`;
+    }
+    // Fallback pour SSR
+    return `/evenements/${slug}`;
+});
 </script>
 
 <style scoped>
 /* Optimisations pour les préférences de réduction de mouvement */
 @media (prefers-reduced-motion: reduce) {
-
-  .transition-colors,
-  .transition-transform {
-    transition: none;
-  }
+    .transition-colors,
+    .transition-transform {
+        transition: none;
+    }
 }
 </style>

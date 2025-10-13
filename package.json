@@ -3,12 +3,19 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
+    "build": "npm run generate-routes && npm run build:nuxt",
+    "build:nuxt": "nuxi build",
+    "generate": "npm run generate-routes && npm run generate:static",
+    "generate:static": "nuxi generate",
+    "generate-routes": "node scripts/generate-event-routes.js",
+    "dev": "nuxi dev",
+    "dev:routes": "npm run generate-routes && npm run dev",
+    "preview": "nuxi preview",
     "postinstall": "nuxt prepare",
-    "deploy": "./scripts/deploy.sh "
+    "deploy": "npm run generate-routes && npm run build && ./scripts/deploy.sh",
+    "deploy:fast": "npm run generate-routes && ./scripts/deploy.sh",
+    "seo:check": "npm run generate-routes && npm run build",
+    "routes:verify": "node scripts/generate-event-routes.js --dry-run"
   },
   "dependencies": {
     "@nuxt/image": "^1.11.0",

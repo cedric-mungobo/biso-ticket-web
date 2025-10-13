@@ -13,7 +13,7 @@ L'espace organisateur de Biso Ticket permet aux organisateurs d'événements de 
 |------|-------|---------------------|
 | Tableau de bord | `/organisateur` | ✅ Protégée |
 | Créer un événement | `/organisateur/create-event` | ✅ Protégée |
-| Mes événements | `/organisateur/my-events` | ✅ Protégée |
+| Mes événements | `/organisateur/` | ✅ Protégée |
 | Statistiques | `/organisateur/statistics` | ✅ Protégée |
 | Gestion d'événement | `/organisateur/events/[id]` | ✅ Protégée |
 
@@ -45,7 +45,7 @@ definePageMeta({
 - Validation des données côté client
 - Redirection automatique après création
 
-### 3. Gestion des événements (`/organisateur/my-events`)
+### 3. Gestion des événements (`/organisateur/`)
 - Liste de tous les événements créés
 - Statuts visuels (À venir, Aujourd'hui, Terminé)
 - Informations détaillées : tickets, participants, lieu
