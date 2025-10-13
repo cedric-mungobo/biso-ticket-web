@@ -1,5 +1,5 @@
 // Fichier généré automatiquement - ne pas modifier manuellement
-// Généré le: 2025-10-13T11:46:58.615Z
+// Généré le: 2025-10-13T12:00:56.423Z
 // Nombre de routes: 13
 
 export const staticRoutes = [
