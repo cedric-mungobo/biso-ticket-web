@@ -829,20 +829,69 @@
                 v-model="showDrinkForm"
                 :title="
                     currentDrink
-                        ? 'Modifier les boissons'
+                        ? 'Modifier la boisson'
                         : 'Ajouter des boissons'
                 "
                 class="modal-mobile-optimized"
             >
                 <div class="modal-content-mobile">
+                    <!-- Formulaire simple pour l'édition d'une seule boisson -->
+                    <div v-if="currentDrink" class="space-y-4">
+                        <div
+                            class="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                        >
+                            <h3 class="text-sm font-medium text-gray-900 mb-3">
+                                Modifier la boisson
+                            </h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Nom de la boisson -->
+                                <div>
+                                    <label
+                                        class="block text-sm font-medium text-gray-700 mb-1"
+                                    >
+                                        Nom de la boisson *
+                                    </label>
+                                    <UInput
+                                        v-model="currentDrink.name"
+                                        placeholder="Ex: Vin rouge, Jus d'orange..."
+                                    />
+                                </div>
+
+                                <!-- Catégorie de la boisson -->
+                                <div>
+                                    <label
+                                        class="block text-sm font-medium text-gray-700 mb-1"
+                                    >
+                                        Catégorie *
+                                    </label>
+                                    <select
+                                        v-model="currentDrink.category"
+                                        class="rounded-lg border border-gray-300 px-3 py-2 w-full text-sm focus:border-primary-500 focus:ring-primary-500"
+                                    >
+                                        <option value="alcohol">Alcool</option>
+                                        <option value="non_alcohol">
+                                            Non alcoolisé
+                                        </option>
+                                        <option value="soft_drink">
+                                            Boisson gazeuse
+                                        </option>
+                                        <option value="hot_drink">
+                                            Boisson chaude
+                                        </option>
+                                        <option value="other">Autre</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulaire complet pour l'ajout de boissons -->
                     <DrinkForm
+                        v-else
                         v-model="drinkForm"
                         :submitting="drinksSubmitting"
-                        @submit="
-                            currentDrink
-                                ? handleUpdateDrinks(drinkForm)
-                                : handleAddDrinks(drinkForm)
-                        "
+                        @submit="handleAddDrinks(drinkForm)"
                         @cancel="showDrinkForm = false"
                     />
                 </div>
@@ -855,7 +904,7 @@
                         :loading="drinksSubmitting"
                         @click="
                             currentDrink
-                                ? handleUpdateDrinks(drinkForm)
+                                ? handleUpdateDrink(currentDrink)
                                 : handleAddDrinks(drinkForm)
                         "
                     >
@@ -867,7 +916,7 @@
             <!-- Modal de suppression des boissons -->
             <Modal
                 v-model="showDrinkDelete"
-                title="Supprimer toutes les boissons"
+                title="Supprimer la boisson"
                 class="modal-mobile-optimized"
             >
                 <div class="modal-content-mobile">
@@ -895,9 +944,9 @@
                     <UButton
                         color="red"
                         :loading="drinksSubmitting"
-                        @click="handleDeleteDrinks"
+                        @click="handleDeleteDrink"
                     >
-                        Supprimer toutes les boissons
+                        Supprimer la boisson
                     </UButton>
                 </template>
             </Modal>
@@ -932,6 +981,20 @@ const {
     updateEventDrinks,
     deleteEventDrinks,
 } = useDrinks();
+
+// Fonction utilitaire pour extraire les messages d'erreur API
+const getApiErrorMessage = (err: any): string => {
+    const response = err?.response;
+    const data = response?._data || response?.data;
+    if (data?.message) return String(data.message);
+    if (data?.errors) {
+        if (Array.isArray(data.errors)) return data.errors.join(", ");
+        const values = Object.values(data.errors as Record<string, any>);
+        const flat = ([] as any[]).concat(...(values as any));
+        if (flat.length) return String(flat[0]);
+    }
+    return String(err?.message || "Erreur inattendue");
+};
 const toast = useToast();
 
 // Configuration des cartes d'actions
@@ -1844,13 +1907,20 @@ const downloadSampleCsv = () => {
 
 // Fonctions pour les boissons
 const openAddDrink = () => {
-    drinkForm.value = [];
+    // Initialiser avec les boissons existantes ou tableau vide
+    drinkForm.value = drinks.value ? [...drinks.value] : [];
+    currentDrink.value = null;
     showDrinkForm.value = true;
 };
 
 const openEditDrink = (drink: any) => {
-    currentDrink.value = drink;
-    drinkForm.value = [{ name: drink.name, category: drink.category }];
+    // Stocker les valeurs originales et une copie modifiable
+    currentDrink.value = {
+        name: drink.name,
+        category: drink.category,
+        originalName: drink.name,
+        originalCategory: drink.category,
+    };
     showDrinkForm.value = true;
 };
 
@@ -1879,6 +1949,45 @@ const handleAddDrinks = async (drinksData: any[]) => {
     }
 };
 
+const handleUpdateDrink = async (updatedDrink: any) => {
+    try {
+        drinksSubmitting.value = true;
+
+        // Créer la nouvelle liste de boissons en remplaçant celle modifiée
+        const currentDrinks = drinks.value || [];
+        const updatedDrinks = currentDrinks.map((drink: any) => {
+            // Trouver la boisson à remplacer (basé sur l'original avant modification)
+            if (
+                currentDrink.value &&
+                drink.name === currentDrink.value.originalName &&
+                drink.category === currentDrink.value.originalCategory
+            ) {
+                return {
+                    name: updatedDrink.name,
+                    category: updatedDrink.category,
+                };
+            }
+            return drink;
+        });
+
+        await updateEventDrinks(eventId, updatedDrinks);
+        showDrinkForm.value = false;
+        currentDrink.value = null;
+        await refreshDrinks();
+        useAppToast().showSuccess(
+            "Boisson mise à jour",
+            "La boisson a été modifiée avec succès.",
+        );
+    } catch (e: any) {
+        useAppToast().showError(
+            "Erreur lors de la mise à jour",
+            getApiErrorMessage(e),
+        );
+    } finally {
+        drinksSubmitting.value = false;
+    }
+};
+
 const handleUpdateDrinks = async (drinksData: any[]) => {
     try {
         drinksSubmitting.value = true;
@@ -1899,7 +2008,44 @@ const handleUpdateDrinks = async (drinksData: any[]) => {
     }
 };
 
-const handleDeleteDrinks = async () => {
+const handleDeleteDrink = async () => {
+    try {
+        drinksSubmitting.value = true;
+
+        // Créer la nouvelle liste de boissons en supprimant celle sélectionnée
+        const currentDrinks = drinks.value || [];
+        const updatedDrinks = currentDrinks.filter((drink: any) => {
+            // Filtrer la boisson à supprimer
+            if (
+                currentDrink.value &&
+                drink.name === currentDrink.value.name &&
+                drink.category === currentDrink.value.category
+            ) {
+                return false; // Supprimer cette boisson
+            }
+            return true; // Garder les autres
+        });
+
+        // Mettre à jour avec la liste sans la boisson supprimée
+        await updateEventDrinks(eventId, updatedDrinks);
+        showDrinkDelete.value = false;
+        currentDrink.value = null;
+        await refreshDrinks();
+        useAppToast().showSuccess(
+            "Boisson supprimée",
+            "La boisson a été supprimée avec succès.",
+        );
+    } catch (e: any) {
+        useAppToast().showError(
+            "Erreur lors de la suppression",
+            getApiErrorMessage(e),
+        );
+    } finally {
+        drinksSubmitting.value = false;
+    }
+};
+
+const handleDeleteAllDrinks = async () => {
     try {
         drinksSubmitting.value = true;
         await deleteEventDrinks(eventId);

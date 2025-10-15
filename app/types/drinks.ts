@@ -1,48 +1,56 @@
-export type DrinkCategory = 'alcohol' | 'soft_drink' | 'hot_drink' | 'water' | 'other'
+export type DrinkCategory =
+  | "alcohol"
+  | "non_alcohol"
+  | "soft_drink"
+  | "hot_drink"
+  | "other";
 
 export interface Drink {
-  id?: number
-  name: string
-  category: DrinkCategory
-  eventId?: number
-  createdAt?: string
-  updatedAt?: string
+  id?: number;
+  name: string;
+  category: DrinkCategory;
+  eventId?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface DrinkFormData {
-  name: string
-  category: DrinkCategory
+  name: string;
+  category: DrinkCategory;
 }
 
 export interface DrinksResponse {
-  data: Drink[]
+  data: Drink[];
 }
 
 // Configuration des catégories de boissons
-export const DRINK_CATEGORIES: Record<DrinkCategory, { label: string; color: string; icon: string }> = {
+export const DRINK_CATEGORIES: Record<
+  DrinkCategory,
+  { label: string; color: string; icon: string }
+> = {
   alcohol: {
-    label: 'Alcool',
-    color: 'red',
-    icon: 'i-heroicons-beaker'
+    label: "Alcool",
+    color: "red",
+    icon: "i-heroicons-beaker",
   },
   soft_drink: {
-    label: 'Boisson gazeuse',
-    color: 'blue',
-    icon: 'i-heroicons-cube'
+    label: "Boisson gazeuse",
+    color: "blue",
+    icon: "i-heroicons-cube",
   },
   hot_drink: {
-    label: 'Boisson chaude',
-    color: 'orange',
-    icon: 'i-heroicons-fire'
+    label: "Boisson chaude",
+    color: "orange",
+    icon: "i-heroicons-fire",
   },
-  water: {
-    label: 'Eau',
-    color: 'cyan',
-    icon: 'i-heroicons-droplet'
+  non_alcohol: {
+    label: "Non alcoolisé",
+    color: "cyan",
+    icon: "i-heroicons-droplet",
   },
   other: {
-    label: 'Autre',
-    color: 'gray',
-    icon: 'i-heroicons-question-mark-circle'
-  }
-}
+    label: "Autre",
+    color: "gray",
+    icon: "i-heroicons-question-mark-circle",
+  },
+};

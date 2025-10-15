@@ -13,7 +13,6 @@ export default defineNuxtConfig({
         '/connexion',
         '/contact',
         '/evenements',
-        '/evenements/evenement-de-test',
         '/evenements/expobeton-rdc-10-edition',
         '/evenements/journee-magique-a-aqua-splash',
         '/evenements/karaoke-jazz',
@@ -21,6 +20,7 @@ export default defineNuxtConfig({
         '/evenements/le-futur-de-leducation',
         '/evenements/magie-denfance',
         '/evenements/mariage-de-steven-et-safi',
+        '/evenements/tombola-comeback-titan',
         '/inscription'],
     },
     // Configuration pour production et hébergement mutualisé
@@ -74,9 +74,10 @@ export default defineNuxtConfig({
       },
     },
 
-    // Pages d'événements (hybride)
+    // Pages d'événements (SSR activé pour le partage social)
     "/evenements/**": {
-      ssr: false,
+      ssr: true,
+      prerender: true,
       // Permettre l'indexation par Google
       headers: {
         "Cache-Control": "public, max-age=3600",
