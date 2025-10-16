@@ -1,320 +1,397 @@
 <template>
-    <div class="min-h-screen  overflow-hidden">
-     
-      <!-- Hero Section avec parallaxe simple -->
-    <section class="header-image" style="height: 80dvh;">
-      <!-- Image de fond avec parallaxe simple -->
-      <div
-        class="absolute inset-0 bg-cover bg-center bg-no-repeat parallax-bg"
-        :style="{
-          backgroundImage: `url('${(event || invitation?.event)?.imageUrl || ''}')`,
-          transform: `translateY(${scrollY * 0.5}px)`
-        }"
-      />
-      
-      <!-- Overlay fort pour la visibilité -->
-      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-      
-      <!-- Contenu principal positionné en bas -->
-      <div class="absolute bottom-0 left-0 right-0 z-10 pb-16 px-4">
-        <div class="text-center text-white max-w-4xl mx-auto">
-          <div v-motion
-            :initial="{ opacity: 0, y: 20 }"
-            :visible="{ opacity: 1, y: 0 }"
-            :delay="200"
-            :duration="1000">
-            <!-- Titre principal -->
-            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold mb-4 leading-tight drop-shadow-2xl">
-              {{ (event || invitation?.event)?.title || 'Invitation' }}
-            </h1>
-            
-            <!-- Date et lieu -->
-            <div class="text-lg sm:text-xl font-light space-y-1">
-              <p class="font-bold drop-shadow-2xl text-white">
-                {{ (event || invitation?.event)?.startsAt ? formatDate((event || invitation?.event).startsAt) : 'Date à confirmer' }}
-              </p>
-              <p class="text-white/90 drop-shadow-2xl">{{ (event || invitation?.event)?.location || '' }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div class="min-h-screen overflow-hidden">
+        <!-- Hero Section avec parallaxe simple -->
+        <section class="header-image" style="height: 80dvh">
+            <!-- Image de fond avec parallaxe simple -->
+            <div
+                class="absolute inset-0 bg-cover bg-center bg-no-repeat parallax-bg"
+                :style="{
+                    backgroundImage: `url('${(event || invitation?.event)?.imageUrl || ''}')`,
+                    transform: `translateY(${scrollY * 0.5}px)`,
+                }"
+            />
 
-  
+            <!-- Overlay fort pour la visibilité -->
+            <div
+                class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"
+            />
 
-    <!-- Section d'invitation simplifiée -->
-    <section 
-      class="content-section"
-    >
-      <div class="invitation-content" v-motion
-        :initial="{ opacity: 0, x: 80 }"
-        :visible="{ opacity: 1, x: 0 }"
-        :delay="600"
-        :duration="1800">
-          <!-- Titre -->
-          <h2 class="text-5xl font-serif font-bold text-center mb-12 tracking-wide" :style="{ color: titleColor }">
-            Invitation
-          </h2>
-          
-          <!-- Texte de l'invitation -->
-          <div class="text-center">
-            <div class="leading-relaxed max-w-3xl mx-auto font-serif" :style="{ color: textColor }">
-              <p v-if="processedGuestMessage" class="whitespace-pre-line font-medium text-balance text-base" v-html="processedGuestMessage">
-              </p>
-                <template v-else>
-                <p class="text-2xl font-serif mb-6 italic" :style="{ color: accentColor }">
-                  C'est avec une immense joie que nous vous annonçons notre union sacrée devant Dieu.
-                </p>
-                <p class="text-lg mb-4 font-serif" :style="{ color: textColor }">
-                  Nous serions honorés de votre présence pour célébrer notre mariage religieux le 
-                  <strong class="font-semibold" :style="{ color: accentColor }">
-                    {{ (event || invitation?.event)?.startsAt ? formatDate((event || invitation?.event).startsAt) : 'Date à confirmer' }}
-                  </strong> 
-                  à 
-                  <strong class="font-semibold" :style="{ color: accentColor }">{{ (event || invitation?.event)?.location || '' }}</strong>.
-                </p>
-                </template>
+            <!-- Contenu principal positionné en bas -->
+            <div class="absolute bottom-0 left-0 right-0 z-10 pb-16 px-4">
+                <div class="text-center text-white max-w-4xl mx-auto">
+                    <div
+                        v-motion
+                        :initial="{ opacity: 0, y: 20 }"
+                        :visible="{ opacity: 1, y: 0 }"
+                        :delay="200"
+                        :duration="1000"
+                    >
+                        <!-- Titre principal -->
+                        <h1
+                            class="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold mb-4 leading-tight drop-shadow-2xl"
+                        >
+                            {{
+                                (event || invitation?.event)?.title ||
+                                "Invitation"
+                            }}
+                        </h1>
+
+                        <!-- Date et lieu -->
+                        <div class="text-lg sm:text-xl font-light space-y-1">
+                            <p class="font-bold drop-shadow-2xl text-white">
+                                {{
+                                    (event || invitation?.event)?.startsAt
+                                        ? formatDate(
+                                              (event || invitation?.event)
+                                                  .startsAt,
+                                          )
+                                        : "Date à confirmer"
+                                }}
+                            </p>
+                            <p class="text-white/90 drop-shadow-2xl">
+                                {{
+                                    (event || invitation?.event)?.location || ""
+                                }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-          
-          <!-- Bouton de téléchargement -->
-          <div class="text-center mt-12">
-            <UButton 
-              @click="handleDownloadInvitation" 
-              :loading="isGenerating"
-              :disabled="isGenerating"
-              color="primary" 
-              size="lg" 
-              class="px-8 py-3 font-serif"
+        </section>
+
+        <!-- Section d'invitation simplifiée -->
+        <section class="content-section">
+            <div
+                class="invitation-content"
+                v-motion
+                :initial="{ opacity: 0, x: 80 }"
+                :visible="{ opacity: 1, x: 0 }"
+                :delay="600"
+                :duration="1800"
             >
-              <Download class="w-5 h-5 mr-2" />
-              {{ isGenerating ? 'Génération en cours...' : 'Télécharger l\'invitation' }}
-            </UButton>
+                <!-- Titre -->
+                <h2
+                    class="text-5xl font-serif font-bold text-center mb-12 tracking-wide"
+                    :style="{ color: titleColor }"
+                >
+                    Invitation
+                </h2>
+
+                <!-- Texte de l'invitation -->
+                <div class="text-center">
+                    <div
+                        class="leading-relaxed max-w-3xl mx-auto font-serif"
+                        :style="{ color: textColor }"
+                    >
+                        <p
+                            v-if="processedGuestMessage"
+                            class="whitespace-pre-line font-medium text-balance text-base"
+                            v-html="processedGuestMessage"
+                        ></p>
+                        <template v-else>
+                            <p
+                                class="text-2xl font-serif mb-6 italic"
+                                :style="{ color: accentColor }"
+                            >
+                                C'est avec une immense joie que nous vous
+                                annonçons notre union sacrée devant Dieu.
+                            </p>
+                            <p
+                                class="text-lg mb-4 font-serif"
+                                :style="{ color: textColor }"
+                            >
+                                Nous serions honorés de votre présence pour
+                                célébrer notre mariage religieux le
+                                <strong
+                                    class="font-semibold"
+                                    :style="{ color: accentColor }"
+                                >
+                                    {{
+                                        (event || invitation?.event)?.startsAt
+                                            ? formatDate(
+                                                  (event || invitation?.event)
+                                                      .startsAt,
+                                              )
+                                            : "Date à confirmer"
+                                    }}
+                                </strong>
+                                à
+                                <strong
+                                    class="font-semibold"
+                                    :style="{ color: accentColor }"
+                                    >{{
+                                        (event || invitation?.event)
+                                            ?.location || ""
+                                    }}</strong
+                                >.
+                            </p>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Bouton de téléchargement -->
+                <div class="text-center mt-12">
+                    <UButton
+                        @click="handleDownloadInvitation"
+                        :loading="isGenerating"
+                        :disabled="isGenerating"
+                        color="primary"
+                        size="lg"
+                        class="px-8 py-3 font-serif"
+                    >
+                        <Download class="w-5 h-5 mr-2" />
+                        {{
+                            isGenerating
+                                ? "Génération en cours..."
+                                : "Télécharger l'invitation"
+                        }}
+                    </UButton>
+                </div>
             </div>
-      </div>
-    </section>
+        </section>
 
-    <!-- Section choix de boissons - Affichée uniquement si des boissons existent et invitation valide -->
-    <section 
-      v-if="drinksLoaded && availableDrinks.length > 0 && invitation?.id"
-      class="drink-selection-section relative py-16 px-4"
-      :style="{
-        backgroundImage: `url('${templateBackground}')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }"
-    >
-      <!-- Overlay pour la lisibilité -->
-      <div class="absolute inset-0 bg-white/90 backdrop-blur-sm"></div>
-      
-      <!-- Contenu -->
-      <div class="relative z-10">
-        <DrinkSelection
-          :invitation-id="invitation?.id"
-          :available-drinks="availableDrinks"
-          :title-color="titleColor"
-          :text-color="textColor"
+        <!-- Section choix de boissons - Affichée uniquement si des boissons existent et invitation valide -->
+        <section
+            v-if="drinksLoaded && availableDrinks.length > 0 && invitation?.id"
+            class="drink-selection-section relative py-16 px-4"
+            :style="{
+                backgroundImage: `url('${templateBackground}')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+            }"
+        >
+            <!-- Overlay pour la lisibilité -->
+            <div class="absolute inset-0 bg-white/90 backdrop-blur-sm"></div>
+
+            <!-- Contenu -->
+            <div class="relative z-10">
+                <DrinkSelection
+                    :invitation-id="invitation?.id"
+                    :available-drinks="availableDrinks"
+                    :title-color="titleColor"
+                    :text-color="textColor"
+                />
+            </div>
+        </section>
+
+        <!-- Section RSVP Status -->
+        <section class="py-8 px-4">
+            <div class="max-w-4xl mx-auto">
+                <RSVPStatus
+                    :invitation="invitation"
+                    :event-id="(event || invitation?.event)?.id"
+                />
+            </div>
+        </section>
+
+        <!-- Section livre d'or -->
+        <GuestBook
+            :token="invitation?.token"
+            :slug="(event || invitation?.event)?.slug"
+            :event-id="(event || invitation?.event)?.id"
         />
-      </div>
-    </section>
 
-    <!-- Section livre d'or -->
-    <GuestBook 
-      :token="invitation?.token"
-      :slug="(event || invitation?.event)?.slug"
-      :event-id="(event || invitation?.event)?.id"
-    />
-
-    <!-- Footer -->
-    <Footer />
-  </div>
+        <!-- Footer -->
+        <Footer />
+    </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { Download } from 'lucide-vue-next'
-import { useCanvasImage } from '~/composables/useCanvasImage'
-import { formatDate, calculateDynamicFontSize } from '~/utils'
-import { useInvitationVariables } from '~/composables/useInvitationVariables'
-import { useDrinks } from '~/composables/useDrinks'
-import DrinkSelection from '~/components/invitation/DrinkSelection.vue'
+import { ref, onMounted, onUnmounted, computed } from "vue";
+import { Download } from "lucide-vue-next";
+import { useCanvasImage } from "~/composables/useCanvasImage";
+import { formatDate, calculateDynamicFontSize } from "~/utils";
+import { useInvitationVariables } from "~/composables/useInvitationVariables";
+import { useDrinks } from "~/composables/useDrinks";
+import { useInvitations } from "~/composables/useInvitations";
+import DrinkSelection from "~/components/invitation/DrinkSelection.vue";
+import RSVPStatus from "~/components/invitation/RSVPStatus.vue";
 
-const props = defineProps<{ invitation: any; event?: any }>()
+const props = defineProps<{ invitation: any; event?: any }>();
 
-const scrollY = ref(0)
+const scrollY = ref(0);
 
 // Composable pour la génération d'image Canvas
-const { isGenerating, downloadInvitationImage } = useCanvasImage()
+const { isGenerating, downloadInvitationImage } = useCanvasImage();
 
 // Composable pour les boissons
-const { fetchEventDrinks } = useDrinks()
+const { fetchEventDrinks } = useDrinks();
+
+const toast = useToast();
 
 // Charger les boissons disponibles pour l'événement
-const availableDrinks = ref<any[]>([])
-const drinksLoaded = ref(false)
+const availableDrinks = ref<any[]>([]);
+const drinksLoaded = ref(false);
 
 const handleScroll = () => {
-  scrollY.value = window.scrollY
-}
+    scrollY.value = window.scrollY;
+};
 
 // Charger les boissons au montage du composant
 onMounted(async () => {
-  try {
-    const eventId = (props.event || props.invitation?.event)?.id
-    if (eventId) {
-      const drinks = await fetchEventDrinks(eventId)
-      availableDrinks.value = drinks
-      if (process.dev) console.log('🍷 Boissons chargées pour l\'événement (template défaut):', drinks.length, 'boissons disponibles')
-    } else {
-      if (process.dev) console.log('⚠️ Aucun événement trouvé pour charger les boissons (template défaut)')
+    try {
+        const eventId = (props.event || props.invitation?.event)?.id;
+        if (eventId) {
+            const drinks = await fetchEventDrinks(eventId);
+            availableDrinks.value = drinks;
+            if (process.dev)
+                console.log(
+                    "🍷 Boissons chargées pour l'événement (template défaut):",
+                    drinks.length,
+                    "boissons disponibles",
+                );
+        } else {
+            if (process.dev)
+                console.log(
+                    "⚠️ Aucun événement trouvé pour charger les boissons (template défaut)",
+                );
+        }
+    } catch (error) {
+        if (process.dev)
+            console.error(
+                "Erreur lors du chargement des boissons (template défaut):",
+                error,
+            );
+    } finally {
+        drinksLoaded.value = true;
     }
-  } catch (error) {
-    if (process.dev) console.error('Erreur lors du chargement des boissons (template défaut):', error)
-  } finally {
-    drinksLoaded.value = true
-  }
-})
+});
 
-const templateBackground = `/models/${(props.event || props.invitation?.event)?.settings?.defaultInvitationTemplate?.designKey || 'template_default'}.png`
+const templateBackground = `/models/${(props.event || props.invitation?.event)?.settings?.defaultInvitationTemplate?.designKey || "template_default"}.png`;
 
 // Variables dynamiques pour les couleurs et tailles
-const titleColor = '#1f2937'
-const textColor = '#374151'
-const accentColor = '#1f2937'
-const signatureColor = '#1f2937'
+const titleColor = "#1f2937";
+const textColor = "#374151";
+const accentColor = "#1f2937";
+const signatureColor = "#1f2937";
 
 // Calcul de la taille de police dynamique
-const guestMessage = computed(() => 
-  (props.event || props.invitation?.event)?.settings?.guestMessage || 
-  (props.event || props.invitation?.event)?.settings?.guest_message
-)
+const guestMessage = computed(
+    () =>
+        (props.event || props.invitation?.event)?.settings?.guestMessage ||
+        (props.event || props.invitation?.event)?.settings?.guest_message,
+);
 
 // Utiliser le composable pour traiter les variables dynamiques
 const { processMessage } = useInvitationVariables({
-  event: props.event,
-  invitation: props.invitation
-})
+    event: props.event,
+    invitation: props.invitation,
+});
 
 // Traitement des variables dynamiques dans le message
 const processedGuestMessage = computed(() => {
-  if (!guestMessage.value) return ''
-  return processMessage(guestMessage.value).text
-})
+    if (!guestMessage.value) return "";
+    return processMessage(guestMessage.value).text;
+});
 
 const messageFontSize = computed(() => {
-  const fontSize = calculateDynamicFontSize(processedGuestMessage.value || '')
-  console.log('📏 Taille de police calculée:', fontSize, 'pour le texte:', processedGuestMessage.value?.substring(0, 50) + '...')
-  return fontSize
-})
+    const fontSize = calculateDynamicFontSize(
+        processedGuestMessage.value || "",
+    );
+    console.log(
+        "📏 Taille de police calculée:",
+        fontSize,
+        "pour le texte:",
+        processedGuestMessage.value?.substring(0, 50) + "...",
+    );
+    return fontSize;
+});
 
 const handleDownloadInvitation = async () => {
-  try {
-    // Utiliser directement le message HTML - le canvas va le traiter
-    const cleanMessage = processedGuestMessage.value || ''
-    
-    console.log('📤 Message HTML envoyé au canvas (template_default):', cleanMessage)
-    
-    const invitationData = {
-      guestMessage: cleanMessage || undefined,
-      backgroundImage: templateBackground,
-      textStartY: 200,
-      textColor: textColor,
-      titleColor: titleColor,
-      accentColor: accentColor,
-      signatureColor: signatureColor,
-      messagePadding: 200,
-      textAlign: 'left' as const,
-      messageFontSize: messageFontSize.value
+    try {
+        // Utiliser directement le message HTML - le canvas va le traiter
+        const cleanMessage = processedGuestMessage.value || "";
+
+        console.log(
+            "📤 Message HTML envoyé au canvas (template_default):",
+            cleanMessage,
+        );
+
+        const invitationData = {
+            guestMessage: cleanMessage || undefined,
+            backgroundImage: templateBackground,
+            textStartY: 200,
+            textColor: textColor,
+            titleColor: titleColor,
+            accentColor: accentColor,
+            signatureColor: signatureColor,
+            messagePadding: 200,
+            textAlign: "left" as const,
+            messageFontSize: messageFontSize.value,
+        };
+
+        await downloadInvitationImage(invitationData);
+    } catch (error) {
+        console.error("Erreur lors du téléchargement:", error);
     }
-    
- 
-    
-    await downloadInvitationImage(invitationData)
-  } catch (error) {
-    console.error('Erreur lors du téléchargement:', error)
-  }
-}
+};
 
-
-    onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-})
+onMounted(() => {
+    window.addEventListener("scroll", handleScroll);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-})
-
-
-
-
-
-
-
+    window.removeEventListener("scroll", handleScroll);
+});
 </script>
 
-
 <style scoped>
-
 /* Optimisation simple pour le parallaxe */
 .parallax-bg {
-  will-change: transform;
-  transform: translateZ(0);
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 /* Section choix de boissons */
 .drink-selection-section {
-  position: relative;
-  z-index: 2;
+    position: relative;
+    z-index: 2;
 }
 
 /* Responsive pour mobile */
 @media (max-width: 768px) {
-  .drink-selection-section {
-    padding: 2rem 1rem;
-  }
+    .drink-selection-section {
+        padding: 2rem 1rem;
+    }
 }
-
 
 /* Section de l'image d'en-tête (couple) */
 .header-image {
-  background-size: cover;
-  background-position: center 30%;
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  color: #fff;
-  padding-bottom: 20px;
+    background-size: cover;
+    background-position: center 30%;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    color: #fff;
+    padding-bottom: 20px;
 }
 
 /* Section de contenu blanche et la vague */
 .content-section {
-  background-color: #fff;
-  padding: 20px 25px;
-  position: relative;
-  z-index: 3;
-  padding-top: 30px;
-  margin-top: -30px;
+    background-color: #fff;
+    padding: 20px 25px;
+    position: relative;
+    z-index: 3;
+    padding-top: 30px;
+    margin-top: -30px;
 }
 
 /* La VAGUE/PAPIER DÉCHIRÉ */
 .content-section::before {
-  content: '';
-  position: absolute;
-  top: -50px;
-  left: 0;
-  right: 0;
-  height: 70px;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1000 100' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'%3E%3Cpath d='M0,40 C200,80 400,0 600,40 S800,80 1000,40 V100 H0 Z' fill='%23ffffff'%3E%3C/path%3E%3C/svg%3E");
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  z-index: 2;
-  pointer-events: none;
+    content: "";
+    position: absolute;
+    top: -50px;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1000 100' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'%3E%3Cpath d='M0,40 C200,80 400,0 600,40 S800,80 1000,40 V100 H0 Z' fill='%23ffffff'%3E%3C/path%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    z-index: 2;
+    pointer-events: none;
 }
-
-
-
 </style>

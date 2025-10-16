@@ -1,5 +1,5 @@
 // Fichier généré automatiquement - ne pas modifier manuellement
-// Généré le: 2025-10-13T12:00:56.423Z
+// Généré le: 2025-10-15T10:41:54.756Z
 // Nombre de routes: 13
 
 export const staticRoutes = [
@@ -7,7 +7,6 @@ export const staticRoutes = [
   "/connexion",
   "/contact",
   "/evenements",
-  "/evenements/evenement-de-test",
   "/evenements/expobeton-rdc-10-edition",
   "/evenements/journee-magique-a-aqua-splash",
   "/evenements/karaoke-jazz",
@@ -15,6 +14,7 @@ export const staticRoutes = [
   "/evenements/le-futur-de-leducation",
   "/evenements/magie-denfance",
   "/evenements/mariage-de-steven-et-safi",
+  "/evenements/tombola-comeback-titan",
   "/inscription"
 ]
 

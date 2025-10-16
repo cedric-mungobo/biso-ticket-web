@@ -46,7 +46,7 @@ export const DRINK_CATEGORIES: Record<
   non_alcohol: {
     label: "Non alcoolisé",
     color: "cyan",
-    icon: "i-heroicons-droplet",
+    icon: "i-heroicons-beaker",
   },
   other: {
     label: "Autre",

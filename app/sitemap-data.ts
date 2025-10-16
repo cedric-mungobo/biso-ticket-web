@@ -5,19 +5,19 @@ export const sitemapData = {
       "url": "/",
       "changefreq": "daily",
       "priority": "1.0",
-      "lastmod": "2025-10-13T12:00:56.425Z"
+      "lastmod": "2025-10-15T10:41:54.757Z"
     },
     {
       "url": "/evenements",
       "changefreq": "daily",
       "priority": "0.9",
-      "lastmod": "2025-10-13T12:00:56.425Z"
+      "lastmod": "2025-10-15T10:41:54.757Z"
     },
     {
       "url": "/contact",
       "changefreq": "monthly",
       "priority": "0.5",
-      "lastmod": "2025-10-13T12:00:56.425Z"
+      "lastmod": "2025-10-15T10:41:54.757Z"
     }
   ],
   "eventPages": [
@@ -49,6 +49,15 @@ export const sitemapData = {
       "image": "https://api.bisoticket.com/api/images//events/5o6vRHuWHOkGnjQqwNoUBIA3emYz6SF5vDER8qiG.jpg"
     },
     {
+      "url": "/evenements/tombola-comeback-titan",
+      "changefreq": "weekly",
+      "priority": "0.8",
+      "lastmod": "2025-10-13T13:50:40.000000Z",
+      "title": "TOMBOLA COMEBACK TITAN",
+      "description": "Participez à la Tombola Comeback Titan et tentez de remporter :\r\n🏍 Une moto TVS toute neuve\r\n📱 Un iPhone XR\r\n📲 Un Infinix Smart 10\r\n📱 Un Infinix Smart 8\r\n🎁",
+      "image": "https://api.bisoticket.com/api/images//events/FjqQhVoqYX7KLbgfjM79gahktqTKFETlYNyMBBYh.png"
+    },
+    {
       "url": "/evenements/lancement-officiel-de-biso-ticket",
       "changefreq": "weekly",
       "priority": "0.8",
@@ -56,15 +65,6 @@ export const sitemapData = {
       "title": "Lancement officiel de Biso Ticket !",
       "description": "texte description",
       "image": "https://api.bisoticket.com/api/images//events/Iz8ysKcQ9T1VGeCQtWJMSwUZ0tqnLaoeZUQ9h5iM.jpg"
-    },
-    {
-      "url": "/evenements/evenement-de-test",
-      "changefreq": "weekly",
-      "priority": "0.8",
-      "lastmod": "2025-10-07T10:23:01.000000Z",
-      "title": "Événement de test",
-      "description": "",
-      "image": "https://placehold.co/1200x630?text=%C3%89v%C3%A9nement%20de%20test"
     },
     {
       "url": "/evenements/expobeton-rdc-10-edition",

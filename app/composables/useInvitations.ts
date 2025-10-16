@@ -1,65 +1,89 @@
-import type { Invitation, InvitationTemplate, PaginatedResponse } from '~/types/api'
+import type {
+  Invitation,
+  InvitationTemplate,
+  PaginatedResponse,
+} from "~/types/api";
 
 // Repository sans state/loading/error
 export const useInvitations = () => {
-  const { $myFetch } = useNuxtApp()
+  const { $myFetch } = useNuxtApp();
 
-  const unwrapList = (res: any) => (res?.data?.items) || res?.items || res?.data || []
-  const unwrapMeta = (res: any) => (res?.data?.meta) || res?.meta || null
-  const unwrap = (res: any) => res?.data ?? res
+  const unwrapList = (res: any) =>
+    res?.data?.items || res?.items || res?.data || [];
+  const unwrapMeta = (res: any) => res?.data?.meta || res?.meta || null;
+  const unwrap = (res: any) => res?.data ?? res;
 
-  const fetchEventInvitations = async (eventId: number, params: {
-    per_page?: number
-    page?: number
-    status?: string
-  } = {}): Promise<{ items: Invitation[]; meta: any }> => {
+  const fetchEventInvitations = async (
+    eventId: number,
+    params: {
+      per_page?: number;
+      page?: number;
+      status?: string;
+    } = {},
+  ): Promise<{ items: Invitation[]; meta: any }> => {
     const res = await $myFetch<any>(`/events/${eventId}/invitations`, {
-      method: 'GET',
-      params
-    })
-    return { items: unwrapList(res) as Invitation[], meta: unwrapMeta(res) }
-  }
+      method: "GET",
+      params,
+    });
+    return { items: unwrapList(res) as Invitation[], meta: unwrapMeta(res) };
+  };
 
-  const createInvitation = async (eventId: number, invitationData: {
-    guestName: string
-    guestEmail?: string
-    guestPhone?: string
-    guestTableName?: string
-    invitationTemplateId?: number
-    metadata?: Record<string, any>
-  }): Promise<Invitation> => {
+  const createInvitation = async (
+    eventId: number,
+    invitationData: {
+      guestName: string;
+      guestEmail?: string;
+      guestPhone?: string;
+      guestTableName?: string;
+      invitationTemplateId?: number;
+      metadata?: Record<string, any>;
+    },
+  ): Promise<Invitation> => {
     // Mapper en snake_case pour l'API
-    const body: Record<string, any> = {}
-    body.guest_name = invitationData.guestName
-    if (invitationData.guestEmail !== undefined) body.guest_email = invitationData.guestEmail
-    if (invitationData.guestPhone !== undefined) body.guest_phone = invitationData.guestPhone
-    if (invitationData.guestTableName !== undefined) body.guest_table_name = invitationData.guestTableName
-    if (invitationData.invitationTemplateId !== undefined) body.invitation_template_id = invitationData.invitationTemplateId
-    if (invitationData.metadata !== undefined) body.metadata = invitationData.metadata
+    const body: Record<string, any> = {};
+    body.guest_name = invitationData.guestName;
+    if (invitationData.guestEmail !== undefined)
+      body.guest_email = invitationData.guestEmail;
+    if (invitationData.guestPhone !== undefined)
+      body.guest_phone = invitationData.guestPhone;
+    if (invitationData.guestTableName !== undefined)
+      body.guest_table_name = invitationData.guestTableName;
+    if (invitationData.invitationTemplateId !== undefined)
+      body.invitation_template_id = invitationData.invitationTemplateId;
+    if (invitationData.metadata !== undefined)
+      body.metadata = invitationData.metadata;
 
     if (process.dev) {
       // Log du payload simple (objet)
       // eslint-disable-next-line no-console
-      console.log('[Invitations] Payload simple → POST /events/' + eventId + '/invitations', body)
+      console.log(
+        "[Invitations] Payload simple → POST /events/" +
+          eventId +
+          "/invitations",
+        body,
+      );
     }
 
     // Création simple (objet)
     const response = await $myFetch<any>(`/events/${eventId}/invitations`, {
-      method: 'POST',
-      body
-    })
-    const unwrapped = unwrap(response)
-    return unwrapped as Invitation
-  }
+      method: "POST",
+      body,
+    });
+    const unwrapped = unwrap(response);
+    return unwrapped as Invitation;
+  };
 
-  const createInvitationsBatch = async (eventId: number, invitations: Array<{
-    guestName: string
-    guestEmail?: string
-    guestPhone?: string
-    guestTableName?: string
-    invitationTemplateId?: number
-    metadata?: Record<string, any>
-  }>): Promise<Invitation[]> => {
+  const createInvitationsBatch = async (
+    eventId: number,
+    invitations: Array<{
+      guestName: string;
+      guestEmail?: string;
+      guestPhone?: string;
+      guestTableName?: string;
+      invitationTemplateId?: number;
+      metadata?: Record<string, any>;
+    }>,
+  ): Promise<Invitation[]> => {
     const payload = {
       invitations: invitations.map((i) => ({
         guest_name: i.guestName,
@@ -67,81 +91,133 @@ export const useInvitations = () => {
         guest_phone: i.guestPhone,
         guest_table_name: i.guestTableName,
         invitation_template_id: i.invitationTemplateId,
-        metadata: i.metadata
-      }))
-    }
+        metadata: i.metadata,
+      })),
+    };
     if (process.dev) {
       // Log du payload batch
       // eslint-disable-next-line no-console
-      console.log('[Invitations] Payload batch → POST /events/' + eventId + '/invitations', {
-        count: payload.invitations.length,
-        preview: payload.invitations[0]
-      })
+      console.log(
+        "[Invitations] Payload batch → POST /events/" +
+          eventId +
+          "/invitations",
+        {
+          count: payload.invitations.length,
+          preview: payload.invitations[0],
+        },
+      );
     }
     const response = await $myFetch<any>(`/events/${eventId}/invitations`, {
-      method: 'POST',
-      body: payload
-    })
-    return unwrapList(response) as Invitation[]
-  }
+      method: "POST",
+      body: payload,
+    });
+    return unwrapList(response) as Invitation[];
+  };
 
   const updateInvitation = async (
     eventId: number,
     invitationId: number,
     invitationData: Partial<{
-      guestName: string
-      guestEmail: string
-      guestPhone: string
-      guestTableName: string
-      status: 'pending' | 'sent' | 'confirmed' | 'cancelled'
-      metadata: Record<string, any>
-    }>
+      guestName: string;
+      guestEmail: string;
+      guestPhone: string;
+      guestTableName: string;
+      status: "pending" | "sent" | "confirmed" | "cancelled";
+      metadata: Record<string, any>;
+    }>,
   ): Promise<Invitation> => {
-    const body: Record<string, any> = {}
-    if (invitationData.guestName !== undefined) body.guest_name = invitationData.guestName
-    if (invitationData.guestEmail !== undefined) body.guest_email = invitationData.guestEmail
-    if (invitationData.guestPhone !== undefined) body.guest_phone = invitationData.guestPhone
-    if (invitationData.guestTableName !== undefined) body.guest_table_name = invitationData.guestTableName
-    if (invitationData.status !== undefined) body.status = invitationData.status
-    if (invitationData.metadata !== undefined) body.metadata = invitationData.metadata
+    const body: Record<string, any> = {};
+    if (invitationData.guestName !== undefined)
+      body.guest_name = invitationData.guestName;
+    if (invitationData.guestEmail !== undefined)
+      body.guest_email = invitationData.guestEmail;
+    if (invitationData.guestPhone !== undefined)
+      body.guest_phone = invitationData.guestPhone;
+    if (invitationData.guestTableName !== undefined)
+      body.guest_table_name = invitationData.guestTableName;
+    if (invitationData.status !== undefined)
+      body.status = invitationData.status;
+    if (invitationData.metadata !== undefined)
+      body.metadata = invitationData.metadata;
 
     const response = await $myFetch<any>(`/invitations/${invitationId}`, {
-      method: 'PUT',
-      body
-    })
-    const unwrapped = unwrap(response)
-    return unwrapped as Invitation
-  }
+      method: "PUT",
+      body,
+    });
+    const unwrapped = unwrap(response);
+    return unwrapped as Invitation;
+  };
 
-  const deleteInvitation = async (eventId: number, invitationId: number): Promise<boolean> => {
-    await $myFetch(`/invitations/${invitationId}`, { method: 'DELETE' })
-    return true
-  }
+  const deleteInvitation = async (
+    eventId: number,
+    invitationId: number,
+  ): Promise<boolean> => {
+    await $myFetch(`/invitations/${invitationId}`, { method: "DELETE" });
+    return true;
+  };
 
-  const fetchInvitationTemplates = async (params: {
-    per_page?: number
-    page?: number
-  } = {}): Promise<{ items: InvitationTemplate[]; meta: any }> => {
-    const res = await $myFetch<any>('/invitation-templates', {
-      method: 'GET',
-      params
-    })
-    return { items: unwrapList(res) as InvitationTemplate[], meta: unwrapMeta(res) }
-  }
+  const fetchInvitationTemplates = async (
+    params: {
+      per_page?: number;
+      page?: number;
+    } = {},
+  ): Promise<{ items: InvitationTemplate[]; meta: any }> => {
+    const res = await $myFetch<any>("/invitation-templates", {
+      method: "GET",
+      params,
+    });
+    return {
+      items: unwrapList(res) as InvitationTemplate[],
+      meta: unwrapMeta(res),
+    };
+  };
 
-  const fetchInvitationTemplate = async (templateId: number): Promise<InvitationTemplate> => {
-    const response = await $myFetch<{ template: InvitationTemplate }>(`/invitation-templates/${templateId}`, {
-      method: 'GET'
-    })
-    return response.template
-  }
+  const fetchInvitationTemplate = async (
+    templateId: number,
+  ): Promise<InvitationTemplate> => {
+    const response = await $myFetch<{ template: InvitationTemplate }>(
+      `/invitation-templates/${templateId}`,
+      {
+        method: "GET",
+      },
+    );
+    return response.template;
+  };
 
-  const shareInvitation = async (eventId: number, invitationId: number): Promise<Invitation> => {
-    const response = await $myFetch<any>(`/events/${eventId}/invitations/${invitationId}/share`, {
-      method: 'POST'
-    })
-    return unwrap(response) as Invitation
-  }
+  const confirmInvitation = async (token: string): Promise<Invitation> => {
+    const response = await $myFetch<any>(
+      `/public/invitations/${token}/confirm`,
+      {
+        method: "POST",
+      },
+    );
+    const unwrapped = unwrap(response);
+    return unwrapped as Invitation;
+  };
+
+  const cancelInvitation = async (token: string): Promise<Invitation> => {
+    const response = await $myFetch<any>(
+      `/public/invitations/${token}/cancel`,
+      {
+        method: "POST",
+      },
+    );
+    const unwrapped = unwrap(response);
+    return unwrapped as Invitation;
+  };
+
+  const shareInvitation = async (
+    eventId: number,
+    invitationId: number,
+  ): Promise<Invitation> => {
+    const response = await $myFetch<any>(
+      `/events/${eventId}/invitations/${invitationId}/share`,
+      {
+        method: "POST",
+      },
+    );
+    return unwrap(response) as Invitation;
+  };
 
   return {
     fetchEventInvitations,
@@ -151,6 +227,8 @@ export const useInvitations = () => {
     deleteInvitation,
     fetchInvitationTemplates,
     fetchInvitationTemplate,
-    shareInvitation
-  }
-}
+    confirmInvitation,
+    cancelInvitation,
+    shareInvitation,
+  };
+};

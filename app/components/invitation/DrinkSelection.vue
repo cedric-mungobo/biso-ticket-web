@@ -1,258 +1,454 @@
 <template>
-  <div class="drink-selection-container">
-    <!-- Titre de la section -->
-    <div class="text-center mb-8">
-      <h3 class="text-2xl font-serif font-bold mb-2" :style="{ color: titleColor }">
-        Vos préférences de boissons
-      </h3>
-      <p class="text-sm opacity-80" :style="{ color: textColor }">
-        Sélectionnez vos boissons préférées pour nous aider à mieux vous accueillir
-      </p>
-    </div>
-
-    <!-- Liste des boissons disponibles -->
-    <div v-if="availableDrinks.length > 0" class="space-y-4">
-      <div
-        v-for="drink in availableDrinks"
-        :key="drink.name"
-        class="drink-item"
-        :class="{ 'selected': isSelected(drink.name) }"
-        @click="toggleDrink(drink.name)"
-      >
-        <div class="flex items-center justify-between p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer"
-             :class="isSelected(drink.name) ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'">
-          
-          <!-- Icône et nom de la boisson -->
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center"
-                 :class="isSelected(drink.name) ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600'">
-              <UIcon :name="getDrinkIcon(drink.category)" class="w-5 h-5" />
+    <div class="max-w-md mx-auto px-4 py-6 sm:px-6">
+        <!-- Titre de la section -->
+        <div class="text-center mb-4">
+            <h3 class="text-lg font-serif mb-2" :style="{ color: titleColor }">
+                Boissons
+            </h3>
+            <div class="space-y-1">
+                <p class="text-xs opacity-70" :style="{ color: textColor }">
+                    Choisissez vos boissons (max 5)
+                </p>
             </div>
-            
-            <div>
-              <p class="font-medium" :style="{ color: isSelected(drink.name) ? titleColor : textColor }">
-                {{ drink.name }}
-              </p>
-              <p class="text-xs opacity-70" :style="{ color: textColor }">
-                {{ getDrinkCategoryLabel(drink.category) }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Indicateur de sélection -->
-          <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-               :class="isSelected(drink.name) ? 'border-primary-500 bg-primary-500' : 'border-gray-300'">
-            <UIcon v-if="isSelected(drink.name)" name="i-heroicons-check" class="w-4 h-4 text-white" />
-          </div>
         </div>
-      </div>
 
-      <!-- Message d'information -->
-      <div class="text-center mt-6">
-        <p class="text-sm opacity-70" :style="{ color: textColor }">
-          {{ selectedDrinks.length }} boisson{{ selectedDrinks.length > 1 ? 's' : '' }} sélectionnée{{ selectedDrinks.length > 1 ? 's' : '' }}
-          <span v-if="selectedDrinks.length > 0"> • Maximum 5</span>
-        </p>
-      </div>
+        <!-- Grille de checkboxes -->
+        <div v-if="availableDrinks.length > 0" class="space-y-4">
+            <!-- Grille 2 colonnes -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                <label
+                    v-for="drink in availableDrinks"
+                    :key="drink.name"
+                    class="flex items-center gap-2 p-2 sm:p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-sm hover:-translate-y-px"
+                    :class="[
+                        isSelected(drink.name)
+                            ? 'shadow-sm -translate-y-px border-opacity-100'
+                            : 'hover:shadow-xs border-opacity-30',
+                    ]"
+                    :style="{
+                        borderColor: titleColor,
+                        backgroundColor: isSelected(drink.name)
+                            ? titleColor + '10'
+                            : 'transparent',
+                    }"
+                >
+                    <input
+                        :checked="isSelected(drink.name)"
+                        @change="toggleDrink(drink.name)"
+                        type="checkbox"
+                        class="rounded border"
+                        :style="{ borderColor: titleColor, color: titleColor }"
+                        :disabled="
+                            !isSelected(drink.name) &&
+                            selectedDrinks.length >= 5
+                        "
+                    />
+                    <div class="flex-1">
+                        <p
+                            class="text-sm font-medium leading-tight"
+                            :style="{
+                                color: isSelected(drink.name)
+                                    ? titleColor
+                                    : textColor,
+                            }"
+                        >
+                            {{ drink.name }}
+                        </p>
+                        <p
+                            class="text-xs opacity-60 leading-tight mt-0.5"
+                            :style="{ color: textColor }"
+                        >
+                            {{ getDrinkCategoryLabel(drink.category) }}
+                        </p>
+                    </div>
+                </label>
+            </div>
 
-      <!-- Boutons d'action -->
-      <div class="flex justify-center gap-4 mt-8">
-        <UButton
-          v-if="hasChanges"
-          @click="resetSelection"
-          variant="outline"
-          size="md"
-          class="px-6"
-        >
-          Annuler
-        </UButton>
-        
-        <UButton
-          @click="saveChoices"
-          :loading="saving"
-          :disabled="selectedDrinks.length === 0"
-          color="primary"
-          size="md"
-          class="px-8"
-        >
-          <UIcon name="i-heroicons-check" class="w-4 h-4 mr-2" />
-          {{ saving ? 'Sauvegarde...' : 'Confirmer mes choix' }}
-        </UButton>
-      </div>
+            <!-- Régime alimentaire simplifié -->
+            <p class="text-xs leading-relaxed opacity-60">
+                Cochez si vous avez un régime sans sel
+            </p>
+            <div
+                class="mt-6 p-3 border-l-2"
+                :style="{ borderLeftColor: titleColor + '30' }"
+            >
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                        v-model="hasSaltFreeDiet"
+                        type="checkbox"
+                        class="rounded border"
+                        :style="{ borderColor: titleColor, color: titleColor }"
+                    />
+                    <span
+                        class="text-sm font-medium"
+                        :style="{ color: textColor }"
+                    >
+                        Régime sans sel
+                    </span>
+                </label>
+            </div>
+
+            <!-- Message d'information -->
+            <div class="text-center mt-4">
+                <p class="text-xs opacity-60" :style="{ color: textColor }">
+                    {{ selectedDrinks.length }} boisson{{
+                        selectedDrinks.length > 1 ? "s" : ""
+                    }}
+                    sélectionnée{{ selectedDrinks.length > 1 ? "s" : "" }}
+                </p>
+            </div>
+
+            <!-- Boutons d'action simplifiés -->
+            <div class="flex gap-2 mt-6">
+                <UButton
+                    v-if="hasChanges"
+                    @click="resetSelection"
+                    variant="outline"
+                    size="sm"
+                    class="flex-1"
+                >
+                    Annuler
+                </UButton>
+
+                <UButton
+                    @click="saveChoices"
+                    :loading="saving"
+                    :disabled="selectedDrinks.length === 0"
+                    color="primary"
+                    size="sm"
+                    class="flex-1"
+                >
+                    {{ saving ? "Sauvegarde..." : "Confirmer mon choix" }}
+                </UButton>
+            </div>
+        </div>
+
+        <!-- Message si aucune boisson disponible -->
+        <div v-else class="text-center py-8">
+            <p class="text-sm opacity-60" :style="{ color: textColor }">
+                Aucune boisson disponible
+            </p>
+        </div>
     </div>
-
-    <!-- Message si aucune boisson disponible -->
-    <div v-else class="text-center py-12">
-      <UIcon name="i-heroicons-beaker" class="w-16 h-16 mx-auto mb-4 opacity-50" :style="{ color: textColor }" />
-      <p class="text-lg font-medium mb-2" :style="{ color: textColor }">
-        Aucune boisson configurée
-      </p>
-      <p class="text-sm opacity-70" :style="{ color: textColor }">
-        Les boissons seront bientôt disponibles
-      </p>
-    </div>
-
-    <!-- Message de succès -->
-    <div v-if="showSuccess" class="fixed top-4 right-4 z-50">
-      <UAlert
-        color="success"
-        variant="soft"
-        title="Choix sauvegardés"
-        description="Vos préférences de boissons ont été enregistrées"
-        @close="showSuccess = false"
-      />
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
-import type { Drink } from '~/types/drinks'
-import { DRINK_CATEGORIES } from '~/types/drinks'
+import type { Drink } from "~/types/drinks";
+import { DRINK_CATEGORIES } from "~/types/drinks";
 
 interface Props {
-  invitationId: number
-  availableDrinks: Drink[]
-  titleColor?: string
-  textColor?: string
+    invitationId: number;
+    availableDrinks: Drink[];
+    titleColor?: string;
+    textColor?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  titleColor: '#794c44',
-  textColor: '#794c44'
-})
+    titleColor: "#794c44",
+    textColor: "#794c44",
+});
 
-const { fetchInvitationDrinkChoices, saveInvitationDrinkChoices, validateDrinkChoices } = useInvitationDrinks()
-const toast = useToast()
+const { invitationId, availableDrinks, titleColor, textColor } = toRefs(props);
+
+const {
+    fetchInvitationDrinkChoices,
+    saveInvitationDrinkChoices,
+    validateDrinkChoices,
+} = useInvitationDrinks();
 
 // État local
-const selectedDrinks = ref<string[]>([])
-const originalSelection = ref<string[]>([])
-const saving = ref(false)
-const showSuccess = ref(false)
+const selectedDrinks = ref<string[]>([]);
+const originalSelection = ref<string[]>([]);
+const hasSaltFreeDiet = ref(false);
+const originalSaltFreeDiet = ref(false);
+const saving = ref(false);
 
 // Charger les choix existants
 onMounted(async () => {
-  try {
-    const choices = await fetchInvitationDrinkChoices(props.invitationId)
-    selectedDrinks.value = choices.map(c => c.name)
-    originalSelection.value = [...selectedDrinks.value]
-  } catch (error) {
-    if (process.dev) console.error('Erreur lors du chargement des choix:', error)
-  }
-})
+    try {
+        const choices = await fetchInvitationDrinkChoices(invitationId.value);
+        selectedDrinks.value = choices.map((c) => c.name);
+        originalSelection.value = [...selectedDrinks.value];
+        hasSaltFreeDiet.value = false;
+        originalSaltFreeDiet.value = false;
+    } catch (error) {
+        // Valeurs par défaut en cas d'erreur
+        selectedDrinks.value = [];
+        originalSelection.value = [];
+        hasSaltFreeDiet.value = false;
+        originalSaltFreeDiet.value = false;
+    }
+});
 
 // Vérifier si une boisson est sélectionnée
 const isSelected = (drinkName: string): boolean => {
-  return selectedDrinks.value.includes(drinkName)
-}
+    return selectedDrinks.value.includes(drinkName);
+};
 
 // Basculer la sélection d'une boisson
 const toggleDrink = (drinkName: string) => {
-  const index = selectedDrinks.value.indexOf(drinkName)
-  
-  if (index > -1) {
-    // Désélectionner
-    selectedDrinks.value.splice(index, 1)
-  } else {
-    // Sélectionner (max 5)
-    if (selectedDrinks.value.length < 5) {
-      selectedDrinks.value.push(drinkName)
-    } else {
-      toast.add({
-        title: 'Limite atteinte',
-        description: 'Vous ne pouvez sélectionner que 5 boissons maximum',
-        color: 'warning'
-      })
-    }
-  }
-}
+    const index = selectedDrinks.value.indexOf(drinkName);
 
-// Obtenir l'icône d'une catégorie de boisson
-const getDrinkIcon = (category: string): string => {
-  return DRINK_CATEGORIES[category as keyof typeof DRINK_CATEGORIES]?.icon || 'i-heroicons-question-mark-circle'
-}
+    if (index > -1) {
+        // Désélectionner
+        selectedDrinks.value.splice(index, 1);
+    } else {
+        // Sélectionner (max 5)
+        if (selectedDrinks.value.length < 5) {
+            selectedDrinks.value.push(drinkName);
+        }
+    }
+};
 
 // Obtenir le label d'une catégorie de boisson
 const getDrinkCategoryLabel = (category: string): string => {
-  return DRINK_CATEGORIES[category as keyof typeof DRINK_CATEGORIES]?.label || 'Autre'
-}
+    return (
+        DRINK_CATEGORIES[category as keyof typeof DRINK_CATEGORIES]?.label ||
+        "Autre"
+    );
+};
 
 // Vérifier s'il y a des changements
 const hasChanges = computed(() => {
-  if (selectedDrinks.value.length !== originalSelection.value.length) return true
-  
-  return !selectedDrinks.value.every(drink => originalSelection.value.includes(drink))
-})
+    return (
+        selectedDrinks.value.length !== originalSelection.value.length ||
+        !selectedDrinks.value.every((drink) =>
+            originalSelection.value.includes(drink),
+        ) ||
+        hasSaltFreeDiet.value !== originalSaltFreeDiet.value
+    );
+});
 
 // Réinitialiser la sélection
 const resetSelection = () => {
-  selectedDrinks.value = [...originalSelection.value]
-}
+    selectedDrinks.value = [...originalSelection.value];
+    hasSaltFreeDiet.value = originalSaltFreeDiet.value;
+};
 
 // Sauvegarder les choix
 const saveChoices = async () => {
-  try {
-    // Validation
-    const errors = validateDrinkChoices(selectedDrinks.value.map(name => ({ name })))
-    if (errors.length > 0) {
-      toast.add({
-        title: 'Erreur de validation',
-        description: errors[0],
-        color: 'error'
-      })
-      return
+    try {
+        // Validation
+        const errors = validateDrinkChoices(
+            selectedDrinks.value.map((name) => ({ name })),
+        );
+        if (errors.length > 0) {
+            useToast().add({
+                title: "Erreur",
+                description: errors[0],
+                color: "error",
+            });
+            return;
+        }
+
+        saving.value = true;
+
+        // Sauvegarder les boissons et le régime
+        await saveInvitationDrinkChoices(
+            invitationId.value,
+            selectedDrinks.value.map((name) => ({ name })),
+            hasSaltFreeDiet.value,
+        );
+
+        // Mettre à jour l'état
+        originalSelection.value = [...selectedDrinks.value];
+        originalSaltFreeDiet.value = hasSaltFreeDiet.value;
+
+        // Afficher le succès
+        useAppToast().showSuccess("Succès", "Vos choix ont été enregistrés");
+    } catch (error: any) {
+        useAppToast().showError(
+            "Erreur",
+            error.message || "Impossible de sauvegarder",
+        );
+    } finally {
+        saving.value = false;
     }
-
-    saving.value = true
-    
-    // Sauvegarder
-    await saveInvitationDrinkChoices(props.invitationId, selectedDrinks.value.map(name => ({ name })))
-    
-    // Mettre à jour l'état
-    originalSelection.value = [...selectedDrinks.value]
-    
-    // Afficher le succès
-    showSuccess.value = true
-    setTimeout(() => {
-      showSuccess.value = false
-    }, 3000)
-    
-  } catch (error: any) {
-    toast.add({
-      title: 'Erreur',
-      description: error.message || 'Impossible de sauvegarder vos choix',
-      color: 'error'
-    })
-  } finally {
-    saving.value = false
-  }
-}
-
+};
 </script>
 
 <style scoped>
 .drink-selection-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+/* Grille responsive */
+.grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* Style des checkboxes */
+.drink-checkbox {
+    transition: all 0.2s ease;
+}
+
+.drink-checkbox:hover {
+    transform: translateY(-1px);
+}
+
+/* Responsive pour mobile */
+@media (max-width: 480px) {
+    .drink-selection-container {
+        padding: 1rem 0.75rem;
+    }
+
+    .grid-cols-2 {
+        grid-template-columns: 1fr; /* 1 colonne sur très petits écrans */
+        gap: 0.5rem;
+    }
+
+    .drink-checkbox {
+        padding: 0.75rem !important;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 640px) {
+    .grid-cols-2 {
+        gap: 0.6rem;
+    }
+
+    .drink-checkbox {
+        padding: 0.875rem !important;
+    }
 }
 
 .drink-item {
-  transition: all 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .drink-item:hover {
-  transform: translateY(-1px);
+    transform: translateY(-1px);
 }
 
 .drink-item.selected {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Responsive pour mobile */
 @media (max-width: 640px) {
-  .drink-selection-container {
-    padding: 1rem;
-  }
+    .drink-selection-container {
+        padding: 1rem 0.75rem; /* Réduction du padding */
+    }
+
+    /* Réduire les paddings des cartes sur mobile */
+    .drink-item .p-4 {
+        padding: 0.75rem !important; /* 12px au lieu de 16px */
+    }
+
+    /* Réduire les tailles des icônes sur mobile */
+    .drink-item .w-10 {
+        width: 2rem !important; /* 32px au lieu de 40px */
+    }
+
+    .drink-item .h-10 {
+        height: 2rem !important; /* 32px au lieu de 40px */
+    }
+
+    .drink-item .w-5 {
+        width: 1rem !important; /* 16px au lieu de 20px */
+    }
+
+    .drink-item .h-5 {
+        height: 1rem !important; /* 16px au lieu de 20px */
+    }
+
+    /* Réduire le cercle de sélection */
+    .drink-item .w-6 {
+        width: 1.25rem !important; /* 20px au lieu de 24px */
+    }
+
+    .drink-item .h-6 {
+        height: 1.25rem !important; /* 20px au lieu de 24px */
+    }
+
+    .drink-item .w-4 {
+        width: 0.875rem !important; /* 14px au lieu de 16px */
+    }
+
+    .drink-item .h-4 {
+        height: 0.875rem !important; /* 14px au lieu de 16px */
+    }
+
+    /* Réduire l'espacement entre les éléments */
+    .drink-item .gap-3 {
+        gap: 0.75rem !important; /* 12px au lieu de 16px */
+    }
+
+    /* Réduire la taille du texte */
+    .drink-item .text-xs {
+        font-size: 0.625rem !important; /* 10px au lieu de 12px */
+    }
+
+    /* Réduire les marges entre les cartes */
+    .space-y-4 > * + * {
+        margin-top: 0.75rem !important; /* 12px au lieu de 16px */
+    }
+
+    /* Optimiser la section régime alimentaire */
+    .mt-8 {
+        margin-top: 1.5rem !important; /* 24px au lieu de 32px */
+    }
+
+    .p-4 {
+        padding: 0.75rem !important; /* 12px au lieu de 16px */
+    }
+
+    /* Adapter le checkbox */
+    .w-5 {
+        width: 1.125rem !important; /* 18px au lieu de 20px */
+    }
+
+    .h-5 {
+        height: 1.125rem !important; /* 18px au lieu de 20px */
+    }
+
+    .gap-3 {
+        gap: 0.75rem !important; /* 12px au lieu de 16px */
+    }
+
+    /* Optimiser le texte sur mobile */
+    .text-base {
+        font-size: 0.875rem !important; /* 14px au lieu de 16px */
+    }
+
+    .ml-8 {
+        margin-left: 2rem !important; /* 32px au lieu de 36px - ajusté pour le checkbox plus petit */
+    }
+
+    /* Optimiser les boutons */
+    .px-6 {
+        padding-left: 1rem !important; /* 16px au lieu de 24px */
+        padding-right: 1rem !important;
+    }
+
+    .px-8 {
+        padding-left: 1.25rem !important; /* 20px au lieu de 32px */
+        padding-right: 1.25rem !important;
+    }
+
+    .gap-4 {
+        gap: 0.75rem !important; /* 12px au lieu de 16px */
+    }
+
+    /* Réduire les marges des sections */
+    .mb-8 {
+        margin-bottom: 1.5rem !important; /* 24px au lieu de 32px */
+    }
+
+    .mt-6 {
+        margin-top: 1.25rem !important; /* 20px au lieu de 24px */
+    }
+
+    .mt-8 {
+        margin-top: 1.5rem !important; /* 24px au lieu de 32px */
+    }
 }
 </style>
