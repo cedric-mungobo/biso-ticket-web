@@ -5,19 +5,19 @@ export const sitemapData = {
       "url": "/",
       "changefreq": "daily",
       "priority": "1.0",
-      "lastmod": "2025-10-15T10:41:54.757Z"
+      "lastmod": "2025-10-16T02:11:04.734Z"
     },
     {
       "url": "/evenements",
       "changefreq": "daily",
       "priority": "0.9",
-      "lastmod": "2025-10-15T10:41:54.757Z"
+      "lastmod": "2025-10-16T02:11:04.734Z"
     },
     {
       "url": "/contact",
       "changefreq": "monthly",
       "priority": "0.5",
-      "lastmod": "2025-10-15T10:41:54.757Z"
+      "lastmod": "2025-10-16T02:11:04.734Z"
     }
   ],
   "eventPages": [

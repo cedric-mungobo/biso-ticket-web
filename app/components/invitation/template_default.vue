@@ -22,7 +22,7 @@
                     <div
                         v-motion
                         :initial="{ opacity: 0, y: 20 }"
-                        :visible="{ opacity: 1, y: 0 }"
+                        :visible-once="{ opacity: 1, y: 0 }"
                         :delay="200"
                         :duration="1000"
                     >
@@ -311,12 +311,12 @@ const handleDownloadInvitation = async () => {
         const invitationData = {
             guestMessage: cleanMessage || undefined,
             backgroundImage: templateBackground,
-            textStartY: 200,
+            textStartY: 100,
             textColor: textColor,
             titleColor: titleColor,
             accentColor: accentColor,
             signatureColor: signatureColor,
-            messagePadding: 200,
+            messagePadding: 150,
             textAlign: "left" as const,
             messageFontSize: messageFontSize.value,
         };
