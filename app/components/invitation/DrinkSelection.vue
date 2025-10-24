@@ -15,7 +15,7 @@
         <!-- Grille de checkboxes -->
         <div v-if="availableDrinks.length > 0" class="space-y-4">
             <!-- Grille 2 colonnes -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3">
                 <label
                     v-for="drink in availableDrinks"
                     :key="drink.name"
@@ -65,7 +65,7 @@
             </div>
 
             <!-- Régime alimentaire simplifié -->
-            <p class="text-xs leading-relaxed opacity-60">
+            <p class="texte-base text-red-500 leading-relaxed opacity-60">
                 Cochez si vous avez un régime sans sel
             </p>
             <div

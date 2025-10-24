@@ -65,7 +65,7 @@
                 class="invitation-content"
                 v-motion
                 :initial="{ opacity: 0, x: 80 }"
-                :visible="{ opacity: 1, x: 0 }"
+                :visible-once="{ opacity: 1, x: 0 }"
                 :delay="600"
                 :duration="1800"
             >

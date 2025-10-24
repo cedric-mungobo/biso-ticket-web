@@ -19,7 +19,7 @@ export const useInvitationDrinks = () => {
   ): Promise<DrinkChoice[]> => {
     try {
       const response = await $myFetch<DrinkChoiceResponse>(
-        `/invitations/${invitationId}/drink-choice`,
+        `/public/invitations/${invitationId}/drink-choice`,
       );
       return response.data || [];
     } catch (error: any) {
@@ -40,7 +40,7 @@ export const useInvitationDrinks = () => {
   ): Promise<DrinkChoice[]> => {
     try {
       const response = await $myFetch<DrinkChoiceResponse>(
-        `/invitations/${invitationId}/drink-choice`,
+        `/public/invitations/${invitationId}/drink-choice`,
         {
           method: "PUT",
           body: {

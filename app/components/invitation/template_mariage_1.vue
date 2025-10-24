@@ -362,7 +362,7 @@ const handleDownloadInvitation = async () => {
             titleColor: titleColor,
             accentColor: accentColor,
             signatureColor: signatureColor,
-            messagePadding: 140,
+            messagePadding: 120,
             textAlign: "left" as const,
             messageFontSize: messageFontSize.value,
         };
