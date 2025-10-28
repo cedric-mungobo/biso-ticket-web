@@ -8,10 +8,8 @@
     <NuxtLink 
       to="/inscription" 
       v-motion
-      :initial="{ opacity: 0, y: -50 }"
-      :visible-once="{ opacity: 1, y: 0 }"
-      :delay="200"
-      :duration="1200"
+      :initial="{ opacity: 0, y: 100 }"
+      :visible-once="{ opacity: 1, y: 0, transition: { duration: 800, delay: 200 } }"
       class="group flex items-center gap-2 rounded-full p-1 pr-3 md:mt-16 mb-2 mt-16 text-purple-700 bg-purple-100"
     >
         <span class="bg-purple-600 text-white text-xs px-3.5 py-1 rounded-full">
@@ -25,10 +23,8 @@
     <!-- Titre principal avec animation fade -->
     <h1 
       v-motion
-      :initial="{ opacity: 0, x: 50 }"
-      :visible-once="{ opacity: 1 , x: 0}"
-      :delay="200"
-      :duration="1200"
+      :initial="{ opacity: 0, y: 100 }"
+      :visible-once="{ opacity: 1, y: 0, transition: { duration: 800, delay: 200 } }"
       class="text-5xl leading-[68px] md:text-6xl md:leading-[84px] font-medium max-w-2xl text-center"
     >
         Passez au digital pour vos 
@@ -37,10 +33,8 @@
     <!-- Sous-titre avec animation slide depuis le bas -->
     <p 
       v-motion
-      :initial="{ opacity: 0, y: 50 }"
-      :visible-once="{ opacity: 1, y: 0 }"
-      :delay="200"
-      :duration="1200"
+      :initial="{ opacity: 0, y: 100 }"
+      :visible-once="{ opacity: 1, y: 0, transition: { duration: 800, delay: 200 } }"
       class="text-base text-center text-gray-600 max-w-lg mt-6"
     >
         Tout ce dont vous avez besoin pour gérer un événement : vendre vos billets en ligne et envoyer des invitations digitales.
@@ -48,10 +42,8 @@
     <!-- Boutons d'action avec animation pop -->
     <div 
       v-motion
-      :initial="{ opacity: 0, scale: 0.8 }"
-      :visible-once="{ opacity: 1, scale: 1 }"
-      :delay="200"
-      :duration="1200"
+      :initial="{ opacity: 0, y: 100 }"
+      :visible-once="{ opacity: 1, y: 0, transition: { duration: 800, delay: 200 } }"
       class="flex flex-col md:flex-row items-center justify-center gap-4 mt-8 w-full max-w-md md:max-w-none mx-auto"
     >
           <NuxtLink 
@@ -71,10 +63,8 @@
     <!-- Liste des fonctionnalités avec animation stagger -->
     <div 
       v-motion
-      :initial="{ opacity: 0, y: 20 }"
-      :visible-once="{ opacity: 1, y: 0 }"
-      :delay="200"
-      :duration="1200"
+      :initial="{ opacity: 0, y: 100 }"
+      :visible-once="{ opacity: 1, y: 0, transition: { duration: 800, delay: 200 } }"
       class="flex flex-wrap justify-center items-center gap-4 md:gap-14 mt-12"
     >
         <p class="flex items-center gap-2">
@@ -95,29 +85,23 @@
     <div 
       v-if="!pending && displayEvents.length > 0" 
       v-motion
-      :initial="{ opacity: 0, y: 50 }"
-      :visible-once="{ opacity: 1, y: 0 }"
-      :delay="200"
-      :duration="1200"
+      :initial="{ opacity: 0, y: 100 }"
+      :visible-once="{ opacity: 1, y: 0, transition: { duration: 800, delay: 200 } }"
       class="mt-20 w-full"
     >
         <div class="text-center mb-8">
             <h2 
               v-motion
-              :initial="{ opacity: 0 }"
-              :visible-once="{ opacity: 1 }"
-              :delay="200"
-              :duration="1200"
+              :initial="{ opacity: 0, y: 100 }"
+              :visible-once="{ opacity: 1, y: 0, transition: { duration: 800, delay: 200 } }"
               class="text-2xl font-semibold text-gray-800 mb-2"
             >
               Événements mis en avant
             </h2>
             <p 
               v-motion
-              :initial="{ opacity: 0, y: 50 }"
-              :visible-once="{ opacity: 1, y: 0 }"
-              :delay="200"
-              :duration="1200"
+              :initial="{ opacity: 0, y: 100 }"
+              :visible-once="{ opacity: 1, y: 0, transition: { duration: 800, delay: 200 } }"
               class="text-gray-600"
             >
               Découvrez nos événements exceptionnels

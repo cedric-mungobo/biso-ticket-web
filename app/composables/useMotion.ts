@@ -175,6 +175,27 @@ export const useMotionPresets = () => {
           ease: 'easeOut'
         }
       }
+    } as MotionVariants<any>,
+    
+    // Nouvelles directives personnalisées
+    'fade-from-bottom': {
+      initial: { opacity: 0, y: 100 },
+      visible: { opacity: 1, y: 0, transition: { duration: 600 } }
+    } as MotionVariants<any>,
+    
+    'fade-from-bottom-once': {
+      initial: { opacity: 0, y: 100 },
+      visibleOnce: { opacity: 1, y: 0, transition: { duration: 600 } }
+    } as MotionVariants<any>,
+    
+    'slide-right-once': {
+      initial: { opacity: 0, x: -100 },
+      visibleOnce: { opacity: 1, x: 0, transition: { duration: 600 } }
+    } as MotionVariants<any>,
+    
+    'slide-left-once': {
+      initial: { opacity: 0, x: 100 },
+      visibleOnce: { opacity: 1, x: 0, transition: { duration: 600 } }
     } as MotionVariants<any>
   }
 
