@@ -16,9 +16,18 @@
 
         <!-- Button Group -->
         <div class="md:order-3 flex items-center gap-x-3">
-          <div class="md:ps-3">
+          <div class="md:ps-3" v-if="!isAuthenticated">
             <NuxtLink class="group inline-flex items-center gap-x-2 py-2 px-3 bg-purple-600 hover:bg-purple-700 font-medium text-sm text-nowrap text-white rounded-full transition-all hover:shadow-lg focus:outline-hidden" to="/connexion">
               Se connecter
+            </NuxtLink>
+          </div>
+          
+          <!-- Profile Button si connecté -->
+          <div class="md:ps-3" v-else>
+            <NuxtLink to="/profile" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold text-sm">
+                {{ userInitials }}
+              </div>
             </NuxtLink>
           </div>
 
@@ -98,6 +107,8 @@
 </template>
 
 <script setup lang="ts">
+import type { User } from '~/types/api'
+
 const menuItems = [
   { name: 'Accueil', href: '/' },
   { name: 'Événements', href: '/evenements' },
@@ -108,6 +119,36 @@ const menuItems = [
 
 const route = useRoute()
 const isMenuOpen = ref(false)
+
+// État d'authentification
+const authToken = useCookie('auth_token')
+const isAuthenticated = computed(() => !!authToken.value)
+
+// Récupérer le profil utilisateur
+const user = ref<User | null>(null)
+
+onMounted(async () => {
+  if (isAuthenticated.value) {
+    try {
+      const { getProfile } = useAuth()
+      user.value = await getProfile()
+    } catch (error) {
+      console.error('Erreur récupération profil:', error)
+      user.value = null
+    }
+  }
+})
+
+const userInitials = computed(() => {
+  const name = (user.value as any)?.name || ''
+  if (!name) return 'U'
+  return name
+    .split(' ')
+    .map((n: string) => n.charAt(0))
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+})
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value
