@@ -60,14 +60,18 @@
 
           <!-- Téléphone -->
           <div>
-            <label for="telephone" class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
-            <UInput id="telephone" v-model="form.telephone" type="tel" required placeholder="Ex: +243 900 000 000" class="w-full    rounded-md " />
+            <label for="telephone" class="block text-sm font-medium text-gray-700 mb-1">
+              Téléphone <span class="text-red-500">*</span>
+            </label>
+            <UInput id="telephone" v-model="form.telephone" type="tel" required placeholder="Ex: 0812345678 ou 0912345678" class="w-full    rounded-md " />
           </div>
 
           <!-- Email -->
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <UInput id="email" v-model="form.email" type="email" required placeholder="Entrez votre email" class="w-full    rounded-md " />
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+              Email <span class="text-gray-400 text-sm">(optionnel)</span>
+            </label>
+            <UInput id="email" v-model="form.email" type="email" placeholder="Entrez votre email" class="w-full    rounded-md " />
           </div>
 
           <!-- Mot de passe -->
@@ -183,9 +187,10 @@ const toast = useToast()
 const { public: { recaptchaSiteKey } } = useRuntimeConfig()
 
 const emailRegex = /[^\s@]+@[^\s@]+\.[^\s@]+/
-const phoneIntl = /^\+?[1-9][0-9]{6,14}$/
+// Validation téléphone: doit commencer par 08 ou 09 et avoir 9 ou 10 chiffres
+const phoneRegex = /^(08|09)\d{7,8}$/
 // reCAPTCHA temporairement désactivé - validation simplifiée
-const isFormValid = computed(() => !!(form.name && form.telephone && form.email && form.password))
+const isFormValid = computed(() => !!(form.name && form.telephone && form.password))
 
 // Gestionnaires reCAPTCHA
 const onCaptchaVerify = (token: string) => {
@@ -263,18 +268,38 @@ const handleRegister = async () => {
     
     // Validations classiques
     if (!form.name.trim()) return useAppToast().showWarning('Nom requis', 'Veuillez saisir votre nom.')
-    if (!emailRegex.test(form.email.trim())) return useAppToast().showError('Email invalide', 'Saisissez une adresse email valide.')
-    if (!phoneIntl.test(form.telephone.replace(/\s/g, ''))) return useAppToast().showError('Téléphone invalide', 'Saisissez un numéro valide (international).')
+    
+    // Validation téléphone (obligatoire, commence par 08 ou 09)
+    const cleanPhone = form.telephone.trim().replace(/\s/g, '')
+    if (!phoneRegex.test(cleanPhone)) {
+      return useAppToast().showError(
+        'Téléphone invalide', 
+        'Le numéro doit commencer par 08 ou 09 et contenir 9 ou 10 chiffres. Ex: 0812345678'
+      )
+    }
+    
+    // Validation email (optionnel, mais si fourni doit être valide)
+    if (form.email.trim() && !emailRegex.test(form.email.trim())) {
+      return useAppToast().showError('Email invalide', 'Saisissez une adresse email valide.')
+    }
+    
     if (form.password.length < 8) return useAppToast().showError('Mot de passe trop court', 'Le mot de passe doit contenir au moins 8 caractères.')
     
     isLoading.value = true
-    await register({
+    
+    // Préparer les données pour l'inscription
+    const registerData: any = {
       name: form.name.trim(),
-      email: form.email.trim(),
-      telephone: form.telephone.trim(),
+      telephone: cleanPhone,
       password: form.password
-      // recaptcha_token: recaptchaToken.value // Temporairement désactivé
-    })
+    }
+    
+    // Ajouter l'email seulement s'il est fourni
+    if (form.email.trim()) {
+      registerData.email = form.email.trim()
+    }
+    
+    await register(registerData)
     success.value = 'Compte créé avec succès ! Redirection...'
     useAppToast().showSuccess('Bienvenue', 'Votre compte a été créé.')
     await redirectAfterAuth('/organisateur')

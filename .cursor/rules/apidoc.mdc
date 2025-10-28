@@ -3,6 +3,8 @@ description:
 globs:
 alwaysApply: true
 ---
+# API Documentation
+
 ## API Frontend Guide
 
 # Biso Ticket SaaS 
@@ -73,9 +75,19 @@ Base URL: `http://api.bisoticket.com/api	`
 ### Parcours client (public + auth)
 
 - Public
-  - GET `/api/public/events?per_page=15&q=` → liste d'événements publics actifs
+  - GET `/api/public/events?per_page=15&q=&time_filter=&featured=` → liste d'événements publics actifs (filtres: this_week, this_month, featured=true/false)
+  - GET `/api/public/events/discover?per_page=15&limit=&time_filter=` → événements mis en avant (featured) (filtres: this_week, this_month)
   - GET `/api/public/events/{slug}` → détail d'événement (par slug ou id)
   - GET `/api/public/events/{slug}/tickets?per_page=15` → billets disponibles
+  - GET `/api/public/events/{slug}/messages?per_page=15` → tous les messages du livre d'or (paginated)
+  - GET `/api/public/events/{slug}/messages/random` → un message aléatoire du livre d'or
+
+  - Livre d'or (invitation publique)
+    - GET `/api/public/invitations/{token}` → détail invitation publique (affichage)
+    - POST `/api/public/invitations/{token}/confirm` → confirmer la présence
+    - POST `/api/public/invitations/messages`
+      - body: `{ "token": string, "content": string (≤2000) }`
+      - 201: `{ status, message, data: { id } }`
 
 - Auth (client)
   - POST `/api/client/events/{event}/orders` → créer commande (pending)
@@ -127,10 +139,64 @@ Notes FlexPay:
 - Le serveur génère `reference`/`amount` et calcule le total depuis les items (conversion devise si nécessaire).
 - Le push STK/USSD peut prendre 30–90s selon l’opérateur. Les métadonnées incluent `metadata.flexpay.orderNumber`.
 
-### Vérifier le statut d’un paiement (client)
+### Vérifier le statut d'un paiement (client)
 - GET `/api/client/payments/check?reference=...` ou `/api/client/payments/check?order_number=...`
-  - 200: `{ status, message, data: { code, message, status: 'paid'|'failed'|null, orderNumber, reference } }`
-  - Notes: appelle FlexPay `check`, et si succès (`status=paid`), met à jour `payments.status=paid` et `orders.status=paid`.
+  - 200: `{ status, message, data: { code, message, status: 'paid'|'pending'|'failed'|null, orderNumber, reference } }`
+  - Notes: 
+    - Appelle FlexPay `check` pour vérifier le statut réel de la transaction
+    - `status: 'paid'` = paiement finalisé avec succès
+    - `status: 'pending'` = paiement en cours (transaction trouvée mais pas encore finalisée)
+    - `status: 'failed'` = paiement échoué ou transaction non trouvée
+    - Si `status=paid`, met automatiquement à jour `payments.status=paid` et `orders.status=paid`
+
+Exemple cURL:
+```bash
+curl -X GET 'https://api.bisoticket.com/api/client/payments/check?reference=deaa2f78-04ee-453b-bf06-9b719d65a02c' \
+  -H 'Authorization: Bearer {TOKEN}' \
+  -H 'Accept: application/json'
+```
+
+Exemple de réponses:
+```json
+// Paiement en cours
+{
+  "status": true,
+  "message": "Statut paiement",
+  "data": {
+    "code": "0",
+    "message": "Transaction trouvée",
+    "status": "pending",
+    "orderNumber": "9bsTX7qXdpQe243815877848",
+    "reference": "deaa2f78-04ee-453b-bf06-9b719d65a02c"
+  }
+}
+
+// Paiement finalisé
+{
+  "status": true,
+  "message": "Statut paiement",
+  "data": {
+    "code": "0",
+    "message": "Transaction finalisée",
+    "status": "paid",
+    "orderNumber": "9bsTX7qXdpQe243815877848",
+    "reference": "deaa2f78-04ee-453b-bf06-9b719d65a02c"
+  }
+}
+
+// Paiement échoué
+{
+  "status": true,
+  "message": "Statut paiement",
+  "data": {
+    "code": "2",
+    "message": "Transaction échouée",
+    "status": "failed",
+    "orderNumber": "9bsTX7qXdpQe243815877848",
+    "reference": "deaa2f78-04ee-453b-bf06-9b719d65a02c"
+  }
+}
+```
 
 ### Mes tickets (client)
 - GET `/api/client/tickets?per_page=15`
@@ -221,6 +287,42 @@ Event (resource)
   },
   "createdAt": "...",
   "updatedAt": "..."
+}
+```
+
+Payload (création évènement)
+```json
+{
+  "title": "Concert Biso",
+  "location": "Kinshasa",
+  "starts_at": "2025-02-01T18:00:00Z",
+  "ends_at": null,
+  "status": "active",
+  "is_public": true,
+  "settings": {
+    "scan_enabled": true,
+    "categories": ["music", "live"],
+    "tags": ["biso", "launch"]
+  }
+}
+```
+
+Payload (mise à jour évènement)
+```json
+{
+  "title": "Concert Biso (updated)",
+  "settings": {
+    "tags": ["music", "2025"]
+  }
+}
+```
+
+Vider les tags (mettre un tableau vide)
+```json
+{
+  "settings": {
+    "tags": []
+  }
 }
 ```
 
@@ -322,6 +424,7 @@ curl -X PATCH http://api.bisoticket.com/api	/events/{id} \
 
 Notes
 - Les clés de `settings` sont en snake_case dans la requête et renvoyées en camelCase dans la réponse (`scan_enabled` → `scanEnabled`, etc.).
+- `settings` est toujours présent dans la réponse. Les tableaux (`categories`, `priorities`, `tags`) sont normalisés en `[]` si absents.
 - Pour lister publiquement un événement: `is_public=true` et `status=active`.
 
 ### Billets
@@ -419,6 +522,22 @@ Exemple d’erreur 422 (changement de devise avec réservations)
 - GET `/api/events/{event}/invitations/{invitation}` → `Invitation`
 - PUT/PATCH `/api/events/{event}/invitations/{invitation}` → `Invitation`
 - DELETE `/api/events/{event}/invitations/{invitation}` → `{ status, message }`
+
+Notes (création et crédits)
+- Création simple: POST `/api/events/{event}/invitations` avec un objet
+```json
+{ "guest_name": "Alice", "guest_email": "alice@example.com" }
+```
+- Création en batch: POST `/api/events/{event}/invitations` avec un tableau
+```json
+{ "invitations": [ { "guest_name": "Alice" }, { "guest_name": "Bob", "guest_email": "bob@example.com" } ] }
+```
+- Validation: `guest_name` requis; `guest_email` optionnel (email si présent)
+- Crédits: 1 crédit consommé par invitation créée
+  - Si batch et solde insuffisant, 422 “Crédits insuffisants” et aucun crédit n’est consommé
+- Statut par défaut: `pending`
+- Partage/envoi: POST `/api/events/{event}/invitations/{invitation}/share`
+  - Consomme 1 crédit, met `status=sent` et `sentAt`
 
 Note: si `invitation_template_id` n’est pas fourni lors de la création, l’API applique automatiquement `settings.default_invitation_template_id` de l’événement.
 
@@ -555,15 +674,253 @@ Payment (resource)
 ### Divers
 - GET `/api/health` → `{ status: "ok" }`
 
+### Rapports (auth)
+- GET `/api/reports/summary`
+  - Query params: `period=day|7d|30d|custom`, `currency=USD|CDF` (3 lettres), si `period=custom` alors `from`, `to` (dates ISO)
+  - 200:
+```json
+{
+  "status": true,
+  "message": "Rapport global",
+  "data": {
+    "kpis": {
+      "users_total": 10,
+      "events_total": 5,
+      "payments_paid_total": 20,
+      "revenue_period": 1500,
+      "tickets_sold_total": 300,
+      "tickets_sold_period": 120,
+      "tickets_paid_period": 120,
+      "tickets_failed_period": 4
+    },
+    "recent": { "events": [ ... ], "payments": [ ... ] },
+    "trend7d": [ { "date": "2025-02-01", "total": 200 }, ... ],
+    "topEvents": [ { "id": 1, "title": "Concert", "revenue": 500 } ],
+    "credits": { "credits_purchased": 100, "credits_consumed": 80, "credit_revenue_period": 50, "total_credits_balance": 500 },
+    "invitations": {
+      "total": 120,
+      "pending": 20,
+      "sent": 80,
+      "viewed": 60,
+      "confirmed": 45,
+      "created_period": 30,
+      "confirmed_period": 12,
+      "conversion_rate": 37.5,
+      "view_rate": 75
+    },
+    "scans": {
+      "total": 520,
+      "valid_period": 430,
+      "duplicate_period": 12,
+      "invalid_period": 5,
+      "attempts_period": 447
+    },
+    "commissions": {
+      "commission_revenue_period": 125.50
+    },
+    "filters": { "period": "7d", "currency": "CDF", "from": null, "to": null }
+  }
+}
+```
+
+### Scan agents (public via X-Scan-Secret)
+- Header obligatoire: `X-Scan-Secret: {SECRET}` (lié à l’événement; expire à `ends_at`).
+- GET `/api/public/events/{eventPublicId}/scan-registry?updated_since=ISO8601`
+  - 200:
+```json
+{ "status": true, "message": "Scan registry", "data": { "items": [ { "order_item_id": 10, "qr_code": "TOKEN_CHIFFRE", "ticket_name": "VIP", "updated_at": "2025-09-05T11:00:00Z" } ] } }
+```
+- POST `/api/public/events/{eventPublicId}/scans/qr`
+  - body: `{ "qr_code": "TOKEN_CHIFFRE", "location": "Gate A" }`
+- POST `/api/public/events/{eventPublicId}/scans/sync`
+  - body: `{ "items": [ { "qr_code": "TOKEN_CHIFFRE", "scanned_at": "2025-09-05T12:00:00Z", "location": "Gate A", "device_id": "phone-1" } ] }`
+
+- GET `/api/events/{event}/reports/summary`
+  - Accès: uniquement l’organisateur de l’événement
+  - Query params: idem ci-dessus
+  - 200:
+```json
+{
+  "status": true,
+  "message": "Rapport événement",
+  "data": {
+    "kpis": {
+      "payments_paid_total": 12,
+      "revenue_period": 850,
+      "tickets_sold_total": 220,
+      "tickets_sold_period": 90,
+      "tickets_paid_period": 90,
+      "tickets_failed_period": 2
+    },
+    "recent": { "payments": [ ... ] },
+    "trend7d": [ { "date": "2025-02-01", "total": 120 }, ... ],
+    "invitations": {
+      "total": 80,
+      "pending": 10,
+      "sent": 55,
+      "viewed": 40,
+      "confirmed": 30,
+      "created_period": 18,
+      "confirmed_period": 7,
+      "conversion_rate": 37.5,
+      "view_rate": 72.73
+    },
+    "scans": {
+      "total": 210,
+      "valid_period": 170,
+      "duplicate_period": 8,
+      "invalid_period": 3,
+      "attempts_period": 181
+    },
+    "commissions": {
+      "commission_revenue_period": 75.00
+    },
+    "filters": { "event_id": 123, "period": "7d", "currency": "CDF", "from": null, "to": null }
+  }
+}
+```
+
+Notes:
+- `period` par défaut: `7d`. `currency` par défaut: `CDF`.
+- Si `period=custom`, fournir `from` et `to` (inclusifs; `to` ≥ `from`).
+- Les réponses sont mises en cache côté serveur pour de brèves durées (30–60s) pour de meilleures performances.
+- Les montants de `revenue_period`, `trend7d`, `topEvents`, `tickets_*_period` et `commissions.commission_revenue_period` sont filtrés par `currency` et ne sont pas convertis entre devises.
+- Les KPIs `scans.*` et `invitations.*` ne dépendent pas de la devise.
+
 ### Presets (administration)
 - GET `/api/presets/event-categories` → `{ status, data: { categories: string[] } }`
 - POST `/api/presets/event-categories` (auth)
   - body: `{ categories: string[] }`
   - 200: `{ status, message, data: { categories } }`
 
+### Événements mis en avant (public)
+
+#### Découvrir les événements featured
+- GET `/api/public/events/discover?per_page=15&limit=`
+  - 200: `{ status, message, data: { items: [...], meta: {...} } }` (avec pagination)
+  - 200: `{ status, message, data: [...] }` (avec limite)
+  - Paramètres:
+    - `per_page` (optionnel): nombre d'événements par page (défaut: 15)
+    - `limit` (optionnel): limite le nombre d'événements retournés (désactive la pagination)
+  - Filtres appliqués:
+    - ✅ Événements publics (`is_public = true`)
+    - ✅ Événements actifs (`status = 'active'`)
+    - ✅ Événements approuvés (`approved_at IS NOT NULL`)
+    - ✅ Événements mis en avant (`featured = true` dans les paramètres)
+  - Tri: par date de début décroissante (`starts_at DESC`)
+  - Réponse (avec pagination):
+```json
+{
+  "status": true,
+  "message": "Événements mis en avant",
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "title": "Concert de Jazz",
+        "slug": "concert-de-jazz",
+        "location": "Kinshasa",
+        "startsAt": "2024-12-25T20:00:00.000000Z",
+        "endsAt": "2024-12-25T23:00:00.000000Z",
+        "imageUrl": "https://example.com/image.jpg",
+        "isPublic": true,
+        "status": "active",
+        "approvedAt": "2024-12-20T10:00:00.000000Z"
+      }
+    ],
+    "meta": {
+      "currentPage": 1,
+      "lastPage": 3,
+      "perPage": 15,
+      "total": 42
+    }
+  }
+}
+```
+  - Réponse (avec limite):
+```json
+{
+  "status": true,
+  "message": "Événements mis en avant",
+  "data": [
+    {
+      "id": 1,
+      "title": "Concert de Jazz",
+      "slug": "concert-de-jazz",
+      "location": "Kinshasa",
+      "startsAt": "2024-12-25T20:00:00.000000Z",
+      "endsAt": "2024-12-25T23:00:00.000000Z",
+      "imageUrl": "https://example.com/image.jpg",
+      "isPublic": true,
+      "status": "active",
+      "approvedAt": "2024-12-20T10:00:00.000000Z"
+    }
+  ]
+}
+```
+
+### Messages du livre d'or (public)
+
+#### Récupérer tous les messages d'un événement
+- GET `/api/public/events/{slug}/messages?per_page=15`
+  - 200: `{ status, message, data: { messages: [...], meta: { currentPage, lastPage, perPage, total } } }`
+  - Paramètres:
+    - `per_page` (optionnel): nombre de messages par page (défaut: 15)
+  - Réponse:
+```json
+{
+  "status": true,
+  "message": "Messages du livre d'or",
+  "data": {
+    "messages": [
+      {
+        "id": 123,
+        "authorName": "Jean Dupont",
+        "authorEmail": "jean@example.com",
+        "content": "Merci pour cette belle soirée !",
+        "createdAt": "2024-01-15T20:30:00.000Z"
+      }
+    ],
+    "meta": {
+      "currentPage": 1,
+      "lastPage": 3,
+      "perPage": 15,
+      "total": 42
+    }
+  }
+}
+```
+
+#### Récupérer un message aléatoire
+- GET `/api/public/events/{slug}/messages/random`
+  - 200: `{ status, message, data: { message: {...} | null } }`
+  - Réponse:
+```json
+{
+  "status": true,
+  "message": "Message aléatoire",
+  "data": {
+    "message": {
+      "id": 123,
+      "authorName": "Jean Dupont",
+      "authorEmail": "jean@example.com",
+      "content": "Merci pour cette belle soirée !",
+      "createdAt": "2024-01-15T20:30:00.000Z"
+    }
+  }
+}
+```
+
+#### Envoyer un message
+- POST `/api/public/invitations/messages`
+  - body: `{ "token": string, "content": string (≤2000) }`
+  - 201: `{ status, message, data: { id } }`
+  - 404: Si le token d'invitation n'est pas valide
+  - 422: Si la validation échoue (contenu trop long, etc.)
+
 Notes
 - Toutes les routes (hors health et FlexPay) nécessitent Sanctum.
 - Paramètre `per_page` gère la pagination (par défaut 15).
-- Les identifiants `{event}`, `{order}`, etc. sont des IDs numériques.
+- Les identifiants `{event}`, `{order}`, etc. sont des IDs numériques côté endpoints privés. Pour les endpoints publics de scan, utilisez de préférence `{eventPublicId}` (ULID opaque). L’URL des endpoints publics accepte `id`, `slug` ou `public_id`.
 
 

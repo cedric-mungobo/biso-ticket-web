@@ -99,3 +99,8 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Classes utilitaires personnalisées */
+.container-custom {
+  @apply max-w-5xl mx-auto px-2;
+}
